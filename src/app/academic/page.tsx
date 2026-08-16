@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { AcademicTasks } from "@/components/academic/AcademicTasks";
 import { CoursesSection } from "@/components/academic/CoursesSection";
 import { RemindersCard } from "@/components/academic/RemindersCard";
+import { ScheduleCheckSection } from "@/components/academic/ScheduleCheckSection";
 import { TimetableTodo } from "@/components/academic/TimetableTodo";
 import { CalendarSection, CalendarSkeleton } from "@/components/calendar/CalendarSection";
 import { Card } from "@/components/ui/Card";
@@ -116,11 +117,21 @@ export default function AcademicPage() {
           title="Timetable"
           caption="blocked-off time · lives in Google Calendar · pick work from the list beside it"
         />
-        <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_18rem]">
-          <Suspense fallback={<CalendarSkeleton />}>
-            <CalendarSection home="academic" />
-          </Suspense>
-          <TimetableTodo tasks={openWork} />
+        {/* min-w-0: without it the 1fr track inherits the week grid's 52rem
+            min-content width, the tracks overrun the section, and the side
+            column hangs off the right edge. */}
+        <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
+          <div className="min-w-0">
+            <Suspense fallback={<CalendarSkeleton />}>
+              <CalendarSection home="academic" />
+            </Suspense>
+          </div>
+          <div className="flex flex-col gap-4">
+            <TimetableTodo tasks={openWork} />
+            <Suspense fallback={null}>
+              <ScheduleCheckSection courses={courses} />
+            </Suspense>
+          </div>
         </div>
       </section>
     </PageShell>

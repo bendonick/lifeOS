@@ -14,6 +14,9 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
    removed in the Notion design; do not add GPA features).
    Each course opens a detail view: metadata, its assignments/exams (tasks filtered by
    course_id), and its materials folder listing (`data/academic/courses/<slug>/lectures`).
+   An enrolled course with days, a start time and a term start also links out to a **prefilled
+   Google Calendar form** (decision #27) — the app fills the series, Google creates and owns
+   the event.
 
 3. **Assignments & Tasks** — `tasks` filtered domain=academic, type in (task, assignment).
    View tabs: All / To Do / Upcoming / Overdue / By course / Completed. Columns: name, course,

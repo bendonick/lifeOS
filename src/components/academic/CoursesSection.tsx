@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { Pill } from "@/components/ui/Pill";
 import { Table } from "@/components/ui/Table";
 import { scheduleDays } from "@/lib/academic/course";
+import { googleEventPlan } from "@/lib/academic/gcal";
 import type { CreditTotals } from "@/lib/db/courses";
 import type { Course } from "@/lib/types";
 
@@ -116,6 +117,7 @@ export function CoursesSection({
               <Pill tone={c.status === "enrolled" ? "academic" : "neutral"}>{c.status}</Pill>
             </td>
             <td className="px-3 py-2 text-right whitespace-nowrap">
+              <GoogleLink course={c} />
               <button
                 type="button"
                 onClick={() => {
@@ -175,6 +177,27 @@ export function CoursesSection({
         )}
       </div>
     </div>
+  );
+}
+
+/** Only for a course that is actually running and has a describable series —
+ *  a link that would open a half-empty Google form is worse than no link. */
+function GoogleLink({ course }: { course: Course }) {
+  if (course.status !== "enrolled") return null;
+  const plan = googleEventPlan(course);
+  if (!plan) return null;
+  return (
+    <a
+      href={plan.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={`Opens Google Calendar with ${plan.summary} prefilled.${
+        plan.openEnded ? " No term end is set, so the series will repeat until you give it one." : ""
+      } Pick the Academic calendar, then Save.`}
+      className="rounded px-1.5 text-xs text-muted hover:text-academic"
+    >
+      calendar ↗
+    </a>
   );
 }
 
