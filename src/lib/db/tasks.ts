@@ -17,6 +17,19 @@ export function weekTasks(): Task[] {
     .all(horizon) as Task[];
 }
 
+/** One domain's slice of the week view (the payoff of decision #9: pages are
+ *  filtered views over the single tasks store). */
+export function weekTasksByDomain(domain: Domain): Task[] {
+  const horizon = addDays(zurichToday(), 7);
+  return db
+    .prepare(
+      `SELECT * FROM tasks
+       WHERE done = 0 AND domain = ? AND due IS NOT NULL AND substr(due, 1, 10) <= ?
+       ORDER BY due, id`
+    )
+    .all(domain, horizon) as Task[];
+}
+
 export function allTasks(): Task[] {
   return db.prepare("SELECT * FROM tasks ORDER BY done, due IS NULL, due, id").all() as Task[];
 }

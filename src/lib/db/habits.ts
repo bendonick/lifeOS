@@ -1,0 +1,40 @@
+import { db } from "@/lib/db";
+import { addDays } from "@/lib/dates";
+
+export interface HabitWeek {
+  id: number;
+  name: string;
+  time_of_day: "morning" | "anytime" | "evening";
+  /** Trailing 7 days, oldest → newest — index 6 is today (§3). */
+  days: boolean[];
+}
+
+/** All active habits with their trailing week — one query for the whole log
+ *  window, not one per habit (§3). */
+export function habitsWithWeek(today: string): HabitWeek[] {
+  const habits = db
+    .prepare("SELECT id, name, time_of_day FROM habits WHERE active = 1 ORDER BY id")
+    .all() as Array<Pick<HabitWeek, "id" | "name" | "time_of_day">>;
+
+  const from = addDays(today, -6);
+  const logs = db
+    .prepare("SELECT habit_id, date FROM habit_log WHERE done = 1 AND date >= ? AND date <= ?")
+    .all(from, today) as Array<{ habit_id: number; date: string }>;
+  const done = new Set(logs.map((l) => `${l.habit_id}|${l.date}`));
+
+  const dates = Array.from({ length: 7 }, (_, i) => addDays(from, i));
+  return habits.map((h) => ({ ...h, days: dates.map((d) => done.has(`${h.id}|${d}`)) }));
+}
+
+/** Toggle a day's log — upsert / delete on the (habit_id, date) unique (§3). */
+export function setHabitDone(habitId: number, date: string, isDone: boolean) {
+  if (isDone) {
+    db.prepare("INSERT OR IGNORE INTO habit_log (habit_id, date, done) VALUES (?, ?, 1)").run(habitId, date);
+  } else {
+    db.prepare("DELETE FROM habit_log WHERE habit_id = ? AND date = ?").run(habitId, date);
+  }
+}
+
+export function habitExists(id: number): boolean {
+  return !!db.prepare("SELECT 1 AS hit FROM habits WHERE id = ?").get(id);
+}

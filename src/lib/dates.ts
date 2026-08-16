@@ -15,6 +15,26 @@ export function addDays(date: string, n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** 'YYYY-MM-DD' passes through; 'DD.MM.YYYY' converts; anything else → null. */
+export function normalizeDate(raw: string): string | null {
+  const s = raw.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const dmy = s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+  if (dmy) return `${dmy[3]}-${dmy[2]}-${dmy[1]}`;
+  return null;
+}
+
+/** 'YYYY-MM' of a 'YYYY-MM-DD' date. */
+export function monthOf(date: string): string {
+  return date.slice(0, 7);
+}
+
+/** Number of days in a 'YYYY-MM' month. */
+export function daysInMonth(month: string): number {
+  const [y, m] = month.split("-").map(Number);
+  return new Date(Date.UTC(y, m, 0)).getUTCDate();
+}
+
 /** Monday of the week containing `date` ('YYYY-MM-DD'). */
 export function mondayOf(date: string): string {
   const d = new Date(`${date}T12:00:00Z`);

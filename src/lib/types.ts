@@ -19,6 +19,31 @@ export interface Task {
   created_at: string;
 }
 
+export interface Transaction {
+  id: number;
+  date: string; // 'YYYY-MM-DD'
+  amount_chf: number; // bank-signed: debits negative, credits positive
+  category: string | null;
+  merchant: string | null;
+  note: string | null;
+  source: string | null; // manual | csv:<bank>
+  batch_id: number | null;
+  dedupe_key: string | null;
+  budget_line_id: number | null;
+  created_at: string;
+}
+
+export interface BudgetLine {
+  id: number;
+  name: string;
+  tier: "fixed" | "variable" | "annual";
+  amount_chf: number;
+  carryover: 0 | 1;
+  sort_order: number;
+  active: 0 | 1;
+  notes: string | null;
+}
+
 export interface InboxItem {
   id: number;
   text: string;

@@ -29,14 +29,14 @@ stubbed. `.gitignore`, `.env.example`, README run instructions.
 **Done when:** `npm run dev` → LifeOS renders, a task added inline appears in This week,
 a capture lands in Inbox, page matches the design system.
 
-## Stage 2 — Personal page
+## Stage 2 — Personal page — COMPLETE (2026-08-16)
 
-Build per `03-pages/personal.md`: habits with daily log, health cards with manual entry +
-CSV import, tasks, notes, bills, spending card with manual transactions. Explore the health
-device/API question with the user; record the decision. Wire chosen integration if cheap,
-else backlog it.
-**Done when:** user can check off today's habits, log a metric and see the card update,
-add a transaction and see pace math work.
+Built per `06-stage2-brief.md` (which superseded parts of `03-pages/personal.md`): habits
+with 7-day strips, source-agnostic health ingest (manual + mapped CSV; devices declined —
+decision #17) with a Recharts trends page (`/personal/health`), three-tier budget over the
+real UBS-derived numbers, UBS CSV import with preview/dedupe/rule-based categorisation, the
+year of history imported behind `budget.start_date` = 2026-09-01 (decision #23), tasks,
+notes, bills, calendar stub. Definition of done in the brief §8 — all items verified.
 
 ## Stage 3 — Academic page + ICS calendar
 

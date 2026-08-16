@@ -1,46 +1,66 @@
 # Page — Personal (`/personal`, purple)
 
-Health, habits, money, and everyday life. This page is where device/API exploration happens —
-build manual paths first, then wire integrations with the user in the loop.
+Health, habits, money, and everyday life. **Built in Stage 2 (2026-08-16)** to
+`docs/06-stage2-brief.md`, which refined this spec and wins where they differ. This doc now
+describes what exists.
 
-## Modules
+## Layout
 
-1. **Habits — Today** — `habits`/`habit_log`: today's checklist grouped by time-of-day pill
-   (Morning / Anytime / Evening), one-tap done, resets daily by date. Seed habits from the
-   user's Notion page: Brush Teeth 2x, Make Bed, Vitamins, Work on German, Workout, Floss.
-   Streaks/heatmap are a later nice-to-have — log the data now, visualize later.
+Breadcrumb `LifeOS / Personal`; narrow left rail (Quick Actions · Navigation ·
+Notes-to-review count · German card); wide main column of banner+caption sections:
+Habits → Health → Spending → Tasks → Bills → Notes; Calendar full-width below.
 
-2. **Health cards** — the card grammar from the design system, reading `health_metrics`:
-   - *Macros left* — kcal + P/C/F remaining vs targets (targets in config)
-   - *Sleep* — last score, delta vs 7-day average
-   - *HRV* — last value vs personal range (e.g. "N ms · above range · low–high")
-   - *Steps* — count, % of 10k
-   Stage 2 ships manual quick-entry + CSV import into `health_metrics`; device/API integration
-   (Health Auto Export / Whoop / Oura / Garmin — ask what the user wears) is explored in the
-   same session and recorded in the decisions ledger. A *Health log & trends* detail view
-   (simple charts over time) hangs off the cards.
+## Modules (as built)
 
-3. **Tasks — due this week** — `tasks` domain=personal, with inline add.
+1. **Habits** — `habits`/`habit_log`. Morning/Anytime/Evening groups, one-tap done for
+   today, trailing **7-dot strip** per habit (today rightmost, ringed). Optimistic toggle
+   with revert-on-failure. One query per page load for the whole week window.
 
-4. **Notes** — lightweight notes inbox ("to review · Sunday"): text rows with a reviewed flag.
-   Seeded examples from Notion: "Try a new running route", "Bill-split app idea",
-   "Gift idea for a friend". (Simple table; not a PKM.)
+2. **Health cards** — *Macros left*, *Sleep* (delta vs 7d avg), *HRV* (vs configured range),
+   *Steps* (% of target), each with a hand-rolled SVG sparkline (14d). Honest empty states.
+   Manual quick-entry + **mapped CSV import** (`health.csv_mappings` in config; `generic`
+   mapping seeded). All writes go through `ingestMetrics(rows, source)`
+   (`src/lib/health/ingest.ts`); metric names live only in `src/lib/health/metrics.ts`.
+   **No device integration** (decision #17) — Oura/Garmin adapters are BACKLOG and will
+   write through the same ingest function. Targets in config (`health.target.*`,
+   `health.range.hrv`), confirmed with the user 2026-08-16.
 
-5. **Bills** — `bills` monthly checklist (Subscriptions, Health insurance, Phone, Rent) with a
-   paid checkbox per current month; unpaid past due_day gets the urgency accent.
+3. **Health trends** — `/personal/health`. Linked single-series small multiples (shared
+   range selector 7d/30d/90d/all, synced crosshair), a correlation **scatter** with Pearson
+   *r* and a 1-day-lag toggle, and a table view. Never dual-axis (decision #19). Recharts +
+   shared tokens in `src/components/charts/tokens.ts`.
 
-6. **Spending — current month** — card + breakdown over `transactions`/`budgets`:
-   "CHF X / Y · N% · day D · on pace · top: eating out CHF Z". Pace = spend rate vs
-   day-of-month. Stage 2: manual transaction entry + CSV import stub; intelligence (categories,
-   anomalies, insights) is Stage 6.
+4. **Spending** — three-tier `budget_lines` (fixed/variable/annual, real numbers from the
+   user's budget) + `category_map` rollup; `budgets` = month overrides. Card shows the
+   **variable-tier** headline with pace math, all-in context, and the labelled MoM trend;
+   while today < `budget.start_date` (2026-09-01) it shows the first budget month,
+   labelled. Budget rows: filled track + **pace tick**; warn only when ahead of pace,
+   danger past 100%; fixed rows show paid/unpaid; annual rows show year spend + /mo. Inline
+   amount edit (standing or "just this month"). Manual transaction quick-add. **UBS CSV
+   import**: upload → preview (counts, skip/uncategorised summary) → confirm; dedupe on
+   `ubs:<transaction no>`; merchant→category rules in config (`budget.rules`), trained via
+   the uncategorised queue's "always categorise" (§5d/§5e of the brief). Full-year history
+   imported; invisible to all budget math via `src/lib/money/window.ts` — only the labelled
+   MoM line and the history chart (with start-date marker) read past the start.
 
-7. **German** — small card: word of the day from `briefs` (kind=german_word) + a link to
-   the Work-on-German habit. Keep tiny; it's a delight feature, not a language platform.
+5. **Tasks — due this week** — reuses the Stage 1 `ThisWeek` component with a
+   domain-filtered query (`weekTasksByDomain('personal')`).
 
-8. **Calendar (command center)** — Personal ICS calendar week view (toggle all) beside the
-   personal task list.
+6. **Bills** — `bills`/`bill_payments`, paid checkbox per month. Unpaid past `due_day` →
+   warn; unpaid at month rollover (only when the previous month was tracked) → danger.
+   Seeded: Rent · Health insurance · Phone · Transit pass, all due day 1 (confirmed).
+
+7. **Notes** — inbox with reviewed toggle + inline add ("to review · Sunday"). Seeded three
+   notes from Notion.
+
+8. **German** — rail card reading `briefs` kind=`german_word`; honest empty state until
+   Stage 5.
+
+9. **Calendar** — Stage 1 `CalendarStub`, personal accent; real ICS lands in Stage 3.
 
 ## Data touched
 
-`habits`, `habit_log`, `health_metrics`, `tasks`, `bills`, `transactions`, `budgets`,
-`briefs` (read), ICS Personal feed, `data/imports/` (CSV ingest).
+`habits`, `habit_log`, `health_metrics`, `tasks`, `bills`, `bill_payments`, `notes`,
+`transactions`, `budgets`, `budget_lines`, `category_map`, `import_batches`, `config`,
+`briefs` (read), `data/imports/` (archived CSVs; the user's real UBS export lives here,
+gitignored).

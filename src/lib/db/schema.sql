@@ -108,17 +108,57 @@ CREATE TABLE IF NOT EXISTS health_metrics (
 );
 CREATE INDEX IF NOT EXISTS idx_health_metrics_date ON health_metrics (date, metric);
 
+-- amount_chf is bank-signed: debits negative, credits positive. Spend math sums
+-- -amount over mapped categories, so refunds net out and income never counts.
 CREATE TABLE IF NOT EXISTS transactions (
-  id         INTEGER PRIMARY KEY,
-  date       TEXT NOT NULL,          -- 'YYYY-MM-DD'
-  amount_chf REAL NOT NULL,
-  category   TEXT,
-  merchant   TEXT,
-  note       TEXT,
-  source     TEXT,                   -- manual | csv:<bank>
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  id             INTEGER PRIMARY KEY,
+  date           TEXT NOT NULL,      -- 'YYYY-MM-DD'
+  amount_chf     REAL NOT NULL,
+  category       TEXT,
+  merchant       TEXT,
+  note           TEXT,
+  source         TEXT,               -- manual | csv:<bank>
+  batch_id       INTEGER REFERENCES import_batches(id) ON DELETE SET NULL,
+  dedupe_key     TEXT,               -- 'ubs:<txn no>' for UBS; date|amount|merchant fallback for banks without a stable id; NULL for manual
+  budget_line_id INTEGER REFERENCES budget_lines(id),  -- manual override; NULL = derive via category_map
+  created_at     TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions (date);
+-- idx_transactions_dedupe (partial unique on dedupe_key) is created in the
+-- startup migration (src/lib/db/index.ts) after the guarded column adds, so it
+-- works on both fresh and pre-Stage-2 databases.
+
+-- The user's standing budget (docs/06-stage2-brief.md §5). Tiers behave
+-- differently: 'fixed' is committed spend, 'variable' is what the user actually
+-- decides day to day, 'annual' amounts are PER YEAR and get smoothed /12 for
+-- monthly views.
+CREATE TABLE IF NOT EXISTS budget_lines (
+  id         INTEGER PRIMARY KEY,
+  name       TEXT NOT NULL UNIQUE,
+  tier       TEXT NOT NULL CHECK (tier IN ('fixed','variable','annual')),
+  amount_chf REAL NOT NULL,
+  carryover  INTEGER NOT NULL DEFAULT 0,   -- 1 = unspent balance accrues month to month
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  active     INTEGER NOT NULL DEFAULT 1,
+  notes      TEXT
+);
+
+-- Transaction-level category -> budget line. UBS supplies leaves; the budget is
+-- stated at the parent. Categories like 'transfer'/'income' are deliberately
+-- absent: they roll into no line and never count as spend.
+CREATE TABLE IF NOT EXISTS category_map (
+  category       TEXT PRIMARY KEY,
+  budget_line_id INTEGER NOT NULL REFERENCES budget_lines(id) ON DELETE CASCADE
+);
+
+-- CSV import provenance, so a bad import can be undone wholesale.
+CREATE TABLE IF NOT EXISTS import_batches (
+  id          INTEGER PRIMARY KEY,
+  filename    TEXT NOT NULL,
+  source      TEXT NOT NULL,               -- 'ubs'
+  row_count   INTEGER NOT NULL,
+  imported_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 
 CREATE TABLE IF NOT EXISTS budgets (
   id         INTEGER PRIMARY KEY,

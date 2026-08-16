@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
+import { seedStage2 } from "./seed-stage2";
 
 // Server-only: imported by route handlers and server components, never by client
 // components (docs/01-architecture.md — the client never touches the DB).
@@ -21,8 +22,30 @@ function open(): Database.Database {
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
   db.exec(fs.readFileSync(SCHEMA_PATH, "utf8"));
+  migrate(db);
   seed(db);
   return db;
+}
+
+// Guarded column adds for databases created before Stage 2 — ALTER TABLE is not
+// idempotent in SQLite, so check PRAGMA table_info first. Fresh databases get
+// these columns from schema.sql and skip straight to the index.
+function migrate(db: Database.Database) {
+  const txnColumns = new Set(
+    (db.pragma("table_info(transactions)") as Array<{ name: string }>).map((c) => c.name)
+  );
+  if (!txnColumns.has("batch_id")) {
+    db.exec("ALTER TABLE transactions ADD COLUMN batch_id INTEGER REFERENCES import_batches(id) ON DELETE SET NULL");
+  }
+  if (!txnColumns.has("dedupe_key")) {
+    db.exec("ALTER TABLE transactions ADD COLUMN dedupe_key TEXT");
+  }
+  if (!txnColumns.has("budget_line_id")) {
+    db.exec("ALTER TABLE transactions ADD COLUMN budget_line_id INTEGER REFERENCES budget_lines(id)");
+  }
+  db.exec(
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_transactions_dedupe ON transactions (dedupe_key) WHERE dedupe_key IS NOT NULL"
+  );
 }
 
 // Seeds from docs: projects (01-architecture.md), habits (03-pages/personal.md §1).
@@ -44,13 +67,15 @@ function seed(db: Database.Database) {
     const habitCount = db.prepare("SELECT COUNT(*) AS n FROM habits").get() as { n: number };
     if (habitCount.n === 0) {
       const insert = db.prepare("INSERT INTO habits (name, time_of_day) VALUES (?, ?)");
+      insert.run("Brush Teeth 2x", "morning");
       insert.run("Make Bed", "morning");
       insert.run("Vitamins", "morning");
-      insert.run("Brush Teeth 2x", "anytime");
       insert.run("Work on German", "anytime");
       insert.run("Workout", "anytime");
       insert.run("Floss", "evening");
     }
+
+    seedStage2(db);
   }).immediate();
 }
 
