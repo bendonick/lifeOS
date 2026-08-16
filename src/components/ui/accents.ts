@@ -54,3 +54,14 @@ export const accentEvent: Record<Accent, string> = {
   danger: "bg-danger/15 border-danger/30 text-danger",
   warn: "bg-warn/15 border-warn/30 text-warn",
 };
+
+/* Due-date urgency → text tone. One map, because ThisWeek and every Academic
+   table colour the same thing: three private copies is how a gauge ends up
+   orange next to a card that says "on pace". Pairs with `dueInfo()` in
+   src/lib/dates.ts, which owns the thresholds themselves. */
+export const urgencyText: Record<"overdue" | "today" | "soon" | "none", string> = {
+  overdue: "text-danger",
+  today: "text-warn",
+  soon: "text-warn",
+  none: "text-muted",
+};

@@ -1,5 +1,6 @@
+import { Suspense } from "react";
+import { CalendarSection, CalendarSkeleton } from "@/components/calendar/CalendarSection";
 import { BriefRow } from "@/components/lifeos/BriefRow";
-import { CalendarStub } from "@/components/lifeos/CalendarStub";
 import { DomainTiles } from "@/components/lifeos/DomainTiles";
 import { InboxPanel } from "@/components/lifeos/InboxPanel";
 import { ThisWeek } from "@/components/lifeos/ThisWeek";
@@ -47,10 +48,12 @@ export default function LifeOSPage() {
       <section>
         <SectionBanner
           title="Calendar"
-          caption="blocked-off time · lives in Google Calendar · fake events until ICS lands in Stage 3"
+          caption="blocked-off time · lives in Google Calendar"
         />
         <div className="mt-4">
-          <CalendarStub />
+          <Suspense fallback={<CalendarSkeleton />}>
+            <CalendarSection />
+          </Suspense>
         </div>
       </section>
 

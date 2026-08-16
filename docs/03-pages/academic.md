@@ -19,11 +19,14 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
    View tabs: All / To Do / Upcoming / Overdue / By course / Completed. Columns: name, course,
    type, due, days-left (computed, color-shifts as due approaches), done.
 
-4. **Exams** — `tasks` filtered type=exam. Tabs: All / Midterms / Final (an exam_kind field or
-   tag — decide in stage). Red accent per design system.
+4. **Exams** — `tasks` filtered type=exam. **No midterm/final split and no view tabs**
+   (decision #25 — the ledger's OPEN C, closed against this line). Red accent per design
+   system, carried by the exam type pill.
 
 5. **Timetable (command center)** — read-only week view of the **Academic** ICS calendar
-   (toggle: all calendars) beside the To-Do list (open academic tasks, soonest first).
+   (toggle: all calendars) beside the To-Do list (open academic tasks and exams, soonest
+   first). Full-width section: the week grid needs the room. Built in Stage 3 on the shared
+   `WeekCalendar`, which also serves the hub and Personal.
    Class blocks come from Google recurring events the user creates once per course; the app
    *may* cross-check ICS blocks against `courses` schedule metadata and flag mismatches
    (nice-to-have, not core).

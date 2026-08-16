@@ -38,16 +38,21 @@ real UBS-derived numbers, UBS CSV import with preview/dedupe/rule-based categori
 year of history imported behind `budget.start_date` = 2026-09-01 (decision #23), tasks,
 notes, bills, calendar stub. Definition of done in the brief §8 — all items verified.
 
-## Stage 3 — Academic page + ICS calendar
+## Stage 3 — Academic page + ICS calendar — COMPLETE (2026-08-16)
 
-Build per `03-pages/academic.md`. Implement the ICS fetch/expand/cache module (first real
-integration), render the Academic timetable, then retrofit the LifeOS calendar stub to real
-data. Courses CRUD with credits counter; assignments/exams views; course detail with folder
-listing.
-**Done when:** the recurring class block from Google renders on the timetable with correct
-Zurich times; an assignment created here appears on LifeOS This week.
+Built per `03-pages/academic.md`. The ICS module (`src/lib/calendar/`) fetches the four secret
+feeds, expands RRULE/RDATE/EXDATE/RECURRENCE-ID with ical.js and renders occurrences in Zurich
+wall-clock (decision #26); a two-layer cache keeps the week readable offline and labels it
+stale. `WeekCalendar` replaced the Stage 1 stub on all three pages — hub shows every calendar
+colour-coded, domain pages default to their own with an All-calendars tab. Academic page:
+courses CRUD + credits counter, assignments/tasks with view tabs, exams (no midterm/final
+split — decision #25), Reminders rail card, course detail with materials folder listing, and
+the timetable command center (week grid beside the to-do list).
+**Done when:** verified — an assignment created on the page appears on LifeOS This week, and a
+Google-format recurring event renders at the correct Zurich time across a DST switch.
+Confirm against your own feed once `.env` holds the secret iCal URLs.
 
-## Stage 4 — Professional page
+## Stage 4 — Professional page — NEXT
 
 Build per `03-pages/professional.md`: Day job task view, learning table, projects,
 Network CRM with follow-up math. Add Personal/Professional calendar views (reuse ICS module).

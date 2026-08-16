@@ -52,3 +52,29 @@ export interface InboxItem {
   processed: 0 | 1;
   parsed_json: string | null;
 }
+
+export type CourseStatus = "enrolled" | "completed" | "dropped";
+export const COURSE_STATUSES: CourseStatus[] = ["enrolled", "completed", "dropped"];
+
+/** Mon–Fri only: `courses.schedule_days` holds a JSON subset of these (architecture §data). */
+export type Weekday = "Mon" | "Tue" | "Wed" | "Thu" | "Fri";
+export const WEEKDAYS: Weekday[] = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+
+export interface Course {
+  id: number;
+  name: string;
+  professor: string | null;
+  professor_email: string | null;
+  credits: number | null;
+  room: string | null;
+  status: CourseStatus;
+  /** JSON array of Weekday — read it through `scheduleDays()`, never JSON.parse inline. */
+  schedule_days: string | null;
+  time_label: string | null;
+  start_hour: number | null;
+  end_hour: number | null;
+  term_start: string | null;
+  term_end: string | null;
+  semester: string | null;
+  created_at: string;
+}

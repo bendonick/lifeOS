@@ -23,11 +23,25 @@ export function unreviewedPersonalCount(): number {
   return row.n;
 }
 
-export function createNote(text: string): Note {
+export function createNote(
+  text: string,
+  domain: Note["domain"] = "personal",
+  kind: Note["kind"] = "note"
+): Note {
   const { lastInsertRowid } = db
-    .prepare("INSERT INTO notes (text, domain, kind) VALUES (?, 'personal', 'note')")
-    .run(text);
+    .prepare("INSERT INTO notes (text, domain, kind) VALUES (?, ?, ?)")
+    .run(text, domain, kind);
   return db.prepare("SELECT * FROM notes WHERE id = ?").get(lastInsertRowid) as Note;
+}
+
+/** The Academic "Reminders" rail card (docs/03-pages/academic.md §1) — the same
+ *  notes table, filtered. Unreviewed first, newest within each group. */
+export function notesFor(domain: string, kind: Note["kind"]): Note[] {
+  return db
+    .prepare(
+      "SELECT * FROM notes WHERE domain = ? AND kind = ? ORDER BY reviewed, created_at DESC, id DESC"
+    )
+    .all(domain, kind) as Note[];
 }
 
 export function setNoteReviewed(id: number, reviewed: boolean): Note | undefined {

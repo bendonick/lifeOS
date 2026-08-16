@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { CalendarStub } from "@/components/lifeos/CalendarStub";
+import { Suspense } from "react";
+import { CalendarSection, CalendarSkeleton } from "@/components/calendar/CalendarSection";
 import { ThisWeek } from "@/components/lifeos/ThisWeek";
 import { BillsPanel } from "@/components/personal/BillsPanel";
 import { HabitList } from "@/components/personal/HabitList";
@@ -158,10 +159,12 @@ export default function PersonalPage() {
               id="calendar-title"
               accent="personal"
               title="Calendar"
-              caption="blocked-off time · lives in Google Calendar · fake events until ICS lands in Stage 3"
+              caption="blocked-off time · lives in Google Calendar"
             />
             <div className="mt-4">
-              <CalendarStub />
+              <Suspense fallback={<CalendarSkeleton />}>
+                <CalendarSection home="personal" />
+              </Suspense>
             </div>
           </section>
         </div>

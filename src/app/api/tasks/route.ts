@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
     type: body.type,
     due: typeof body.due === "string" && body.due ? body.due : null,
     notes: typeof body.notes === "string" && body.notes ? body.notes : null,
+    course_id: Number.isInteger(body.course_id) ? body.course_id : null,
   });
   return NextResponse.json(task, { status: 201 });
 }

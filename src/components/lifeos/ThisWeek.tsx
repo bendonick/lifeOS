@@ -4,15 +4,13 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Pill, TypePill } from "@/components/ui/Pill";
 import { Table } from "@/components/ui/Table";
-import { accentControl, type Accent } from "@/components/ui/accents";
+import { accentControl, urgencyText, type Accent } from "@/components/ui/accents";
 import { dueInfo } from "@/lib/dates";
 import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
 import { DOMAINS, type Domain, type Task } from "@/lib/types";
 
 // Reads arrive as props from the server page; every mutation goes through the API
 // routes, then router.refresh() re-reads server truth. The client never owns data.
-
-const urgencyClass = { overdue: "text-danger", today: "text-warn", soon: "text-warn", none: "text-muted" };
 
 export function ThisWeek({
   tasks,
@@ -104,7 +102,7 @@ export function ThisWeek({
               <td className="px-3 py-2">
                 <TypePill type={t.type} />
               </td>
-              <td className={`tabular px-3 py-2 text-xs ${info ? urgencyClass[info.urgency] : "text-faint"}`}>
+              <td className={`tabular px-3 py-2 text-xs ${info ? urgencyText[info.urgency] : "text-faint"}`}>
                 {info?.label ?? "—"}
               </td>
             </tr>
