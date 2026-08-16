@@ -337,6 +337,32 @@ function monthOverMonth(month: string, throughDay: number, start: string) {
   };
 }
 
+export interface VariableCategorySpend {
+  category: string;
+  line: string; // owning variable budget line
+  spent: number;
+}
+
+/** Net spend per variable-tier leaf category for the shown month, window-
+ *  clamped like every budget read. Rows exist even at zero spend so the
+ *  breakdown card can show baseline ticks before the month fills in.
+ *  (Category-level view: per-txn budget_line_id overrides are ignored here.) */
+export function variableCategorySpend(month: string): VariableCategorySpend[] {
+  const from = budgetWindowStart(`${month}-01`);
+  return db
+    .prepare(
+      `SELECT m.category, b.name AS line, ROUND(COALESCE(s.spent, 0), 2) AS spent
+       FROM category_map m
+       JOIN budget_lines b ON b.id = m.budget_line_id AND b.tier = 'variable' AND b.active = 1
+       LEFT JOIN (
+         SELECT category, SUM(-amount_chf) AS spent FROM transactions
+         WHERE date >= ? AND date <= ? GROUP BY category
+       ) s ON s.category = m.category
+       ORDER BY b.sort_order, spent DESC, m.category`
+    )
+    .all(from, monthEnd(month)) as VariableCategorySpend[];
+}
+
 // The history chart's data — the second full-history reader (§5e): net monthly
 // spend across the whole table, with the budget start marked in the UI.
 export interface MonthSpend {

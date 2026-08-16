@@ -32,10 +32,15 @@ Habits → Health → Spending → Tasks → Bills → Notes; Calendar full-widt
    shared tokens in `src/components/charts/tokens.ts`.
 
 4. **Spending** — three-tier `budget_lines` (fixed/variable/annual, real numbers from the
-   user's budget) + `category_map` rollup; `budgets` = month overrides. Card shows the
-   **variable-tier** headline with pace math, all-in context, and the labelled MoM trend;
-   while today < `budget.start_date` (2026-09-01) it shows the first budget month,
-   labelled. Budget rows: filled track + **pace tick**; warn only when ahead of pace,
+   user's budget) + `category_map` rollup; `budgets` = month overrides. A **dashboard row**
+   leads the section (added 2026-08-16 on user feedback, translated from a spreadsheet
+   reference into this design system): the headline card, a single-hue **"left to spend"
+   radial gauge** (same pace semantics as the bars; never a multi-segment donut — the
+   accents can't pass dark-mode categorical validation), and a **by-category bar list**
+   with faint ticks marking the historical monthly averages from `budget.baseline`. Card
+   shows the **variable-tier** headline with pace math, all-in context, and the labelled
+   MoM trend; while today < `budget.start_date` (2026-09-01) it shows the first budget
+   month, labelled. Budget rows: filled track + **pace tick**; warn only when ahead of pace,
    danger past 100%; fixed rows show paid/unpaid; the **annual tier is collapsed by
    default** behind a toggle (its subtotal row keeps the /yr and /mo figures; user feedback
    2026-08-16). Inline amount edit (standing or "just this month"). Manual transaction

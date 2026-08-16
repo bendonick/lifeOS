@@ -18,7 +18,7 @@ export function SpendingCard({ o }: { o: BudgetOverview }) {
   });
 
   return (
-    <Card label="Spending" accent="personal" className="max-w-md">
+    <Card label="Spending" accent="personal">
       <div className="tabular mt-2 text-2xl font-semibold">
         CHF {chf.format(o.variable.spent)} <span className="text-base font-normal text-muted">/ {chf.format(o.variable.budget)}</span>
       </div>
