@@ -2,11 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import type { UncategorisedGroup } from "@/lib/db/money";
+import { CategoryOptions } from "@/components/personal/CategoryOptions";
+import type { CategoryGroup, UncategorisedGroup } from "@/lib/db/money";
 
 // The review queue (§5d/§5e): merchants sorted by frequency so each assignment
 // retires the largest block of rows. "Always" (default on) also appends a
-// lasting merchant→category rule for future imports.
+// lasting merchant→category rule for future imports. The category picker is
+// grouped by budget line so every assignment visibly lands in the budget.
 
 const chf = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
 const SHOWN = 12;
@@ -16,7 +18,7 @@ export function UncategorisedQueue({
   categories,
 }: {
   groups: UncategorisedGroup[];
-  categories: string[];
+  categories: CategoryGroup[];
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -76,7 +78,7 @@ function QueueRow({
   onAssign,
 }: {
   group: UncategorisedGroup;
-  categories: string[];
+  categories: CategoryGroup[];
   onAssign: (merchant: string, category: string, always: boolean) => void;
 }) {
   const [category, setCategory] = useState("");
@@ -96,11 +98,7 @@ function QueueRow({
         className="rounded-md border border-border bg-surface px-2 py-1 text-xs text-muted focus:outline-none"
       >
         <option value="">category…</option>
-        {categories.map((c) => (
-          <option key={c} value={c}>
-            {c}
-          </option>
-        ))}
+        <CategoryOptions groups={categories} />
       </select>
       <label className="flex cursor-pointer items-center gap-1 text-xs text-faint">
         <input

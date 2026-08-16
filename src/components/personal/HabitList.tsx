@@ -2,18 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Pill } from "@/components/ui/Pill";
 import type { HabitWeek } from "@/lib/db/habits";
 
-// Habits §3: three time-of-day groups, checkbox for today, 7-dot trailing
-// strip (oldest → newest, today rightmost and ringed). Optimistic toggle —
-// a failed POST reverts and shows the error instead of swallowing it.
-
-const GROUPS = [
-  ["morning", "Morning"],
-  ["anytime", "Anytime"],
-  ["evening", "Evening"],
-] as const;
+// Habits: one compact flat list (group headers dropped on user feedback,
+// 2026-08-16 — the query still orders morning → anytime → evening), checkbox
+// for today, 7-dot trailing strip (oldest → newest, today rightmost, ringed).
+// Optimistic toggle — a failed POST reverts and shows the error.
 
 export function HabitList({ habits, today }: { habits: HabitWeek[]; today: string }) {
   const router = useRouter();
@@ -41,52 +35,41 @@ export function HabitList({ habits, today }: { habits: HabitWeek[]; today: strin
   }
 
   return (
-    <div className="rounded-lg border border-border bg-surface p-4">
-      {error && <p className="mb-3 text-xs text-danger">{error}</p>}
-      <div className="flex flex-col gap-4">
-        {GROUPS.map(([key, label]) => {
-          const group = habits.filter((h) => h.time_of_day === key);
-          if (!group.length) return null;
+    <div className="max-w-lg rounded-lg border border-border bg-surface px-4 py-2">
+      {error && <p className="py-1 text-xs text-danger">{error}</p>}
+      <ul>
+        {habits.map((h) => {
+          const doneToday = overlay[h.id] ?? h.days[6];
           return (
-            <div key={key}>
-              <Pill tone="personal">{label}</Pill>
-              <ul className="mt-2 flex flex-col gap-1">
-                {group.map((h) => {
-                  const doneToday = overlay[h.id] ?? h.days[6];
+            <li key={h.id} className="flex items-center gap-3 py-1">
+              <input
+                type="checkbox"
+                checked={doneToday}
+                onChange={() => toggle(h)}
+                className="h-4 w-4 cursor-pointer accent-[#a78bfa]"
+                aria-label={`${h.name} done today`}
+              />
+              <span className={`flex-1 text-sm ${doneToday ? "text-muted line-through" : ""}`}>
+                {h.name}
+              </span>
+              <span className="flex items-center gap-1.5" aria-label="last 7 days">
+                {h.days.map((done, i) => {
+                  const isToday = i === 6;
+                  const filled = isToday ? doneToday : done;
                   return (
-                    <li key={h.id} className="flex items-center gap-3 py-0.5">
-                      <input
-                        type="checkbox"
-                        checked={doneToday}
-                        onChange={() => toggle(h)}
-                        className="h-4 w-4 cursor-pointer accent-[#a78bfa]"
-                        aria-label={`${h.name} done today`}
-                      />
-                      <span className={`flex-1 text-sm ${doneToday ? "text-muted line-through" : ""}`}>
-                        {h.name}
-                      </span>
-                      <span className="flex items-center gap-1.5" aria-label="last 7 days">
-                        {h.days.map((done, i) => {
-                          const isToday = i === 6;
-                          const filled = isToday ? doneToday : done;
-                          return (
-                            <span
-                              key={i}
-                              className={`h-2 w-2 rounded-full ${
-                                filled ? "bg-personal" : "border border-border"
-                              } ${isToday ? "ring-1 ring-personal/60 ring-offset-2 ring-offset-surface" : ""}`}
-                            />
-                          );
-                        })}
-                      </span>
-                    </li>
+                    <span
+                      key={i}
+                      className={`h-2 w-2 rounded-full ${
+                        filled ? "bg-personal" : "border border-border"
+                      } ${isToday ? "ring-1 ring-personal/60 ring-offset-2 ring-offset-surface" : ""}`}
+                    />
                   );
                 })}
-              </ul>
-            </div>
+              </span>
+            </li>
           );
         })}
-      </div>
+      </ul>
     </div>
   );
 }

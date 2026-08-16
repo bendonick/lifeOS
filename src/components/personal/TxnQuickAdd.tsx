@@ -2,11 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { CategoryOptions } from "@/components/personal/CategoryOptions";
+import type { CategoryGroup } from "@/lib/db/money";
 
 // Manual transaction entry (spend as a positive number; the server stores it
-// bank-signed). Mirrors the ThisWeek add-form idiom.
+// bank-signed). Mirrors the ThisWeek add-form idiom; the category picker is
+// grouped by budget line like the queue's.
 
-export function TxnQuickAdd({ categories, today }: { categories: string[]; today: string }) {
+export function TxnQuickAdd({ categories, today }: { categories: CategoryGroup[]; today: string }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [date, setDate] = useState(today);
@@ -73,11 +76,7 @@ export function TxnQuickAdd({ categories, today }: { categories: string[]; today
         aria-label="category"
       >
         <option value="">category…</option>
-        {categories.map((c) => (
-          <option key={c} value={c}>
-            {c}
-          </option>
-        ))}
+        <CategoryOptions groups={categories} />
       </select>
       <button
         type="submit"

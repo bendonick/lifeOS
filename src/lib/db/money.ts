@@ -94,6 +94,33 @@ export function assignableCategories(): string[] {
   return [...mapped, "income", "transfer"];
 }
 
+export interface CategoryGroup {
+  line: string; // budget line name — the label the user actually budgets by
+  categories: string[];
+}
+
+/** The same categories, grouped by the budget line they roll into, in budget
+ *  order — so category pickers speak the budget's language (user feedback
+ *  2026-08-16: "map everything cleanly to that"). */
+export function groupedCategories(): CategoryGroup[] {
+  const rows = db
+    .prepare(
+      `SELECT b.name AS line, m.category
+       FROM category_map m JOIN budget_lines b ON b.id = m.budget_line_id
+       WHERE b.active = 1
+       ORDER BY b.sort_order, m.category`
+    )
+    .all() as Array<{ line: string; category: string }>;
+  const groups: CategoryGroup[] = [];
+  for (const r of rows) {
+    const last = groups[groups.length - 1];
+    if (last?.line === r.line) last.categories.push(r.category);
+    else groups.push({ line: r.line, categories: [r.category] });
+  }
+  groups.push({ line: "Not budgeted", categories: ["income", "transfer"] });
+  return groups;
+}
+
 export function assignCategoryToMerchant(merchant: string, category: string): number {
   const info = db
     .prepare("UPDATE transactions SET category = ? WHERE merchant = ? AND category IS NULL")

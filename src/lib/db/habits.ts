@@ -12,8 +12,13 @@ export interface HabitWeek {
 /** All active habits with their trailing week — one query for the whole log
  *  window, not one per habit (§3). */
 export function habitsWithWeek(today: string): HabitWeek[] {
+  // Flat list, but still flowing morning → anytime → evening (user dropped the
+  // group headers for compactness, 2026-08-16).
   const habits = db
-    .prepare("SELECT id, name, time_of_day FROM habits WHERE active = 1 ORDER BY id")
+    .prepare(
+      `SELECT id, name, time_of_day FROM habits WHERE active = 1
+       ORDER BY CASE time_of_day WHEN 'morning' THEN 0 WHEN 'anytime' THEN 1 ELSE 2 END, id`
+    )
     .all() as Array<Pick<HabitWeek, "id" | "name" | "time_of_day">>;
 
   const from = addDays(today, -6);

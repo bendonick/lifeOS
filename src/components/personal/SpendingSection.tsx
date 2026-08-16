@@ -5,8 +5,8 @@ import { SpendingHistory } from "@/components/personal/SpendingHistory";
 import { TxnQuickAdd } from "@/components/personal/TxnQuickAdd";
 import { UncategorisedQueue } from "@/components/personal/UncategorisedQueue";
 import {
-  assignableCategories,
   budgetOverview,
+  groupedCategories,
   monthlySpendHistory,
   uncategorisedGroups,
 } from "@/lib/db/money";
@@ -19,7 +19,7 @@ import { budgetStartDate } from "@/lib/money/window";
 export function SpendingSection({ today }: { today: string }) {
   const overview = budgetOverview();
   const groups = uncategorisedGroups();
-  const categories = assignableCategories();
+  const categories = groupedCategories();
 
   return (
     <div className="flex flex-col gap-4">

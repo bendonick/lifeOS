@@ -12,9 +12,10 @@ Habits → Health → Spending → Tasks → Bills → Notes; Calendar full-widt
 
 ## Modules (as built)
 
-1. **Habits** — `habits`/`habit_log`. Morning/Anytime/Evening groups, one-tap done for
-   today, trailing **7-dot strip** per habit (today rightmost, ringed). Optimistic toggle
-   with revert-on-failure. One query per page load for the whole week window.
+1. **Habits** — `habits`/`habit_log`. One compact flat list (time-of-day group headers
+   dropped on user feedback 2026-08-16; the query still orders morning → anytime →
+   evening), one-tap done for today, trailing **7-dot strip** per habit (today rightmost,
+   ringed). Optimistic toggle with revert-on-failure. One query for the whole week window.
 
 2. **Health cards** — *Macros left*, *Sleep* (delta vs 7d avg), *HRV* (vs configured range),
    *Steps* (% of target), each with a hand-rolled SVG sparkline (14d). Honest empty states.
@@ -35,11 +36,14 @@ Habits → Health → Spending → Tasks → Bills → Notes; Calendar full-widt
    **variable-tier** headline with pace math, all-in context, and the labelled MoM trend;
    while today < `budget.start_date` (2026-09-01) it shows the first budget month,
    labelled. Budget rows: filled track + **pace tick**; warn only when ahead of pace,
-   danger past 100%; fixed rows show paid/unpaid; annual rows show year spend + /mo. Inline
-   amount edit (standing or "just this month"). Manual transaction quick-add. **UBS CSV
-   import**: upload → preview (counts, skip/uncategorised summary) → confirm; dedupe on
-   `ubs:<transaction no>`; merchant→category rules in config (`budget.rules`), trained via
-   the uncategorised queue's "always categorise" (§5d/§5e of the brief). Full-year history
+   danger past 100%; fixed rows show paid/unpaid; the **annual tier is collapsed by
+   default** behind a toggle (its subtotal row keeps the /yr and /mo figures; user feedback
+   2026-08-16). Inline amount edit (standing or "just this month"). Manual transaction
+   quick-add. **UBS CSV import**: upload → preview (counts, skip/uncategorised summary) →
+   confirm; dedupe on `ubs:<transaction no>`; merchant→category rules in config
+   (`budget.rules`), trained via the uncategorised queue's "always categorise" (§5d/§5e of
+   the brief). Category pickers (queue + quick-add) are **grouped by budget line** —
+   single-leaf lines collapse to one option labelled by the line itself. Full-year history
    imported; invisible to all budget math via `src/lib/money/window.ts` — only the labelled
    MoM line and the history chart (with start-date marker) read past the start.
 

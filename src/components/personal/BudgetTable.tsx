@@ -20,6 +20,10 @@ export function BudgetTable({ o }: { o: BudgetOverview }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const refresh = () => startTransition(() => router.refresh());
+  // Annual lines are committed, not decided daily — collapsed by default so the
+  // table stays monthly-sized; the subtotal row still shows the /yr and /mo
+  // figures (user feedback 2026-08-16).
+  const [showAnnual, setShowAnnual] = useState(false);
 
   const paceFraction = o.prospective ? 0 : o.dayOfMonth / o.daysInMonth;
   const grandBudget = o.tiers.fixed.budget + o.tiers.variable.budget + o.tiers.annual.budget / 12;
@@ -32,26 +36,44 @@ export function BudgetTable({ o }: { o: BudgetOverview }) {
         const lines = o.lines.filter((l) => l.tier === tier);
         if (!lines.length) return null;
         const t = o.tiers[tier];
+        const collapsible = tier === "annual";
+        const open = !collapsible || showAnnual;
         return (
           <div key={tier} className="border-b border-border last:border-b-0">
-            <div className="flex items-baseline justify-between px-3 pt-3 pb-1">
-              <span className="text-xs font-semibold tracking-wide text-muted">{label}</span>
+            <div className={`flex items-baseline justify-between px-3 pt-3 ${open ? "pb-1" : "pb-3"}`}>
+              {collapsible ? (
+                <button
+                  type="button"
+                  onClick={() => setShowAnnual((v) => !v)}
+                  className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-muted transition-colors hover:text-text"
+                  aria-expanded={open}
+                >
+                  <span aria-hidden="true" className="text-[10px] text-faint">
+                    {open ? "▾" : "▸"}
+                  </span>
+                  {label}
+                </button>
+              ) : (
+                <span className="text-xs font-semibold tracking-wide text-muted">{label}</span>
+              )}
               <span className="tabular text-xs font-medium text-muted">
                 CHF {chf.format(t.spent)} / {chf.format(t.budget)}
                 {tier === "annual" && <span className="text-faint"> /yr · {chf.format(t.budget / 12)}/mo</span>}
               </span>
             </div>
-            <ul>
-              {lines.map((l) => (
-                <BudgetRow
-                  key={l.id}
-                  line={l}
-                  month={o.month}
-                  paceFraction={paceFraction}
-                  onSaved={refresh}
-                />
-              ))}
-            </ul>
+            {open && (
+              <ul>
+                {lines.map((l) => (
+                  <BudgetRow
+                    key={l.id}
+                    line={l}
+                    month={o.month}
+                    paceFraction={paceFraction}
+                    onSaved={refresh}
+                  />
+                ))}
+              </ul>
+            )}
           </div>
         );
       })}
