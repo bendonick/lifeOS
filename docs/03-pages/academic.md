@@ -19,7 +19,7 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
    the event.
 
 3. **Assignments & Tasks** — `tasks` filtered domain=academic, type in (task, assignment).
-   View tabs: All / To Do / Upcoming / Overdue / By course / Completed. Columns: name, course,
+   View tabs: Open / Upcoming / Overdue / By course / Completed / All. Columns: name, course,
    type, due, days-left (computed, color-shifts as due approaches), done.
    Due takes an **optional time** beside the date (`tasks.due` is
    `'YYYY-MM-DD'` or `'YYYY-MM-DDTHH:MM'` — a 23:59 hand-in and a whole-day
@@ -30,8 +30,9 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
    system, carried by the exam type pill.
 
 5. **Timetable (command center)** — read-only week view of the **Academic** ICS calendar
-   (toggle: all calendars) beside the To-Do list (open academic tasks and exams, soonest
-   first). Full-width section: the week grid needs the room. Built in Stage 3 on the shared
+   (toggle: all calendars) beside the **Up next** list (open academic tasks *and exams*,
+   soonest first — named apart from the Assignments "Open" filter, and captioned with its
+   wider scope, so two surfaces can honestly show different counts). Full-width section: the week grid needs the room. Built in Stage 3 on the shared
    `WeekCalendar`, which also serves the hub and Personal.
    Class blocks come from Google recurring events the user creates once per course; the app
    *may* cross-check ICS blocks against `courses` schedule metadata and flag mismatches

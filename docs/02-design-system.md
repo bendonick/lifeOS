@@ -56,9 +56,11 @@ off dense data rows, where it costs legibility; and always ship the
 - **Tags/pills** for enum values (domain, type, status, schedule day) using the palette rules.
 - **Tables**: minimal chrome, sortable where it matters, empty states with a one-line hint
   rather than blank space.
-- **View tabs** on data sections (e.g. All / To Do / Upcoming / Overdue / By course /
-  Completed on assignments; All / Midterms / Final on exams; own-domain / All domains on
-  calendars) — small pill tabs above the table, one active.
+- **View tabs** on data sections (e.g. Open / Upcoming / Overdue / By course / Completed / All
+  on assignments; own-domain / All domains on calendars) — small pill tabs above the table, one
+  active. A tab names a **state**, never a noun that could read as the name of a list: the
+  Academic page once had a "To do" tab beside a "To do" card and showed "nothing open" next to
+  "1 open". Lists beside a filtered table say what they carry.
 - **Quick Action buttons** in the left rail: New Task / New Assignment / New Exam / New Course
   etc., opening prefilled forms (the page's domain is the default — editable).
 - Staleness is honest: anything generated (briefs, synced data) shows generated_at or a

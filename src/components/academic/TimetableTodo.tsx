@@ -9,6 +9,11 @@ import type { CourseTask } from "@/lib/db/tasks";
  * The interactive half of the command center (decision #2): free time on the
  * calendar, work on this side. Open academic items, soonest first. Undated items
  * come last rather than being hidden — they are still work.
+ *
+ * Called "Up next", not "To do": the Assignments section has a To-do *filter*,
+ * and one word covering both a filter state and a list left the page reading
+ * "nothing open" beside "1 open". This list is also wider than that filter — it
+ * carries exams too — so it says so.
  */
 export function TimetableTodo({ tasks }: { tasks: CourseTask[] }) {
   const { toggle, valueFor, isPending, error } = useOptimisticToggle<CourseTask>({
@@ -26,10 +31,13 @@ export function TimetableTodo({ tasks }: { tasks: CourseTask[] }) {
 
   return (
     <div aria-busy={isPending} className="rounded-lg border border-border bg-surface p-4">
-      <div className="text-xs font-medium text-academic">To do</div>
+      <div className="text-xs font-medium text-academic">Up next</div>
       <p className="mt-1 text-xs text-muted">
         {open.length === 0 ? "nothing open" : `${open.length} open · soonest first`}
       </p>
+      {open.length > 0 && (
+        <p className="mt-0.5 text-[11px] text-faint">assignments, tasks and exams</p>
+      )}
 
       {error && (
         <p role="alert" className="mt-2 text-[11px] text-danger">

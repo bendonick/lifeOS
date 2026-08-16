@@ -23,7 +23,7 @@ import type { Course, TaskType } from "@/lib/types";
 type View = "todo" | "upcoming" | "overdue" | "course" | "completed" | "all";
 
 const VIEWS: { key: View; label: string }[] = [
-  { key: "todo", label: "To do" },
+  { key: "todo", label: "Open" },
   { key: "upcoming", label: "Upcoming" },
   { key: "overdue", label: "Overdue" },
   { key: "course", label: "By course" },
