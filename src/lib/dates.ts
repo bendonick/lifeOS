@@ -69,6 +69,11 @@ export function utcToZurichLabel(utc: string): string {
   return dayLabel(date);
 }
 
+/** The two shapes `tasks.due` accepts (schema.sql): a date, or a date and time. */
+export function isDueValue(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$/.test(value);
+}
+
 export type Urgency = "overdue" | "today" | "soon" | "none";
 
 /**
@@ -80,7 +85,7 @@ export function dueInfo(due: string): { label: string; urgency: Urgency } {
   const date = due.slice(0, 10);
   const time = due.length > 10 ? ` ${due.slice(11, 16)}` : "";
   const today = zurichToday();
-  if (date < today) return { label: `${dayLabel(date)} · overdue`, urgency: "overdue" };
+  if (date < today) return { label: `${dayLabel(date)}${time} · overdue`, urgency: "overdue" };
   if (date === today) return { label: `today${time}`, urgency: "today" };
   if (date === addDays(today, 1)) return { label: `tomorrow${time}`, urgency: "soon" };
   return { label: `${dayLabel(date)}${time}`, urgency: "none" };

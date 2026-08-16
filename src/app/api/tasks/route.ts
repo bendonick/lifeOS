@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { allTasks, createTask, isDomain, isTaskType, weekTasks } from "@/lib/db/tasks";
+import { isDueValue } from "@/lib/dates";
 
 export async function GET(req: NextRequest) {
   const view = req.nextUrl.searchParams.get("view");
@@ -13,6 +14,8 @@ export async function POST(req: NextRequest) {
   if (!isDomain(body.domain)) return NextResponse.json({ error: "invalid domain" }, { status: 400 });
   if (body.type !== undefined && !isTaskType(body.type))
     return NextResponse.json({ error: "invalid type" }, { status: 400 });
+  if (typeof body.due === "string" && body.due && !isDueValue(body.due))
+    return NextResponse.json({ error: "due must be YYYY-MM-DD or YYYY-MM-DDTHH:MM" }, { status: 400 });
 
   const task = createTask({
     title,

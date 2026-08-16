@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isDomain, isTaskType, updateTask } from "@/lib/db/tasks";
+import { isDueValue } from "@/lib/dates";
 import type { Task } from "@/lib/types";
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
@@ -20,7 +21,11 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     if (!isTaskType(body.type)) return NextResponse.json({ error: "invalid type" }, { status: 400 });
     patch.type = body.type;
   }
-  if (body.due !== undefined) patch.due = body.due || null;
+  if (body.due !== undefined) {
+    if (body.due && (typeof body.due !== "string" || !isDueValue(body.due)))
+      return NextResponse.json({ error: "due must be YYYY-MM-DD or YYYY-MM-DDTHH:MM" }, { status: 400 });
+    patch.due = body.due || null;
+  }
   if (body.notes !== undefined) patch.notes = body.notes || null;
 
   const task = updateTask(id, patch);

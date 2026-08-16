@@ -57,6 +57,7 @@ export function AcademicTasks({
   const [type, setType] = useState<TaskType>(mode === "exams" ? "exam" : "assignment");
   const [courseId, setCourseId] = useState(fixedCourseId ? String(fixedCourseId) : "");
   const [due, setDue] = useState("");
+  const [dueTime, setDueTime] = useState("");
   const [addError, setAddError] = useState<string | null>(null);
 
   const { toggle, valueFor, isPending, error } = useOptimisticToggle<CourseTask>({
@@ -122,6 +123,11 @@ export function AcademicTasks({
       setAddError(mode === "exams" ? "name the exam" : "enter a title");
       return;
     }
+    // A time with no date has nothing to hang on — say so rather than dropping it.
+    if (dueTime && !due) {
+      setAddError("pick a date for that time");
+      return;
+    }
     setAddError(null);
     const res = await fetch("/api/tasks", {
       method: "POST",
@@ -130,7 +136,7 @@ export function AcademicTasks({
         title: title.trim(),
         domain: "academic",
         type,
-        due: due || null,
+        due: due ? (dueTime ? `${due}T${dueTime}` : due) : null,
         course_id: courseId ? Number(courseId) : null,
       }),
     }).catch(() => null);
@@ -140,6 +146,7 @@ export function AcademicTasks({
     }
     setTitle("");
     setDue("");
+    setDueTime("");
     startTransition(() => router.refresh());
   }
 
@@ -228,13 +235,26 @@ export function AcademicTasks({
             ))}
           </select>
         )}
-        <input
-          type="date"
-          value={due}
-          onChange={(e) => setDue(e.target.value)}
-          aria-label="due date"
-          className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted"
-        />
+        {/* Date and time wrap as a pair — an exam at 09:00 should never end up
+            on a different line from the day it falls on. */}
+        <div className="flex items-center gap-1.5">
+          <input
+            type="date"
+            value={due}
+            onChange={(e) => setDue(e.target.value)}
+            aria-label={mode === "exams" ? "exam date" : "due date"}
+            aria-invalid={!!addError && !!dueTime && !due}
+            className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted"
+          />
+          <input
+            type="time"
+            value={dueTime}
+            onChange={(e) => setDueTime(e.target.value)}
+            aria-label={mode === "exams" ? "exam time (optional)" : "due time (optional)"}
+            title="Optional — leave blank for a whole-day deadline"
+            className="w-28 rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted"
+          />
+        </div>
         <button
           type="submit"
           className="rounded-md border border-border bg-raised px-3 py-1.5 text-sm text-text hover:border-academic/40"

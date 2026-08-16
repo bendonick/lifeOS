@@ -21,6 +21,9 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
 3. **Assignments & Tasks** — `tasks` filtered domain=academic, type in (task, assignment).
    View tabs: All / To Do / Upcoming / Overdue / By course / Completed. Columns: name, course,
    type, due, days-left (computed, color-shifts as due approaches), done.
+   Due takes an **optional time** beside the date (`tasks.due` is
+   `'YYYY-MM-DD'` or `'YYYY-MM-DDTHH:MM'` — a 23:59 hand-in and a whole-day
+   deadline are different things). Same on exams.
 
 4. **Exams** — `tasks` filtered type=exam. **No midterm/final split and no view tabs**
    (decision #25 — the ledger's OPEN C, closed against this line). Red accent per design
