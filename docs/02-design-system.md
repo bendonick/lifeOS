@@ -38,6 +38,9 @@ off dense data rows, where it costs legibility; and always ship the
    small muted caption line — e.g. "Exams" / "midterms · finals", "Calendar" / "blocked-off
    time · lives in Google Calendar", "Notes" / "to review · Sunday". This banner+caption pair
    is the strongest visual signature carried over from Notion; keep it.
+   The banner takes an optional trailing **link** (`action`) or **stat** (`meta`, e.g. Courses →
+   "1 course · 6 credits"). A single headline number belongs there rather than in its own card —
+   two stat cards above a short table cost more room than the table itself.
 3. Two-column layout on wide screens: narrow left rail (~20%) of stacked **cards**
    (Quick Actions, Navigation, Reminders, Ideas), wide main column (~80%) of sections.
    Full-width sections below where a module needs the room (calendar, big tables).

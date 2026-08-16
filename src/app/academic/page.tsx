@@ -9,7 +9,7 @@ import { CalendarSection, CalendarSkeleton } from "@/components/calendar/Calenda
 import { Card } from "@/components/ui/Card";
 import { PageShell } from "@/components/ui/PageShell";
 import { SectionBanner } from "@/components/ui/SectionBanner";
-import { allCourses, creditTotals } from "@/lib/db/courses";
+import { allCourses, creditTotals, type CreditTotals } from "@/lib/db/courses";
 import { notesFor } from "@/lib/db/notes";
 import { academicExams, academicWork } from "@/lib/db/tasks";
 import { zurichToday } from "@/lib/dates";
@@ -78,9 +78,10 @@ export default function AcademicPage() {
               accent="academic"
               title="Courses"
               caption="credits · not grades"
+              meta={creditSummary(enrolled.length, creditTotals())}
             />
             <div className="mt-4">
-              <CoursesSection courses={courses} credits={creditTotals()} />
+              <CoursesSection courses={courses} />
             </div>
           </section>
 
@@ -136,6 +137,18 @@ export default function AcademicPage() {
       </section>
     </PageShell>
   );
+}
+
+/** Replaces the two credit cards that used to head the section — same two
+ *  numbers, one line. "earned" only appears once a course is actually completed:
+ *  a standing "0 earned" in month one is noise, not information. */
+function creditSummary(courseCount: number, credits: CreditTotals): string {
+  const parts = [
+    `${courseCount} ${courseCount === 1 ? "course" : "courses"}`,
+    `${credits.enrolled} credits`,
+  ];
+  if (credits.completed > 0) parts.push(`${credits.completed} earned`);
+  return parts.join(" · ");
 }
 
 function QuickAction({ href, label }: { href: string; label: string }) {

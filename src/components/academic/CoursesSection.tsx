@@ -4,25 +4,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { CourseForm, type CoursePayload } from "./CourseForm";
-import { Card } from "@/components/ui/Card";
 import { Pill } from "@/components/ui/Pill";
 import { Table } from "@/components/ui/Table";
 import { scheduleDays } from "@/lib/academic/course";
 import { googleEventPlan } from "@/lib/academic/gcal";
-import type { CreditTotals } from "@/lib/db/courses";
 import type { Course } from "@/lib/types";
 
 /**
  * Courses gallery + the credits counter (docs/03-pages/academic.md §2). Credits
  * are the only score this system keeps — no grades, no GPA (decision #10).
  */
-export function CoursesSection({
-  courses,
-  credits,
-}: {
-  courses: Course[];
-  credits: CreditTotals;
-}) {
+export function CoursesSection({ courses }: { courses: Course[] }) {
   const router = useRouter();
   const [isRefreshing, startTransition] = useTransition();
   const [adding, setAdding] = useState(false);
@@ -62,25 +54,8 @@ export function CoursesSection({
     startTransition(() => router.refresh());
   }
 
-  const enrolled = courses.filter((c) => c.status === "enrolled").length;
-
   return (
     <div aria-busy={isRefreshing}>
-      <div className="mb-4 grid gap-3 sm:grid-cols-2">
-        <Card
-          label="Credits enrolled"
-          accent="academic"
-          value={credits.enrolled}
-          context={`${enrolled} ${enrolled === 1 ? "course" : "courses"} this term`}
-        />
-        <Card
-          label="Credits completed"
-          accent="academic"
-          value={credits.completed}
-          context="counted once a course is marked completed"
-        />
-      </div>
-
       {error && (
         <p role="alert" className="mb-2 text-xs text-danger">
           {error}

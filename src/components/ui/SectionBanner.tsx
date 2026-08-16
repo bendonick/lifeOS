@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { accentBanner, type Accent } from "@/components/ui/accents";
 
 /**
@@ -16,6 +17,7 @@ export function SectionBanner({
   caption,
   id,
   action,
+  meta,
 }: {
   accent?: Accent;
   title: string;
@@ -24,6 +26,8 @@ export function SectionBanner({
   id?: string;
   /** Optional trailing link, so a caption never implies an action it can't perform. */
   action?: { href: string; label: string };
+  /** Trailing read-only stat — a headline number that doesn't warrant a card. */
+  meta?: ReactNode;
 }) {
   return (
     <div>
@@ -33,6 +37,7 @@ export function SectionBanner({
         <h2 id={id} className="text-sm font-semibold tracking-wide">
           {title}
         </h2>
+        {meta && <span className="tabular text-xs font-normal opacity-90">{meta}</span>}
         {action && (
           <Link href={action.href} className="text-xs font-normal opacity-90 hover:underline">
             {action.label}
