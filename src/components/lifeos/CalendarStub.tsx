@@ -34,7 +34,7 @@ export function CalendarStub() {
             }`}
           >
             {dayLabel(d)}
-            {d === today && <span className="ml-1.5 text-[10px] text-faint">today</span>}
+            {d === today && <span className="ml-1.5 text-[11px] text-faint">today</span>}
           </div>
         ))}
 
@@ -43,7 +43,7 @@ export function CalendarStub() {
           {hours.map((h, i) => (
             <div
               key={h}
-              className="absolute right-2 -translate-y-1/2 text-[10px] text-faint"
+              className="absolute right-2 -translate-y-1/2 text-[11px] text-faint"
               style={{ top: i * HOUR_PX }}
             >
               {i > 0 && `${String(h).padStart(2, "0")}:00`}

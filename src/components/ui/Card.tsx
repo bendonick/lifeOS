@@ -28,7 +28,9 @@ export function Card({
         {icon}
         <span>{label}</span>
       </div>
-      {value !== undefined && <div className="tabular mt-2 text-2xl font-semibold">{value}</div>}
+      {value !== undefined && (
+        <div className="tabular t-display mt-2 text-2xl font-semibold">{value}</div>
+      )}
       {context && <p className="mt-1 text-xs text-muted">{context}</p>}
       {children}
     </div>

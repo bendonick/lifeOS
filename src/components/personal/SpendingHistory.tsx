@@ -54,7 +54,7 @@ export function SpendingHistory({ months, startDate }: { months: MonthSpend[]; s
                   x={x + barW / 2}
                   y={H - 8}
                   textAnchor="middle"
-                  className="fill-faint text-[9px]"
+                  className="fill-faint text-[10px]"
                 >
                   {m.month.slice(5)}
                 </text>
@@ -62,12 +62,12 @@ export function SpendingHistory({ months, startDate }: { months: MonthSpend[]; s
             );
           })}
           <g>
-            <line x1={markerX} y1={PAD.top - 6} x2={markerX} y2={PAD.top + innerH} className="stroke-warn" strokeWidth={1} />
+            <line x1={markerX} y1={PAD.top - 6} x2={markerX} y2={PAD.top + innerH} className="stroke-faint" strokeWidth={1} />
             <text
               x={labelLeft ? markerX - 4 : markerX + 4}
               y={PAD.top - 6}
               textAnchor={labelLeft ? "end" : "start"}
-              className="fill-warn text-[9px]"
+              className="fill-muted text-[10px]"
             >
               budget starts {startDate}
             </text>

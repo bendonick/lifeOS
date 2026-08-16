@@ -47,7 +47,7 @@ export function BudgetTable({ o }: { o: BudgetOverview }) {
                   className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-muted transition-colors hover:text-text"
                   aria-expanded={open}
                 >
-                  <span aria-hidden="true" className="text-[10px] text-faint">
+                  <span aria-hidden="true" className="text-[11px] text-faint">
                     {open ? "▾" : "▸"}
                   </span>
                   {label}

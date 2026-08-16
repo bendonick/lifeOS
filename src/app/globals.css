@@ -77,6 +77,28 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Large text reads too loose at its default tracking, so display numerals get
+   negative tracking and tight leading; small text gets a touch of positive
+   tracking. Size, weight, leading and tracking are chosen as a set. */
+.t-display {
+  letter-spacing: -0.022em;
+  line-height: 1.1;
+  font-optical-sizing: auto;
+}
+
+/* Buttons must feel responsive to the press itself, not just to the result:
+   instant, ~120ms, transform-only so it stays on the compositor. */
+:where(button, [role="button"]):not(:disabled) {
+  transition:
+    transform 120ms ease-out,
+    color 120ms ease-out,
+    border-color 120ms ease-out,
+    background-color 120ms ease-out;
+}
+:where(button, [role="button"]):not(:disabled):active {
+  transform: scale(0.97);
+}
+
 /* Reduced motion means gentler, not none: keep color/opacity feedback that aids
    comprehension, drop movement. */
 @media (prefers-reduced-motion: reduce) {

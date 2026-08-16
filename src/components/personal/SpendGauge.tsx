@@ -67,7 +67,7 @@ export function SpendGauge({ o }: { o: BudgetOverview }) {
             )}
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`tabular text-2xl font-semibold ${over ? "text-danger" : ""}`}>
+            <span className={`tabular t-display text-2xl font-semibold ${over ? "text-danger" : ""}`}>
               {over && "−"}
               {chf.format(Math.abs(Math.round(left)))}
             </span>

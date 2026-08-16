@@ -58,10 +58,14 @@ export function CategoryBreakdown({
                 className="absolute inset-y-0 left-0 rounded-full bg-personal"
                 style={{ width: `${Math.min(100, (r.spent / max) * 100)}%` }}
               />
+              {/* A caret under the track, not a vertical rule — the budget
+                  table's pace tick is a rule, and two identical glyphs 200px
+                  apart meaning opposite things is worse than no marker. */}
               {r.baseline !== null && (
-                <div
-                  className="absolute -inset-y-0.5 w-px bg-faint"
+                <span
+                  className="absolute -bottom-1.5 h-0 w-0 -translate-x-1/2 border-x-[3px] border-b-[4px] border-x-transparent border-b-faint"
                   style={{ left: `${Math.min(100, (r.baseline / max) * 100)}%` }}
+                  aria-hidden="true"
                 />
               )}
             </div>
@@ -75,8 +79,8 @@ export function CategoryBreakdown({
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-[11px] text-faint">
-        tick = your historical monthly average
+      <p className="mt-4 text-[11px] text-faint">
+        ▲ marks your historical monthly average
         {nothingSpent && " · bars fill as the month is spent"}
       </p>
     </Card>
