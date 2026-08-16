@@ -40,8 +40,11 @@ export function SpendingCard({ o }: { o: BudgetOverview }) {
           {o.mom.streak > 1 && ` · ${ordinal(o.mom.streak)} month under budget`}
         </p>
       )}
+      {/* A categorising chore is housekeeping, not urgency — warm stays reserved. */}
       {o.uncategorisedInWindow > 0 && (
-        <p className="mt-1 text-xs text-warn">{o.uncategorisedInWindow} to categorise</p>
+        <a href="#uncategorised" className="mt-1 inline-block text-xs text-muted hover:text-text">
+          {o.uncategorisedInWindow} to categorise →
+        </a>
       )}
     </Card>
   );

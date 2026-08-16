@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { addDays, daysInMonth, monthOf, zurichToday } from "@/lib/dates";
+import { paceState, type PaceState } from "@/lib/money/pace";
 import type { ParsedTxn } from "@/lib/money/parsers/types";
 import type { BudgetLine } from "@/lib/types";
 import { budgetStartDate, budgetWindowStart, fullHistory } from "@/lib/money/window";
@@ -197,7 +198,7 @@ export interface BudgetOverview {
   daysInMonth: number;
   lines: LineStatus[];
   tiers: Record<"fixed" | "variable" | "annual", TierTotals>;
-  variable: { spent: number; budget: number; expected: number; pace: "under" | "on pace" | "over" };
+  variable: { spent: number; budget: number; expected: number; pace: PaceState };
   allIn: { spent: number; budget: number }; // budget = monthly total + annual/12
   mom: { label: string; delta: number; streak: number } | null; // labelled full-history reader
   uncategorisedInWindow: number;
@@ -257,13 +258,7 @@ export function budgetOverview(): BudgetOverview {
   const dim = daysInMonth(month);
   const dayOfMonth = prospective ? 0 : Math.min(Number(today.slice(8, 10)), dim);
   const expected = tiers.variable.budget * (dayOfMonth / dim);
-  const ratio = expected > 0 ? tiers.variable.spent / expected : 0;
-  const pace: BudgetOverview["variable"]["pace"] =
-    tiers.variable.spent > tiers.variable.budget || ratio > 1.05
-      ? "over"
-      : ratio < 0.95
-        ? "under"
-        : "on pace";
+  const pace = paceState(tiers.variable.spent, tiers.variable.budget, dayOfMonth, dim);
 
   return {
     month,

@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { accentControl } from "@/components/ui/accents";
 import type { BillStatus } from "@/lib/db/bills";
+import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
 
 // Bills §7: paid checkbox per current month. Warm colors are urgency only —
 // warn when unpaid past due_day, danger when last month rolled over unpaid.
@@ -18,52 +18,63 @@ export function BillsPanel({
   month: string;
   dayOfMonth: number;
 }) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const { toggle, valueFor, isPending, error } = useOptimisticToggle<BillStatus>({
+    idOf: (b) => b.id,
+    labelOf: (b) => b.name,
+    send: (b, next) =>
+      fetch(`/api/bills/${b.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ month, paid: next }),
+      }),
+  });
 
-  async function toggle(bill: BillStatus) {
-    await fetch(`/api/bills/${bill.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ month, paid: !bill.paid }),
-    });
-    startTransition(() => router.refresh());
+  if (bills.length === 0) {
+    return (
+      <div className="max-w-lg rounded-lg border border-border bg-surface px-3 py-6 text-center text-xs text-faint">
+        no bills tracked — add one to see it here each month
+      </div>
+    );
   }
 
-  const paidCount = bills.filter((b) => b.paid).length;
-  const openChf = bills.reduce((s, b) => s + (b.paid ? 0 : (b.amount_chf ?? 0)), 0);
+  const paidCount = bills.filter((b) => valueFor(b, b.paid)).length;
+  const openChf = bills.reduce((s, b) => s + (valueFor(b, b.paid) ? 0 : (b.amount_chf ?? 0)), 0);
 
   return (
-    <div
-      className={`max-w-lg rounded-lg border border-border bg-surface ${isPending ? "opacity-60" : ""} transition-opacity`}
-    >
+    <div className="max-w-lg rounded-lg border border-border bg-surface" aria-busy={isPending}>
+      {isPending && <div className="h-0.5 rounded-t-lg bg-personal/40" aria-hidden="true" />}
       <div className="flex items-baseline justify-between border-b border-border px-3 py-2">
         <span className="tabular text-xs font-medium text-muted">
           {paidCount} of {bills.length} paid
         </span>
-        {openChf > 0 && (
-          <span className="tabular text-xs text-faint">CHF {chf.format(openChf)} open</span>
+        {error ? (
+          <span role="alert" className="text-xs text-danger">
+            {error}
+          </span>
+        ) : (
+          openChf > 0 && <span className="tabular text-xs text-faint">CHF {chf.format(openChf)} open</span>
         )}
       </div>
       <ul className="divide-y divide-border">
         {bills.map((b) => {
-          const overdue = !b.paid && dayOfMonth > b.due_day;
-          const tone = b.prevMonthMissed && !b.paid ? "text-danger" : overdue ? "text-warn" : "text-muted";
+          const paid = valueFor(b, b.paid);
+          const overdue = !paid && dayOfMonth > b.due_day;
+          const tone = b.prevMonthMissed && !paid ? "text-danger" : overdue ? "text-warn" : "text-muted";
           return (
             <li key={b.id} className="flex items-center gap-3 px-3 py-2">
               <input
                 type="checkbox"
-                checked={b.paid}
-                onChange={() => toggle(b)}
-                className="h-4 w-4 cursor-pointer accent-[#a78bfa]"
+                checked={paid}
+                onChange={() => toggle(b, paid)}
+                className={`h-4 w-4 cursor-pointer ${accentControl.personal}`}
                 aria-label={`${b.name} paid this month`}
               />
-              <span className={`flex-1 text-sm ${b.paid ? "text-muted line-through" : ""}`}>{b.name}</span>
+              <span className={`flex-1 text-sm ${paid ? "text-muted line-through" : ""}`}>{b.name}</span>
               {b.amount_chf !== null && (
                 <span className="tabular text-xs text-muted">CHF {chf.format(b.amount_chf)}</span>
               )}
               <span className={`tabular w-20 text-right text-xs ${tone}`}>
-                {b.paid
+                {paid
                   ? "paid"
                   : b.prevMonthMissed
                     ? "missed last mo"

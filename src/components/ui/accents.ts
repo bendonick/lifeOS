@@ -12,13 +12,15 @@ export const accentText: Record<Accent, string> = {
   warn: "text-warn",
 };
 
+/* Tint raised from /10 to /16 — at /10 the strip measured 1.13:1 against the
+   page and read as colored text on black rather than a tinted band. */
 export const accentBanner: Record<Accent, string> = {
-  academic: "bg-academic/10 text-academic",
-  personal: "bg-personal/10 text-personal",
-  professional: "bg-professional/10 text-professional",
-  hub: "bg-hub/10 text-hub",
-  danger: "bg-danger/10 text-danger",
-  warn: "bg-warn/10 text-warn",
+  academic: "bg-academic/16 text-academic",
+  personal: "bg-personal/16 text-personal",
+  professional: "bg-professional/16 text-professional",
+  hub: "bg-hub/16 text-hub",
+  danger: "bg-danger/16 text-danger",
+  warn: "bg-warn/16 text-warn",
 };
 
 export const accentPill: Record<Accent | "neutral", string> = {
@@ -29,6 +31,18 @@ export const accentPill: Record<Accent | "neutral", string> = {
   danger: "bg-danger/10 text-danger border-danger/25",
   warn: "bg-warn/10 text-warn border-warn/25",
   neutral: "bg-raised text-muted border-border",
+};
+
+/* Form-control tint (checkbox/radio `accent-color`). Components must use this
+   rather than a hardcoded hex — Personal was rendering Academic-green
+   checkboxes because ThisWeek shipped with `accent-[#3ecf8e]` baked in. */
+export const accentControl: Record<Accent, string> = {
+  academic: "accent-academic",
+  personal: "accent-personal",
+  professional: "accent-professional",
+  hub: "accent-hub",
+  danger: "accent-danger",
+  warn: "accent-warn",
 };
 
 /* Calendar event tints — block backgrounds with a readable text color. */

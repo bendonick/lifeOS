@@ -40,13 +40,13 @@ export function InboxPanel({ items, today }: { items: InboxItem[]; today: string
   }
 
   return (
-    <div className={isPending ? "opacity-60 transition-opacity" : "transition-opacity"}>
+    <div aria-busy={isPending}>
       <form onSubmit={capture} className="flex gap-2">
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Capture anything…"
-          className="min-w-0 flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-sm placeholder:text-faint focus:border-hub/50 focus:outline-none"
+          className="min-w-0 flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-sm placeholder:text-faint focus:border-hub/50"
         />
         <button
           type="submit"
@@ -127,14 +127,14 @@ function CaptureToTaskForm({
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="rounded border border-border bg-surface px-2 py-1 text-sm focus:outline-none"
+        className="rounded border border-border bg-surface px-2 py-1 text-sm"
         aria-label="task title"
       />
       <div className="flex gap-2">
         <select
           value={domain}
           onChange={(e) => setDomain(e.target.value as Domain)}
-          className="flex-1 rounded border border-border bg-surface px-1.5 py-1 text-xs text-muted focus:outline-none"
+          className="flex-1 rounded border border-border bg-surface px-1.5 py-1 text-xs text-muted"
         >
           {DOMAINS.map((d) => (
             <option key={d} value={d}>
@@ -146,7 +146,7 @@ function CaptureToTaskForm({
           type="date"
           value={due}
           onChange={(e) => setDue(e.target.value)}
-          className="rounded border border-border bg-surface px-1.5 py-1 text-xs text-muted [color-scheme:dark] focus:outline-none"
+          className="rounded border border-border bg-surface px-1.5 py-1 text-xs text-muted"
         />
         <button
           type="submit"

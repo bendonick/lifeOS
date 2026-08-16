@@ -21,7 +21,16 @@ export function TxnQuickAdd({ categories, today }: { categories: CategoryGroup[]
   async function add(e: React.FormEvent) {
     e.preventDefault();
     const value = Number(amount);
-    if (!merchant.trim() || !Number.isFinite(value) || value <= 0) return;
+    // Used to return silently: pressing Add with a bad amount did nothing at
+    // all, with no way to learn why.
+    if (!Number.isFinite(value) || value <= 0) {
+      setError("enter an amount");
+      return;
+    }
+    if (!merchant.trim()) {
+      setError("enter a merchant");
+      return;
+    }
     setError(null);
     const res = await fetch("/api/money/transactions", {
       method: "POST",
@@ -45,34 +54,36 @@ export function TxnQuickAdd({ categories, today }: { categories: CategoryGroup[]
   return (
     <form
       onSubmit={add}
-      className={`flex min-w-0 flex-1 flex-wrap items-center gap-2 ${isPending ? "opacity-60" : ""} transition-opacity`}
+      className="flex min-w-0 flex-1 flex-wrap items-center gap-2"
+      aria-busy={isPending}
     >
       <input
         type="date"
         value={date}
         onChange={(e) => setDate(e.target.value)}
-        className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted [color-scheme:dark] focus:outline-none"
+        className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted"
         aria-label="transaction date"
       />
       <input
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         placeholder="CHF"
+        id="new-expense"
         inputMode="decimal"
-        className="tabular w-20 rounded-md border border-border bg-surface px-2 py-1.5 text-right text-sm placeholder:text-faint focus:border-personal/50 focus:outline-none"
+        className="tabular w-20 rounded-md border border-border bg-surface px-2 py-1.5 text-right text-sm placeholder:text-faint focus:border-personal/50"
         aria-label="amount in CHF"
       />
       <input
         value={merchant}
         onChange={(e) => setMerchant(e.target.value)}
         placeholder="Merchant…"
-        className="min-w-32 flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-sm placeholder:text-faint focus:border-personal/50 focus:outline-none"
+        className="min-w-32 flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-sm placeholder:text-faint focus:border-personal/50"
         aria-label="merchant"
       />
       <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
-        className="w-36 rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted focus:outline-none"
+        className="w-36 rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted"
         aria-label="category"
       >
         <option value="">category…</option>

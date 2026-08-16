@@ -22,39 +22,41 @@ export const dynamic = "force-dynamic";
 
 // Layout per docs/06-stage2-brief.md §7: narrow left rail of stacked cards,
 // wide main column of banner+caption sections, calendar full-width below.
+// Quick Actions target the section's first input rather than the section
+// itself, so the browser moves focus there as well as scrolling.
 export default function PersonalPage() {
   const today = zurichToday();
   const toReview = unreviewedPersonalCount();
   const germanWord = latestGermanWord();
 
   return (
-    <PageShell page="Personal" title="Personal" subtitle="health · habits · money">
+    <PageShell page="Personal" title="Personal" subtitle="habits · health · money">
       <div className="grid gap-10 lg:grid-cols-[15rem_1fr]">
-        <aside className="flex flex-col gap-4 self-start">
-          <Card label="Quick Actions" accent="personal">
+        <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-28">
+          <Card label="Quick Actions" accent="hub">
             <div className="mt-3 grid grid-cols-2 gap-1.5">
-              <QuickAction href="#tasks" label="Task" />
-              <QuickAction href="#health" label="Metric" />
-              <QuickAction href="#spending" label="Expense" />
-              <QuickAction href="#notes" label="Note" />
+              <QuickAction href="#new-task" label="Task" />
+              <QuickAction href="#new-metric" label="Metric" />
+              <QuickAction href="#new-expense" label="Expense" />
+              <QuickAction href="#new-note" label="Note" />
             </div>
           </Card>
 
-          <Card label="Navigation" accent="personal">
-            <div className="mt-3 flex flex-col gap-1.5 text-sm">
+          <Card label="Navigation" accent="hub">
+            <nav aria-label="Sections" className="mt-3 flex flex-col gap-1.5 text-sm">
               <NavLink href="/personal/health" label="Health trends →" />
               <NavLink href="/" label="LifeOS" />
               <NavLink href="/academic" label="Academic" />
               <NavLink href="/professional" label="Professional" />
-            </div>
+            </nav>
           </Card>
 
-          <a href="#notes" className="group block">
+          <a href="#notes" className="group block rounded-lg">
             <Card
-              label="Notes"
+              label="To review"
               accent="personal"
               value={toReview}
-              context="to review · Sunday"
+              context={toReview === 1 ? "note · Sunday" : "notes · Sunday"}
               className="transition-colors group-hover:border-personal/30"
             />
           </a>
@@ -63,7 +65,9 @@ export default function PersonalPage() {
             {germanWord ? (
               <>
                 <div className="mt-2 text-sm">{germanWord.content_md}</div>
-                <p className="mt-1 text-xs text-faint">generated {utcToZurichLabel(germanWord.generated_at)}</p>
+                <p className="mt-1 text-xs text-faint">
+                  generated {utcToZurichLabel(germanWord.generated_at)}
+                </p>
               </>
             ) : (
               <p className="mt-2 text-xs text-faint">no word yet · briefs start in Stage 5</p>
@@ -72,36 +76,62 @@ export default function PersonalPage() {
         </aside>
 
         <div className="flex flex-col gap-10">
-          <section id="habits">
-            <SectionBanner accent="personal" title="Habits" caption="today · resets at midnight" />
+          <section id="habits" aria-labelledby="habits-title">
+            <SectionBanner
+              id="habits-title"
+              accent="personal"
+              title="Habits"
+              caption="today · resets at midnight"
+            />
             <div className="mt-4">
               <HabitList habits={habitsWithWeek(today)} today={today} />
             </div>
           </section>
 
-          <section id="health">
-            <SectionBanner accent="personal" title="Health" caption="manual & CSV · trends →" />
+          <section id="health" aria-labelledby="health-title">
+            <SectionBanner
+              id="health-title"
+              accent="personal"
+              title="Health"
+              caption="manual entry & CSV import"
+              action={{ href: "/personal/health", label: "trends →" }}
+            />
             <div className="mt-4">
               <HealthSection today={today} />
             </div>
           </section>
 
-          <section id="spending">
-            <SectionBanner accent="personal" title="Spending" caption="current month · UBS import" />
+          <section id="spending" aria-labelledby="spending-title">
+            <SectionBanner
+              id="spending-title"
+              accent="personal"
+              title="Spending"
+              caption="current month · UBS import"
+            />
             <div className="mt-4">
               <SpendingSection today={today} />
             </div>
           </section>
 
-          <section id="tasks">
-            <SectionBanner accent="personal" title="Tasks" caption="due this week" />
+          <section id="tasks" aria-labelledby="tasks-title">
+            <SectionBanner
+              id="tasks-title"
+              accent="personal"
+              title="Tasks"
+              caption="due this week"
+            />
             <div className="mt-4">
-              <ThisWeek tasks={weekTasksByDomain("personal")} today={today} fixedDomain="personal" />
+              <ThisWeek
+                tasks={weekTasksByDomain("personal")}
+                today={today}
+                fixedDomain="personal"
+                accent="personal"
+              />
             </div>
           </section>
 
-          <section id="bills">
-            <SectionBanner accent="personal" title="Bills" caption="this month" />
+          <section id="bills" aria-labelledby="bills-title">
+            <SectionBanner id="bills-title" accent="personal" title="Bills" caption="this month" />
             <div className="mt-4">
               <BillsPanel
                 bills={billsForMonth(monthOf(today))}
@@ -111,25 +141,31 @@ export default function PersonalPage() {
             </div>
           </section>
 
-          <section id="notes">
-            <SectionBanner accent="personal" title="Notes" caption="to review · Sunday" />
+          <section id="notes" aria-labelledby="notes-title">
+            <SectionBanner
+              id="notes-title"
+              accent="personal"
+              title="Notes"
+              caption="lightweight inbox · reviewed on Sunday"
+            />
             <div className="mt-4">
               <NotesPanel notes={personalNotes()} />
             </div>
           </section>
+
+          <section id="calendar" aria-labelledby="calendar-title">
+            <SectionBanner
+              id="calendar-title"
+              accent="personal"
+              title="Calendar"
+              caption="blocked-off time · lives in Google Calendar · fake events until ICS lands in Stage 3"
+            />
+            <div className="mt-4">
+              <CalendarStub />
+            </div>
+          </section>
         </div>
       </div>
-
-      <section id="calendar">
-        <SectionBanner
-          accent="personal"
-          title="Calendar"
-          caption="blocked-off time · lives in Google Calendar · fake events until ICS lands in Stage 3"
-        />
-        <div className="mt-4">
-          <CalendarStub />
-        </div>
-      </section>
     </PageShell>
   );
 }

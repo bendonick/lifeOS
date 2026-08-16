@@ -241,7 +241,7 @@ function CorrelationView({ series, metrics }: { series: Series; metrics: MetricK
             type="checkbox"
             checked={lag}
             onChange={(e) => setLag(e.target.checked)}
-            className="h-3.5 w-3.5 accent-[#a78bfa]"
+            className="h-3.5 w-3.5 accent-personal"
           />
           lag {METRICS[yKey].label} by 1 day
         </label>
@@ -320,7 +320,7 @@ function MetricSelect({
       value={value}
       onChange={(e) => onChange(e.target.value as MetricKey)}
       aria-label={label}
-      className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted focus:outline-none"
+      className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted"
     >
       {metrics.map((k) => (
         <option key={k} value={k}>

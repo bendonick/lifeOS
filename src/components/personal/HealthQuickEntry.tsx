@@ -20,7 +20,10 @@ export function HealthQuickEntry({ today, mappings }: { today: string; mappings:
   async function log(e: React.FormEvent) {
     e.preventDefault();
     const v = Number(value);
-    if (!Number.isFinite(v)) return;
+    if (value.trim() === "" || !Number.isFinite(v)) {
+      setMessage({ tone: "danger", text: "enter a number" });
+      return;
+    }
     setMessage(null);
     const res = await fetch("/api/health/metrics", {
       method: "POST",
@@ -54,19 +57,19 @@ export function HealthQuickEntry({ today, mappings }: { today: string; mappings:
   }
 
   return (
-    <div className={`flex flex-wrap items-center gap-2 ${isPending ? "opacity-60" : ""} transition-opacity`}>
+    <div className="flex flex-wrap items-center gap-2" aria-busy={isPending}>
       <form onSubmit={log} className="flex flex-wrap items-center gap-2">
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted [color-scheme:dark] focus:outline-none"
+          className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted"
           aria-label="metric date"
         />
         <select
           value={metric}
           onChange={(e) => setMetric(e.target.value)}
-          className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted focus:outline-none"
+          className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted"
           aria-label="metric"
         >
           {METRIC_KEYS.map((k) => (
@@ -79,8 +82,9 @@ export function HealthQuickEntry({ today, mappings }: { today: string; mappings:
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="value"
+          id="new-metric"
           inputMode="decimal"
-          className="tabular w-20 rounded-md border border-border bg-surface px-2 py-1.5 text-right text-sm placeholder:text-faint focus:border-personal/50 focus:outline-none"
+          className="tabular w-20 rounded-md border border-border bg-surface px-2 py-1.5 text-right text-sm placeholder:text-faint focus:border-personal/50"
           aria-label="metric value"
         />
         <button
@@ -107,7 +111,7 @@ export function HealthQuickEntry({ today, mappings }: { today: string; mappings:
       <select
         value={mapping}
         onChange={(e) => setMapping(e.target.value)}
-        className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted focus:outline-none"
+        className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted"
         aria-label="csv mapping"
       >
         {mappings.map((m) => (
@@ -125,7 +129,10 @@ export function HealthQuickEntry({ today, mappings }: { today: string; mappings:
         Import CSV
       </button>
       {message && (
-        <span className={`text-xs ${message.tone === "danger" ? "text-danger" : "text-muted"}`}>
+        <span
+          role={message.tone === "danger" ? "alert" : "status"}
+          className={`text-xs ${message.tone === "danger" ? "text-danger" : "text-muted"}`}
+        >
           {message.text}
         </span>
       )}

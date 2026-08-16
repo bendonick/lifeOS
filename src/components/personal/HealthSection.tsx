@@ -18,14 +18,16 @@ export function HealthSection({ today }: { today: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* min-w-0 on the items: grid 1fr is minmax(auto,1fr), so a long macro
+          line would otherwise push the row past the container. */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 [&>*]:min-w-0">
         <Card label="Macros left" accent="personal">
           {d.macros.logged ? (
             <>
               <div className="tabular mt-2 text-2xl font-semibold">
                 {int.format(Math.abs(kcalLeft))} <span className="text-base font-normal text-muted">kcal {kcalLeft >= 0 ? "left" : "over"}</span>
               </div>
-              <p className="tabular mt-1 text-[11px] whitespace-nowrap text-muted">
+              <p className="tabular mt-1 text-[11px] text-muted">
                 P {int.format(d.macros.protein)}/{d.targets.protein} · C {int.format(d.macros.carbs)}/
                 {d.targets.carbs} · F {int.format(d.macros.fat)}/{d.targets.fat}
               </p>

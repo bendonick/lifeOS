@@ -2,9 +2,14 @@
 
 /*
  * LifeOS design tokens — docs/02-design-system.md.
- * Dark only (no light theme until asked). Near-black ground, cards one step
- * lighter, hairline borders. Domain colors are the identity of the system;
- * warm colors are reserved for urgency.
+ * Dark only. Near-black ground, cards one step lighter, hairline borders.
+ * Domain colors are the identity of the system; warm colors are reserved for
+ * urgency.
+ *
+ * Surface/border/faint were re-stepped 2026-08-16: the old values measured
+ * 1.06:1 (surface on bg) and 1.18:1 (border on surface), so "cards one step
+ * lighter" was rounding error and row dividers were invisible; --color-faint
+ * measured 3.0:1 and was carrying real 11px text, below the 4.5:1 AA floor.
  */
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
@@ -12,14 +17,15 @@
 
   /* surfaces */
   --color-bg: #0c0c0e;
-  --color-surface: #141417;
-  --color-raised: #1b1b20;
-  --color-border: #232329;
+  --color-surface: #17171b;
+  --color-raised: #212128;
+  --color-border: #2e2e37;
 
-  /* text */
+  /* text — faint is a *text* tone and must stay legible (4.7:1 on surface);
+     decorative hairlines use --color-border, not faint. */
   --color-text: #e8e8ea;
   --color-muted: #9a9aa3;
-  --color-faint: #62626b;
+  --color-faint: #82828b;
 
   /* domains */
   --color-academic: #3ecf8e;
@@ -30,6 +36,18 @@
   /* urgency only — red = exam / overdue / high priority, orange = due-soon */
   --color-danger: #f87171;
   --color-warn: #fb923c;
+
+  /* domain-neutral focus indicator */
+  --color-focus: #c9c9d1;
+}
+
+/* Tells the UA to render its own controls dark. Without it, unchecked
+   checkboxes, select popups, scrollbars and date pickers paint with the light
+   default — a column of near-white boxes was the brightest thing on the page.
+   `accent-color` only ever styles the *checked* state, so it can't fix this. */
+:root {
+  color-scheme: dark;
+  accent-color: var(--color-personal);
 }
 
 body {
@@ -39,7 +57,56 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* One focus treatment for every control. Components must not re-suppress this
+   with `outline-none` — keyboard users had no visible focus anywhere. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  /* literal, not var(--color-focus): unused @theme vars get tree-shaken, and a
+     missing var here silently degrades the outline to currentColor */
+  outline: 2px solid #c9c9d1;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Anchor targets sit below the sticky header rather than flush to the viewport. */
+:where(section[id], [id^="uncategorised"]) {
+  scroll-margin-top: 5rem;
+}
+
 /* Stat values use tabular figures so numbers align (design system: typography). */
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* Reduced motion means gentler, not none: keep color/opacity feedback that aids
+   comprehension, drop movement. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Translucent chrome must have a solid fallback — this is the obligation that
+   comes with using materials at all. */
+@media (prefers-reduced-transparency: reduce) {
+  .material {
+    background-color: var(--color-surface) !important;
+    backdrop-filter: none !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-muted: #c2c2c9;
+    --color-faint: #a6a6ae;
+    --color-border: #4a4a56;
+  }
+  .material {
+    background-color: var(--color-surface) !important;
+    backdrop-filter: none !important;
+  }
 }

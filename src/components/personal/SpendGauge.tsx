@@ -21,8 +21,9 @@ export function SpendGauge({ o }: { o: BudgetOverview }) {
   const left = budget - spent;
   const over = spent > budget;
   const paceFraction = o.prospective ? 0 : o.dayOfMonth / o.daysInMonth;
-  const ahead = !o.prospective && paceFraction > 0 && frac > paceFraction + 0.001;
-  const ringClass = over ? "text-danger" : ahead ? "text-warn" : "text-personal";
+  // Same pace verdict as the card beside it — both read o.variable.pace, which
+  // comes from the one shared ±5% helper.
+  const ringClass = over ? "text-danger" : o.variable.pace === "over" ? "text-warn" : "text-personal";
 
   // pace tick: a short radial segment at the expected-by-today angle
   const tickAngle = 2 * Math.PI * paceFraction - Math.PI / 2;
@@ -46,7 +47,8 @@ export function SpendGauge({ o }: { o: BudgetOverview }) {
               strokeWidth={STROKE}
               className="stroke-raised"
             />
-            {frac > 0 && (
+            {/* below ~0.5% a round cap renders as a stray dot on an empty ring */}
+            {frac > 0.005 && (
               <circle
                 cx={SIZE / 2}
                 cy={SIZE / 2}
@@ -65,7 +67,8 @@ export function SpendGauge({ o }: { o: BudgetOverview }) {
             )}
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="tabular text-xl font-semibold">
+            <span className={`tabular text-2xl font-semibold ${over ? "text-danger" : ""}`}>
+              {over && "−"}
               {chf.format(Math.abs(Math.round(left)))}
             </span>
             <span className={`text-[11px] ${over ? "text-danger" : "text-muted"}`}>

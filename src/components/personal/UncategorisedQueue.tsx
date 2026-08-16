@@ -45,13 +45,18 @@ export function UncategorisedQueue({
   const totalRows = rows.reduce((s, g) => s + g.count, 0);
 
   return (
-    <div className={isPending ? "opacity-60 transition-opacity" : "transition-opacity"}>
+    <div id="uncategorised" aria-busy={isPending}>
       <div className="rounded-lg border border-border bg-surface">
+        {isPending && <div className="h-0.5 rounded-t-lg bg-personal/40" aria-hidden="true" />}
         <div className="flex items-baseline justify-between border-b border-border px-3 py-2">
           <span className="text-xs font-medium text-muted">
             Uncategorised · {rows.length} merchants · {totalRows} rows
           </span>
-          {error && <span className="text-xs text-danger">{error}</span>}
+          {error && (
+            <span role="alert" className="text-xs text-danger">
+              {error}
+            </span>
+          )}
         </div>
         <ul className="divide-y divide-border">
           {shown.map((g) => (
@@ -95,17 +100,20 @@ function QueueRow({
       <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
-        className="w-36 rounded-md border border-border bg-surface px-2 py-1 text-xs text-muted focus:outline-none"
+        className="w-36 rounded-md border border-border bg-surface px-2 py-1 text-xs text-muted"
       >
         <option value="">category…</option>
         <CategoryOptions groups={categories} />
       </select>
-      <label className="flex cursor-pointer items-center gap-1 text-xs text-faint">
+      <label
+        className="flex cursor-pointer items-center gap-1 text-xs text-muted"
+        title={`Also save a rule so future imports categorise “${group.merchant}” automatically`}
+      >
         <input
           type="checkbox"
           checked={always}
           onChange={(e) => setAlways(e.target.checked)}
-          className="h-3.5 w-3.5 accent-[#a78bfa]"
+          className="h-3.5 w-3.5 accent-personal"
         />
         always
       </label>
