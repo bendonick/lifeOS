@@ -41,6 +41,25 @@ promote to a stage deliberately, never by drift.
   only ever needed the week.
 - Materials: upload from the browser instead of dropping files into the folder by hand.
 
+## Stage 4 (2026-08-17)
+
+- Edit or delete a logged interaction — there is no undo. The *queue* is always correctable
+  (`last_contacted` stays editable on the contact); only the history row isn't.
+- `notes.project_id` for a real per-project note feed. Stage 4 uses the `projects.notes` text
+  field, and the detail page's caption says so ("one field, not a feed").
+- Migrate the four private tab implementations (`AcademicTasks`, `NotesPanel`, `TrendsView`,
+  `WeekCalendar`) onto `src/components/ui/Tabs.tsx`. Built and used by Network; the migration
+  touches three finished pages, so it wasn't done inside the build stage.
+- `PATCH /api/tasks/[id]` accepting `project_id` — re-filing a task between projects. The db layer
+  supports it; nothing in the UI needs it yet.
+- A learning **target** date (offered and declined 2026-08-17 in favour of started/completed) and a
+  type filter — only once the table is big enough to need them.
+- `contact_interactions.channel` (call/email/coffee) if a pill turns out to be wanted. Left out for
+  decision #25's reason.
+- Contact import from a LinkedIn or CSV export, instead of hand entry.
+- The "AI Engineer & RL Learning Roadmap" link in the Navigation rail card, once that doc exists —
+  the user is still writing it, and no dead link ships.
+
 ## Removed on 2026-08-17 — recoverable from commit 6625ba3
 
 - **Schedule check panel** — compared each course's days/times against the Academic ICS feed

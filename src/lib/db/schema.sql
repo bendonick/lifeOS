@@ -65,8 +65,22 @@ CREATE TABLE IF NOT EXISTS contacts (
   followup_interval_days INTEGER,
   notes                  TEXT,
   created_at             TEXT NOT NULL DEFAULT (datetime('now'))
-  -- next_followup = last_contacted + interval, computed app-side (Stage 4)
+  -- next_followup = last_contacted + interval, computed app-side (Stage 4) in
+  -- src/lib/professional/followup.ts — never stored, so it can't go stale.
 );
+
+-- Per-contact interaction log (Stage 4, decision #30). Logging an interaction writes
+-- a row here AND advances contacts.last_contacted, so the follow-up queue reshuffles.
+-- No channel/kind enum: a kind that is never filtered on is a field to maintain
+-- (decision #25's reasoning); `note` carries "coffee at Sprüngli" for free.
+CREATE TABLE IF NOT EXISTS contact_interactions (
+  id         INTEGER PRIMARY KEY,
+  contact_id INTEGER NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+  date       TEXT NOT NULL,          -- 'YYYY-MM-DD' (Zurich): when it happened, not when logged
+  note       TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_contact_interactions ON contact_interactions (contact_id, date DESC);
 
 CREATE TABLE IF NOT EXISTS learning_items (
   id         INTEGER PRIMARY KEY,

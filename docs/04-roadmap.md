@@ -58,14 +58,23 @@ being created by the app — Google still creates and owns every event. A Schedu
 comparing course metadata against the feed shipped alongside it and was removed the next day
 as chrome (decision #28); the timetable now renders full width with nothing beside it.
 
-## Stage 4 — Professional page — NEXT
+## Stage 4 — Professional page — COMPLETE (2026-08-17)
 
-Build per `03-pages/professional.md`: Day job task view, learning table, projects,
-Network CRM with follow-up math. Add Personal/Professional calendar views (reuse ICS module).
-**Done when:** a contact with last_contacted + interval sorts correctly in Due for follow-up,
-and logging an interaction reshuffles it.
+Built per `03-pages/professional.md`, in the spec's section order: Day job (day-job tasks),
+AI/RL concepts, Projects, Network — plus the three rail cards and the Professional ICS week view
+full width below the grid (following #28, not `/personal`). New: `contact_interactions` and the
+follow-up queue (decision #30), the day-job config key (#31), the learning list in the user's own
+status words (#32), `src/lib/db/{contacts,learning,projects}.ts`, seven API routes, and
+`project_id` finally plumbed through `tasks` — the column existed from Stage 1 and nothing wrote it.
+`RemindersCard` was generalised into `components/notes/NotesCard.tsx` (Academic keeps a zero-line
+diff) and the pill view-tab was extracted to `components/ui/Tabs.tsx`.
+**Done when:** verified 2026-08-17. Four fixture contacts sorted D (never contacted) → A (overdue,
+red) → C (tomorrow, orange) → B, with the no-cadence contact appearing only under All contacts;
+logging an interaction on A moved it from second to last and dropped the red, and the order survived
+a reload. Back-dating recorded history without moving `last_contacted`. A Day job task appeared on
+LifeOS This week with a blue domain pill. Fixtures were deleted afterwards; the page ships empty.
 
-## Stage 5 — Capture relay + briefs
+## Stage 5 — Capture relay + briefs — NEXT
 
 Notion Capture Inbox ingest (script + Sync button); parse captures into tasks/metrics/notes
 (decide parse-at-ingest vs at-capture). Brief scripts (email_todos*, world, ai_research,

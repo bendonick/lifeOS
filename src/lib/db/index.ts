@@ -64,6 +64,25 @@ function seed(db: Database.Database) {
       insert.run("golf-AI", "professional", "Product idea — golf swing analysis");
     }
 
+    // Which project is the day job (decision #31). Guarded on the key's own absence,
+    // NOT nested in the branch above: databases created before Stage 4 already hold
+    // the three projects, so that branch never runs again and a nested seed would be
+    // a silent no-op. The string "Day job" appears here and nowhere else in the app.
+    const dayJobKey = db
+      .prepare("SELECT value FROM config WHERE key = 'professional.day_job_project_id'")
+      .get() as { value: string } | undefined;
+    if (!dayJobKey) {
+      const wolf = db
+        .prepare("SELECT id FROM projects WHERE domain = 'professional' AND name = 'Day job'")
+        .get() as { id: number } | undefined;
+      if (wolf) {
+        db.prepare("INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)").run(
+          "professional.day_job_project_id",
+          String(wolf.id)
+        );
+      }
+    }
+
     const habitCount = db.prepare("SELECT COUNT(*) AS n FROM habits").get() as { n: number };
     if (habitCount.n === 0) {
       const insert = db.prepare("INSERT INTO habits (name, time_of_day) VALUES (?, ?)");
@@ -73,6 +92,18 @@ function seed(db: Database.Database) {
       insert.run("Work on German", "anytime");
       insert.run("Workout", "anytime");
       insert.run("Floss", "evening");
+    }
+
+    // The Professional "Ideas" rail card seed (docs/03-pages/professional.md §1).
+    // Guarded on its own absence rather than on an empty `notes` table — Stage 2
+    // already put personal notes there, so a table-level check would never fire.
+    const ideaCount = db
+      .prepare("SELECT COUNT(*) AS n FROM notes WHERE domain = 'professional' AND kind = 'idea'")
+      .get() as { n: number };
+    if (ideaCount.n === 0) {
+      db.prepare("INSERT INTO notes (text, domain, kind) VALUES (?, 'professional', 'idea')").run(
+        "Look into potential golf-AI intersection products"
+      );
     }
 
     seedStage2(db);

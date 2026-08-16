@@ -65,3 +65,14 @@ export const urgencyText: Record<"overdue" | "today" | "soon" | "none", string> 
   soon: "text-warn",
   none: "text-muted",
 };
+
+/* Active view-tab tint. Lives here with the other accent maps so a fifth private
+   copy of the pill-tab can't invent its own palette (src/components/ui/Tabs.tsx). */
+export const accentTab: Record<Accent, string> = {
+  academic: "border-academic/40 bg-academic/10 text-academic",
+  personal: "border-personal/40 bg-personal/10 text-personal",
+  professional: "border-professional/40 bg-professional/10 text-professional",
+  hub: "border-hub/40 bg-hub/10 text-hub",
+  danger: "border-danger/40 bg-danger/10 text-danger",
+  warn: "border-warn/40 bg-warn/10 text-warn",
+};

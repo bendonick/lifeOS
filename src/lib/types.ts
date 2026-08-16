@@ -78,3 +78,75 @@ export interface Course {
   semester: string | null;
   created_at: string;
 }
+
+/* ---------------------------------------------------------------------------
+ * Professional (Stage 4). Projects, the AI/RL learning list, and the network CRM.
+ * ------------------------------------------------------------------------- */
+
+export type ProjectStatus = "active" | "paused" | "done";
+export const PROJECT_STATUSES: ProjectStatus[] = ["active", "paused", "done"];
+
+export interface Project {
+  id: number;
+  name: string;
+  domain: Domain;
+  status: ProjectStatus;
+  deadline: string | null; // 'YYYY-MM-DD'
+  notes: string | null;
+  created_at: string;
+}
+
+/** Concept first — it's the default reach (docs/03-pages/professional.md §3). */
+export type LearningType = "concept" | "course" | "paper" | "book" | "module" | "video";
+export const LEARNING_TYPES: LearningType[] = ["concept", "course", "paper", "book", "module", "video"];
+
+export type LearningStatus = "queued" | "in_progress" | "done" | "dropped";
+export const LEARNING_STATUSES: LearningStatus[] = ["queued", "in_progress", "done", "dropped"];
+
+/**
+ * The user's words for the stored enum, decided 2026-08-17: he asked for
+ * "not learned / learning / learned". One owner for the mapping so no surface
+ * invents its own wording.
+ */
+export const LEARNING_STATUS_LABEL: Record<LearningStatus, string> = {
+  queued: "Not learned",
+  in_progress: "Learning",
+  done: "Learned",
+  dropped: "Dropped",
+};
+
+export interface LearningItem {
+  id: number;
+  name: string;
+  type: LearningType;
+  status: LearningStatus;
+  link: string | null;
+  started: string | null; // 'YYYY-MM-DD'
+  completed: string | null; // 'YYYY-MM-DD'
+  notes: string | null;
+  created_at: string;
+}
+
+/** `contacts.how_met` is open TEXT on purpose — these are offered, not enforced. */
+export const HOW_MET: string[] = ["Conference", "Intro", "Work", "Online", "University"];
+
+export interface Contact {
+  id: number;
+  name: string;
+  company: string | null;
+  role: string | null;
+  how_met: string | null;
+  linkedin: string | null;
+  last_contacted: string | null; // 'YYYY-MM-DD'
+  followup_interval_days: number | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface ContactInteraction {
+  id: number;
+  contact_id: number;
+  date: string; // 'YYYY-MM-DD' — when it happened, not when it was logged
+  note: string | null;
+  created_at: string;
+}

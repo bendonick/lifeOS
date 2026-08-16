@@ -41,12 +41,13 @@ export interface NewTask {
   due?: string | null;
   notes?: string | null;
   course_id?: number | null;
+  project_id?: number | null;
 }
 
 export function createTask(input: NewTask): Task {
   const { lastInsertRowid } = db
     .prepare(
-      "INSERT INTO tasks (title, domain, type, due, notes, course_id) VALUES (?, ?, ?, ?, ?, ?)"
+      "INSERT INTO tasks (title, domain, type, due, notes, course_id, project_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
     )
     .run(
       input.title,
@@ -54,14 +55,17 @@ export function createTask(input: NewTask): Task {
       input.type ?? "task",
       input.due ?? null,
       input.notes ?? null,
-      input.course_id ?? null
+      input.course_id ?? null,
+      input.project_id ?? null
     );
   return db.prepare("SELECT * FROM tasks WHERE id = ?").get(lastInsertRowid) as Task;
 }
 
 export function updateTask(
   id: number,
-  patch: Partial<Pick<Task, "title" | "domain" | "type" | "due" | "done" | "notes" | "course_id">>
+  patch: Partial<
+    Pick<Task, "title" | "domain" | "type" | "due" | "done" | "notes" | "course_id" | "project_id">
+  >
 ): Task | undefined {
   const fields = Object.keys(patch) as (keyof typeof patch)[];
   if (fields.length > 0) {
@@ -125,4 +129,31 @@ export function tasksForCourse(courseId: number): CourseTask[] {
        ORDER BY tasks.done, tasks.due IS NULL, tasks.due, tasks.id`
     )
     .all(courseId) as CourseTask[];
+}
+
+/* ---------------------------------------------------------------------------
+ * Professional views (Stage 4). Decision #9 once more: the same store, filtered.
+ * ------------------------------------------------------------------------- */
+
+/** Open work for one project, soonest first — undated last, which is what
+ *  "soonest first" has to mean when `due` is nullable. */
+export function openTasksForProject(projectId: number): Task[] {
+  return db
+    .prepare(
+      `SELECT * FROM tasks
+       WHERE project_id = ? AND done = 0
+       ORDER BY due IS NULL, due, id`
+    )
+    .all(projectId) as Task[];
+}
+
+/** Everything filed against one project, for the project detail view. */
+export function tasksForProject(projectId: number): Task[] {
+  return db
+    .prepare(
+      `SELECT * FROM tasks
+       WHERE project_id = ?
+       ORDER BY done, due IS NULL, due, id`
+    )
+    .all(projectId) as Task[];
 }
