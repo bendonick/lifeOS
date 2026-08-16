@@ -13,8 +13,9 @@ Two layers, deliberately separable, plus an intelligence layer beside them:
 
 ### SQLite — `data/lifeos.db`
 
-Entities distilled from the Notion design. Exact DDL is Stage 1 work (pick better-sqlite3 +
-Drizzle or plain SQL — OPEN); these fields are the contract:
+Entities distilled from the Notion design. DDL lives in `src/lib/db/schema.sql`
+(better-sqlite3 + plain SQL — SETTLED 2026-08-16, decision #15), applied idempotently at
+startup; these fields are the contract:
 
 - **tasks** — title, domain (`academic|personal|professional`), type
   (`task|assignment|exam|meeting`), due (datetime, nullable), done, course_id?, project_id?,
@@ -38,12 +39,18 @@ Drizzle or plain SQL — OPEN); these fields are the contract:
   source. Long/narrow so new metrics need no migration. Targets live in a config table or file.
 - **transactions** — date, amount_chf, category, merchant, note, source.
   **budgets** — month, category (nullable = overall), amount_chf.
-- **bills** — name, due_day, amount?; plus a per-month paid log.
+- **bills** — name, due_day, amount?, active; per-month paid log in **bill_payments**
+  (bill_id, month, paid_at).
 - **briefs** — date, kind (`email_todos|world|ai_research|german_word`), content_md,
   generated_at. Written by scripts, rendered by the app; always show generated_at so staleness
   is honest.
 - **inbox** — raw captures: text, source (`app|phone_relay`), created_at, processed,
   parsed_json?. Quick-capture in the app and the phone relay both land here.
+- **notes** — text, domain?, kind (`note|reminder|idea`), reviewed, created_at. The Personal
+  notes inbox, the Academic Reminders / Professional Ideas rail cards, and the target of
+  inbox "process → note" (decision #16).
+- **config** — key/value store for editable targets/settings (health targets, budget
+  defaults) so they never end up hardcoded (decision #16).
 
 ### Files
 
@@ -63,7 +70,9 @@ data/
 
 - Next.js + TypeScript + Tailwind (SETTLED). One process; `npm run dev` is the whole runtime.
 - Pages: `/` (LifeOS), `/academic`, `/personal`, `/professional`. Specs in `docs/03-pages/`.
-- Server routes own all SQLite access and ICS fetching; client components never touch the DB.
+- Server code owns all SQLite access and ICS fetching: server components read through the
+  `src/lib/db/*` query modules, mutations go through the API routes (clients call them and
+  `router.refresh()`); client components never touch the DB.
 - Follow `docs/02-design-system.md` when building UI.
 
 ## Integrations

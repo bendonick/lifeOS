@@ -22,12 +22,13 @@ then move it to SETTLED with a date and one-line rationale.
 | 12 | Timezone Europe/Zurich; currency CHF. | User's life. |
 | 13 | Scope discipline is **soft**: flag → BACKLOG.md → proceed only on user OK. Designing/iterating within a stage is expected. | User wants flexibility in what ends up on pages. |
 | 14 | Class sessions live in Google as recurring events the user creates; the app reads them via ICS. | Generating 14 rows per course was the Notion workaround; Google recurrence replaces it. |
+| 15 | Query layer: **better-sqlite3 + raw SQL**, no ORM. DDL in `src/lib/db/schema.sql` applied idempotently at startup; thin typed query modules in `src/lib/db/`. (2026-08-16, closes former OPEN A) | Fewest moving parts; the SQL you read is the SQL that runs. Drizzle declined. |
+| 16 | Schema includes three tables beyond the 01-architecture entity list: `notes` (text, domain?, kind note/reminder/idea, reviewed), `bill_payments` (per-month paid log), `config` (key/value). (2026-08-16) | Page specs require them: Personal notes inbox, bills paid checklist, editable targets; one `notes` table also serves Academic Reminders / Professional Ideas rail cards and inbox "→ note". |
 
 ## OPEN
 
 | # | Question | Decide during | Notes |
 |---|---|---|---|
-| A | ORM / query layer (Drizzle vs better-sqlite3 raw) | Stage 1 | Bias to fewer moving parts. |
 | B | Health data source: Health Auto Export vs wearable API vs manual+CSV only | Stage 2 | Ask what devices the user actually wears. Manual path ships regardless. |
 | C | Exam kind modeling (field vs tag: midterm/final) | Stage 3 | Small; decide when building exams view. |
 | D | Capture parsing: at-capture (phone Claude writes structured) vs at-ingest (local LLM parse) | Stage 5 | At-capture = cleaner data, longer phone instructions; at-ingest = dumber relay, smarter local. |
