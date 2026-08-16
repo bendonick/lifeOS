@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { getConfig, getConfigJSON } from "@/lib/db/config";
 import { addDays } from "@/lib/dates";
-import { METRICS, isSumMetric, type MetricKey } from "@/lib/health/metrics";
+import { isSumMetric, type MetricKey } from "@/lib/health/metrics";
 
 // Read side of health_metrics. Aggregation follows the registry: sum metrics
 // add up within a date, everything else takes the latest row for that date.

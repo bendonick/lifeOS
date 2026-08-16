@@ -38,12 +38,13 @@ then move it to SETTLED with a date and one-line rationale.
 
 | 28 | **The Academic timetable renders full width — no task list and no schedule-check panel beside it.** Decision #2's two surfaces are served by the page's stacked order (Assignments and Exams tables sit directly above the calendar), not by a literal side column. (2026-08-17, narrows #2 for this page) | The user's call, and a fair one: the work list restated rows from the two tables immediately above it — the same duplication that produced the "To do" collision a day earlier — and the schedule check was chrome in every state except the rare one it existed for. Code removed rather than hidden behind a flag; it is recoverable from commit 6625ba3 and logged in BACKLOG. |
 
+| 29 | **UBS parser written against the real export and shipped in Stage 2** (`src/lib/money/parsers/ubs.ts`): UTF-8 BOM, ISO dates, signed debit column, dedupe on the bank's own `Transaction no.`. (2026-08-17, closes OPEN F — recording work that landed in Stage 2 and was never written back to the ledger) | The real file contradicted Swiss-CSV folklore on every count, and the full-year import has since been re-run from that parser during a recovery, which is a fair second proof. Additional banks are a new file behind `BankParser`, not a reopened question. |
+
 ## OPEN
 
 | # | Question | Decide during | Notes |
 |---|---|---|---|
 | D | Capture parsing: at-capture (phone Claude writes structured) vs at-ingest (local LLM parse) | Stage 5 | At-capture = cleaner data, longer phone instructions; at-ingest = dumber relay, smarter local. |
 | E | Gmail OAuth for email-todos brief: worth the setup? | Stage 5 | Briefs may ship without email. |
-| F | Bank CSV: write the UBS parser against a real export | Stage 2 | Narrowed by #22 — architecture (BankParser interface, rules-in-config, dedupe) is settled; only the concrete UBS format work remains. Additional banks later as they arise. |
 | G | Embeddings: API vs local model; sqlite-vec vs Chroma | Stage 6 | Cost/quality call at build time. |
-| H | Google Calendar write-back (OAuth) | Backlog | Narrowed by #27 — prefilled links plus a drift check cover the course case without credentials. Reopen only if something needs the app to create or edit events unattended. |
+| H | Google Calendar write-back (OAuth) | Backlog | Narrowed by #27 — a prefilled link covers the course case without credentials. #28 removed the drift check that paired with it, so nothing now notices when a course and its Google event disagree; that gap is the most likely reason to reopen this. |
