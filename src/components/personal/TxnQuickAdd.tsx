@@ -45,7 +45,7 @@ export function TxnQuickAdd({ categories, today }: { categories: CategoryGroup[]
   return (
     <form
       onSubmit={add}
-      className={`flex flex-wrap items-center gap-2 ${isPending ? "opacity-60" : ""} transition-opacity`}
+      className={`flex min-w-0 flex-1 flex-wrap items-center gap-2 ${isPending ? "opacity-60" : ""} transition-opacity`}
     >
       <input
         type="date"
@@ -72,7 +72,7 @@ export function TxnQuickAdd({ categories, today }: { categories: CategoryGroup[]
       <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
-        className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted focus:outline-none"
+        className="w-36 rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted focus:outline-none"
         aria-label="category"
       >
         <option value="">category…</option>

@@ -25,7 +25,7 @@ export function HealthSection({ today }: { today: string }) {
               <div className="tabular mt-2 text-2xl font-semibold">
                 {int.format(Math.abs(kcalLeft))} <span className="text-base font-normal text-muted">kcal {kcalLeft >= 0 ? "left" : "over"}</span>
               </div>
-              <p className="tabular mt-1 text-xs text-muted">
+              <p className="tabular mt-1 text-[11px] whitespace-nowrap text-muted">
                 P {int.format(d.macros.protein)}/{d.targets.protein} · C {int.format(d.macros.carbs)}/
                 {d.targets.carbs} · F {int.format(d.macros.fat)}/{d.targets.fat}
               </p>

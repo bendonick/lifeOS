@@ -95,7 +95,7 @@ function QueueRow({
       <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
-        className="rounded-md border border-border bg-surface px-2 py-1 text-xs text-muted focus:outline-none"
+        className="w-36 rounded-md border border-border bg-surface px-2 py-1 text-xs text-muted focus:outline-none"
       >
         <option value="">category…</option>
         <CategoryOptions groups={categories} />

@@ -34,9 +34,16 @@ export function HabitList({ habits, today }: { habits: HabitWeek[]; today: strin
     startTransition(() => router.refresh());
   }
 
+  const doneCount = habits.filter((h) => overlay[h.id] ?? h.days[6]).length;
+
   return (
-    <div className="max-w-lg rounded-lg border border-border bg-surface px-4 py-2">
-      {error && <p className="py-1 text-xs text-danger">{error}</p>}
+    <div className="max-w-lg rounded-lg border border-border bg-surface px-4 py-2.5">
+      <div className="flex items-baseline justify-between pb-1">
+        <span className="tabular text-[11px] text-faint">
+          {doneCount} of {habits.length} today
+        </span>
+        {error && <span className="text-xs text-danger">{error}</span>}
+      </div>
       <ul>
         {habits.map((h) => {
           const doneToday = overlay[h.id] ?? h.days[6];

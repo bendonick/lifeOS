@@ -91,7 +91,7 @@ export function ImportPanel() {
       </div>
 
       {preview && (
-        <div className="mt-3 rounded-lg border border-border bg-surface p-4">
+        <div className="mt-3 w-[30rem] max-w-full rounded-lg border border-border bg-surface p-4">
           <p className="text-sm">
             <span className="font-medium uppercase">{preview.bank}</span> export ·{" "}
             <span className="tabular">{preview.total}</span> rows

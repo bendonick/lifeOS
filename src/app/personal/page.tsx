@@ -32,11 +32,11 @@ export default function PersonalPage() {
       <div className="grid gap-10 lg:grid-cols-[15rem_1fr]">
         <aside className="flex flex-col gap-4 self-start">
           <Card label="Quick Actions" accent="personal">
-            <div className="mt-3 flex flex-col gap-1.5">
-              <QuickAction href="#tasks" label="New Task" />
-              <QuickAction href="#health" label="Log Metric" />
-              <QuickAction href="#spending" label="Add Transaction" />
-              <QuickAction href="#notes" label="New Note" />
+            <div className="mt-3 grid grid-cols-2 gap-1.5">
+              <QuickAction href="#tasks" label="Task" />
+              <QuickAction href="#health" label="Metric" />
+              <QuickAction href="#spending" label="Expense" />
+              <QuickAction href="#notes" label="Note" />
             </div>
           </Card>
 
@@ -49,7 +49,15 @@ export default function PersonalPage() {
             </div>
           </Card>
 
-          <Card label="Notes" accent="personal" value={toReview} context="to review · Sunday" />
+          <a href="#notes" className="group block">
+            <Card
+              label="Notes"
+              accent="personal"
+              value={toReview}
+              context="to review · Sunday"
+              className="transition-colors group-hover:border-personal/30"
+            />
+          </a>
 
           <Card label="German" accent="personal">
             {germanWord ? (
@@ -88,7 +96,7 @@ export default function PersonalPage() {
           <section id="tasks">
             <SectionBanner accent="personal" title="Tasks" caption="due this week" />
             <div className="mt-4">
-              <ThisWeek tasks={weekTasksByDomain("personal")} today={today} />
+              <ThisWeek tasks={weekTasksByDomain("personal")} today={today} fixedDomain="personal" />
             </div>
           </section>
 
@@ -130,9 +138,9 @@ function QuickAction({ href, label }: { href: string; label: string }) {
   return (
     <a
       href={href}
-      className="rounded-md border border-border bg-raised px-3 py-1.5 text-sm text-text transition-colors hover:border-personal/40"
+      className="rounded-md border border-border bg-raised px-2 py-1.5 text-center text-xs text-text transition-colors hover:border-personal/40"
     >
-      {label}
+      + {label}
     </a>
   );
 }

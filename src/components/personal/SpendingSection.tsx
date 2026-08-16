@@ -35,8 +35,10 @@ export function SpendingSection({ today }: { today: string }) {
         <CategoryBreakdown spend={variableCategorySpend(overview.month)} baseline={baseline} />
       </div>
       <BudgetTable o={overview} />
-      <TxnQuickAdd categories={categories} today={today} />
-      <ImportPanel />
+      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
+        <TxnQuickAdd categories={categories} today={today} />
+        <ImportPanel />
+      </div>
       {groups.length > 0 && <UncategorisedQueue groups={groups} categories={categories} />}
       <SpendingHistory months={monthlySpendHistory()} startDate={budgetStartDate()} />
     </div>

@@ -12,12 +12,22 @@ import { DOMAINS, type Domain, type Task } from "@/lib/types";
 
 const urgencyClass = { overdue: "text-danger", today: "text-warn", soon: "text-warn", none: "text-muted" };
 
-export function ThisWeek({ tasks, today }: { tasks: Task[]; today: string }) {
+export function ThisWeek({
+  tasks,
+  today,
+  fixedDomain,
+}: {
+  tasks: Task[];
+  today: string;
+  /** On a domain page the list is pre-filtered — fix the domain, and the
+   *  redundant Domain column + select disappear. */
+  fixedDomain?: Domain;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const [title, setTitle] = useState("");
-  const [domain, setDomain] = useState<Domain>("personal");
+  const [domain, setDomain] = useState<Domain>(fixedDomain ?? "personal");
   const [due, setDue] = useState(today);
 
   async function toggleDone(task: Task) {
@@ -44,7 +54,7 @@ export function ThisWeek({ tasks, today }: { tasks: Task[]; today: string }) {
   return (
     <div className={isPending ? "opacity-60 transition-opacity" : "transition-opacity"}>
       <Table
-        columns={["", "Task", "Domain", "Type", "Due"]}
+        columns={fixedDomain ? ["", "Task", "Type", "Due"] : ["", "Task", "Domain", "Type", "Due"]}
         empty="nothing due this week — add a task below or enjoy the quiet"
       >
         {tasks.map((t) => {
@@ -61,9 +71,11 @@ export function ThisWeek({ tasks, today }: { tasks: Task[]; today: string }) {
                 />
               </td>
               <td className="px-3 py-2">{t.title}</td>
-              <td className="px-3 py-2">
-                <Pill tone={t.domain}>{t.domain}</Pill>
-              </td>
+              {!fixedDomain && (
+                <td className="px-3 py-2">
+                  <Pill tone={t.domain}>{t.domain}</Pill>
+                </td>
+              )}
               <td className="px-3 py-2">
                 <TypePill type={t.type} />
               </td>
@@ -82,17 +94,19 @@ export function ThisWeek({ tasks, today }: { tasks: Task[]; today: string }) {
           placeholder="Add a task…"
           className="min-w-40 flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-sm placeholder:text-faint focus:border-hub/50 focus:outline-none"
         />
-        <select
-          value={domain}
-          onChange={(e) => setDomain(e.target.value as Domain)}
-          className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted focus:outline-none"
-        >
-          {DOMAINS.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
-        </select>
+        {!fixedDomain && (
+          <select
+            value={domain}
+            onChange={(e) => setDomain(e.target.value as Domain)}
+            className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-muted focus:outline-none"
+          >
+            {DOMAINS.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+        )}
         <input
           type="date"
           value={due}

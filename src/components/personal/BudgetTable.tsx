@@ -69,6 +69,7 @@ export function BudgetTable({ o }: { o: BudgetOverview }) {
                     line={l}
                     month={o.month}
                     paceFraction={paceFraction}
+                    prospective={o.prospective}
                     onSaved={refresh}
                   />
                 ))}
@@ -91,11 +92,13 @@ function BudgetRow({
   line,
   month,
   paceFraction,
+  prospective,
   onSaved,
 }: {
   line: LineStatus;
   month: string;
   paceFraction: number;
+  prospective: boolean;
   onSaved: () => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -149,7 +152,9 @@ function BudgetRow({
       )}
 
       <span className="w-14 text-right text-[11px]">
+        {/* paid/unpaid means nothing before the month starts — leave blank */}
         {line.tier === "fixed" &&
+          !prospective &&
           (line.paid ? <span className="text-muted">paid</span> : <span className="text-faint">unpaid</span>)}
         {isAnnual && <span className="text-faint">{chf.format(line.effective_amount / 12)}/mo</span>}
       </span>
