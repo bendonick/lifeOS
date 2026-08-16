@@ -1,0 +1,38 @@
+# Page — LifeOS (hub, `/`)
+
+Neutral-toned home. Everything here is a rollup or a doorway; nothing is owned by this page.
+
+## Modules
+
+1. **Morning brief** — row of cards, one per brief kind:
+   - *Email todos* — "invoices and replies pulled from Gmail, weekday mornings"
+   - *World brief* — "a few headline summaries worth knowing"
+   - *AI research* — "suggested papers and articles, with links"
+   - *German word of the day* — word, translation, example sentence
+   Each renders `briefs` content for today (markdown), with generated_at; a stale/missing state
+   when a script hasn't run. Stage 1: stubbed cards with placeholder copy. Stage 5: wired.
+
+2. **This week** — cross-domain task table from `tasks`: due within the next 7 days OR overdue,
+   not done. Columns: name, domain pill (colored), type pill, due, done checkbox. Inline add.
+   This is the payoff of the single tasks store.
+
+3. **Inbox** — quick-capture text box writing raw rows to `inbox`, plus the list of unprocessed
+   captures with a "process" affordance (turn into task / note / dismiss). Phone-relay captures
+   appear here too once Stage 5 lands.
+
+4. **Calendar** — read-only week view over *all* ICS calendars, events tinted by domain
+   (primary "Class" calendar in neutral). Stage 1: stub with fake events; wired when ICS lands
+   (Stage 3). Beside or above it, **This week** serves as the command-center task half.
+
+5. **Domain tiles** — three large tiles linking to sub-pages, each with icon, name, and a muted
+   caption (Academic — "Courses · MSc project"; Personal — "health · habits · money";
+   Professional — "Day job · learning · network"). Tile accent = domain color.
+
+## Layout sketch
+
+Top: Morning brief row (4 cards). Middle: two columns — This week (left, wide) | Inbox (right,
+narrow). Below: Calendar full-width. Bottom: domain tiles row.
+
+## Data touched
+
+`briefs` (read), `tasks` (read/write), `inbox` (read/write), ICS feeds (read).

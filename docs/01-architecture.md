@@ -1,0 +1,149 @@
+# 01 — Architecture
+
+Two layers, deliberately separable, plus an intelligence layer beside them:
+
+- **Data layer** — SQLite + a folder tree. Owns all persistent state; outlives any UI.
+- **Interface layer** — Next.js app at localhost. Reads/writes the data layer via its own API
+  routes. Desktop-only, single user, no auth.
+- **Intelligence layer** — Python scripts in `scripts/`, scheduled by cron/launchd, calling the
+  Anthropic API and writing results *into the data layer*. The webapp displays what scripts
+  produced; it never calls LLMs while rendering.
+
+## Data layer
+
+### SQLite — `data/lifeos.db`
+
+Entities distilled from the Notion design. Exact DDL is Stage 1 work (pick better-sqlite3 +
+Drizzle or plain SQL — OPEN); these fields are the contract:
+
+- **tasks** — title, domain (`academic|personal|professional`), type
+  (`task|assignment|exam|meeting`), due (datetime, nullable), done, course_id?, project_id?,
+  notes, created_at. One store for everything; pages filter by domain — this is what makes the
+  LifeOS "This week" rollup trivial.
+- **courses** — name, professor, professor_email, credits, room, status, schedule_days (subset
+  Mon–Fri), time_label, start_hour, end_hour (24h numbers), term_start, term_end, semester
+  (`F26|S27`). Enough metadata to *generate or validate* class sessions — the thing Notion
+  couldn't do.
+- **contacts** — name, company, role, how_met, linkedin, last_contacted,
+  followup_interval_days, notes. `next_followup = last_contacted + interval` computed app-side
+  or as a view; default ordering next_followup ASC so overdue floats up.
+- **learning_items** — name, type (`concept|course|paper|book|module|video`), status
+  (`queued|in_progress|done|dropped`), link, started, completed, notes. (The "AI / RL Concepts"
+  list.)
+- **projects** — name, domain, status, deadline, notes. Seeds: **Day job** (the day job as a
+  project so its tasks filter cleanly), **SousChef**, **golf-AI**.
+- **habits** / **habit_log** — habit(name, time_of_day `morning|anytime|evening`, active);
+  log(habit_id, date, done). "Today" = query by date; streaks derivable later.
+- **health_metrics** — date, metric (`sleep_score|hrv|steps|kcal|protein|carbs|fat|…`), value,
+  source. Long/narrow so new metrics need no migration. Targets live in a config table or file.
+- **transactions** — date, amount_chf, category, merchant, note, source.
+  **budgets** — month, category (nullable = overall), amount_chf.
+- **bills** — name, due_day, amount?; plus a per-month paid log.
+- **briefs** — date, kind (`email_todos|world|ai_research|german_word`), content_md,
+  generated_at. Written by scripts, rendered by the app; always show generated_at so staleness
+  is honest.
+- **inbox** — raw captures: text, source (`app|phone_relay`), created_at, processed,
+  parsed_json?. Quick-capture in the app and the phone relay both land here.
+
+### Files
+
+```
+data/
+  lifeos.db
+  academic/courses/<course-slug>/
+    lectures/        # PDFs, week-prefixed: 03-attention.pdf  ← RAG corpus
+    notes/           # markdown
+  imports/           # dropped CSVs (bank, health) — ingesters watch here
+  briefs/            # optional md archive of generated briefs
+  index/             # vector index (Stage 6)
+.env                 # ANTHROPIC_API_KEY, ICS secret URLs, NOTION_* — never committed
+```
+
+## Interface layer
+
+- Next.js + TypeScript + Tailwind (SETTLED). One process; `npm run dev` is the whole runtime.
+- Pages: `/` (LifeOS), `/academic`, `/personal`, `/professional`. Specs in `docs/03-pages/`.
+- Server routes own all SQLite access and ICS fetching; client components never touch the DB.
+- Follow `docs/02-design-system.md` when building UI.
+
+## Integrations
+
+### Google Calendar — read-only ICS (wired in Stage 3, reused everywhere)
+
+- Each Google calendar exposes a private **"Secret address in iCal format"** (Settings →
+  Integrate calendar). Server fetches these URLs and expands events — including RRULE
+  recurrence — for the requested window. Use a maintained ICS library; never hand-roll RRULE.
+  Cache 5–15 min. URLs are secrets → `.env`.
+- Calendars: **Academic**, **Professional**, **Personal** (user creates these — session-zero
+  task) plus the primary, historically named **"Class"**, which is the catch-all where external
+  invites land (e.g. recurring Tue "Weekly 1:1"). Domain pages default to their own calendar
+  with an all-calendars toggle; LifeOS shows all, colored by domain.
+- Timezone Europe/Zurich everywhere.
+- Writing events (Google Calendar API + OAuth, e.g. generating class sessions) is OPEN and
+  deferred — the user can create a recurring class event in Google in seconds.
+
+### Capture relay — phone → system (Stage 5; SETTLED pattern)
+
+Phone Claude (cloud) cannot reach local disk. Relay instead:
+
+1. User messages Claude on phone: "ate chicken salad ~650kcal", "task: email supervisor",
+   "idea: golf swing analyzer v2".
+2. Claude (with the existing Notion connector) appends a row to a small Notion **Capture Inbox**
+   database — fields: Text, Kind (`food|task|note|reminder|idea`), Domain?, Created. A short
+   instruction block (user preferences or project instructions on the phone) tells Claude the
+   convention.
+3. Local ingest script (cron and/or a "Sync" button in the app) pulls unprocessed rows via the
+   Notion API into `inbox`, marks them processed in Notion.
+4. Parsing raw text → structured rows (a food capture → health_metrics kcal/macros; a task →
+   tasks) happens locally, LLM-assisted where useful. Parse-at-ingest vs parse-at-capture: OPEN,
+   decide in Stage 5.
+
+This keeps exactly one thin Notion dependency. An iOS-Shortcut → synced-file drop is the
+recorded fallback if the relay annoys.
+
+### Anthropic API (Stages 5–6)
+
+Used by brief scripts and the RAG answerer. Key in `.env`. Model names live in
+`scripts/lifeos/claude.py`.
+
+### Gmail — email-todos brief (Stage 5, OPEN)
+
+Needs Gmail API OAuth from a local script (Google Cloud project, consent screen, token
+refresh) — the fiddliest integration here. Evaluate honestly at Stage 5; shipping briefs
+*without* the email section is an acceptable outcome.
+
+### Health data (Stage 2, OPEN — ask the user what devices they actually use)
+
+- Apple Health has no desktop API. Realistic: *Health Auto Export* iOS app pushing JSON/CSV to a
+  synced folder/endpoint, or periodic manual export into `data/imports/`.
+- Whoop / Oura / Garmin have real REST APIs — good if the user has one.
+- Macros: manual quick-entry (and later the phone relay) first; food-database integrations are a
+  rabbit hole — resist early.
+- Always ship manual entry + CSV import first so cards work regardless.
+
+### Banking (Stage 6, OPEN)
+
+Swiss banking ≠ Plaid-easy. Default: monthly CSV export into `data/imports/`, one parser per
+bank format, category rules in config. Aggregators only if CSV proves painful.
+
+## Scheduled jobs (Stage 5)
+
+- Python scripts, one per brief (email_todos, world, ai_research, german_word) so one failure
+  doesn't kill the rest; write to `briefs`.
+- macOS → prefer `launchd`; otherwise cron. Detect and document whichever is installed.
+- Jobs only run while the machine is awake — accepted. UI shows generated_at / a stale badge
+  rather than pretending.
+
+## RAG (Stage 6)
+
+- Corpus: `data/academic/courses/*/lectures/*.pdf` + notes markdown. Indexer: extract → chunk
+  → embed → local vector store (`sqlite-vec` preferred for the single-file ethos; Chroma
+  acceptable). Idempotent, re-run on demand.
+- Query: top-k with course/week metadata → Anthropic API → answer with citations (file + page).
+- Embeddings API vs local model: OPEN, decide at Stage 6 with cost/quality in view.
+
+## Hygiene
+
+- Bind to localhost only. `.env` + `data/` gitignored; ship `.env.example`.
+- Private GitHub repo; commit often (rollback insurance).
+- Backup: dated copy script for `data/`; suggest keeping `data/` inside a cloud-synced folder.

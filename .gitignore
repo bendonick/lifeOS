@@ -1,0 +1,36 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# next.js
+/.next/
+/out/
+/build
+*.tsbuildinfo
+next-env.d.ts
+
+# user data — never committed
+/data/
+
+# env / secrets — never committed; .env.example is the tracked template
+.env*
+!.env.example
+
+# misc
+.DS_Store
+*.pem
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# vercel (unused — local-only app)
+.vercel
+
+# local only, never pushed
+/.claude/
+/CLAUDE.md
+/LEARNINGS.md
+/skills/
+/generated_images/
