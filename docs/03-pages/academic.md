@@ -11,7 +11,8 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
 2. **Courses** — gallery or table over `courses`: name, professor, credits, room, schedule-day
    pills, time label, semester (F26/S27), status. A **credits counter** sums credits by status
    (enrolled / completed) — the user tracks credits, not grades (grading system was explicitly
-   removed in the Notion design; do not add GPA features).
+   removed in the Notion design; do not add GPA features). It lives on the section banner's
+   `meta` slot, not in stat cards: two cards above a short table cost more room than the table.
    Each course opens a detail view: metadata, its assignments/exams (tasks filtered by
    course_id), and its materials folder listing (`data/academic/courses/<slug>/lectures`).
    An enrolled course with days, a start time and a term start also links out to a **prefilled
@@ -29,14 +30,15 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
    (decision #25 — the ledger's OPEN C, closed against this line). Red accent per design
    system, carried by the exam type pill.
 
-5. **Timetable (command center)** — read-only week view of the **Academic** ICS calendar
-   (toggle: all calendars) beside the **Up next** list (open academic tasks *and exams*,
-   soonest first — named apart from the Assignments "Open" filter, and captioned with its
-   wider scope, so two surfaces can honestly show different counts). Full-width section: the week grid needs the room. Built in Stage 3 on the shared
-   `WeekCalendar`, which also serves the hub and Personal.
-   Class blocks come from Google recurring events the user creates once per course; the app
-   *may* cross-check ICS blocks against `courses` schedule metadata and flag mismatches
-   (nice-to-have, not core).
+5. **Timetable** — read-only week view of the **Academic** ICS calendar (toggle: all
+   calendars), full width with nothing beside it (decision #28). Built in Stage 3 on the shared
+   `WeekCalendar`, which also serves the hub and Personal. Class blocks come from Google
+   recurring events the user creates once per course — from Stage 3 the course row links out to
+   a prefilled Google form to save the retyping (decision #27).
+   The work half of decision #2's command center is the Assignments and Exams tables *directly
+   above* it on the same page; a companion column only restated them. An "Up next" list and a
+   "Schedule check" drift panel both shipped here on 2026-08-16 and were removed on 2026-08-17
+   — see BACKLOG if either is wanted back.
 
 6. **Materials & RAG (Stage 6)** — per-course lecture PDF listing from the folder tree; a chat
    box ("ask your courses") hitting the local RAG pipeline, answers with file+page citations.

@@ -40,3 +40,15 @@ promote to a stage deliberately, never by drift.
 - Month view / day view for the calendar. The week grid is the only view; the command center
   only ever needed the week.
 - Materials: upload from the browser instead of dropping files into the folder by hand.
+
+## Removed on 2026-08-17 — recoverable from commit 6625ba3
+
+- **Schedule check panel** — compared each course's days/times against the Academic ICS feed
+  and reported matched / moved / missing, offering a prefilled add-link where a block was
+  absent. Removed as chrome: it had something to say only when a class had drifted. If it comes
+  back, render it *only* in that case rather than always. `src/lib/academic/drift.ts` held the
+  pure logic and was verified against all four states.
+- **"Up next" work list** beside the timetable — open assignments, tasks and exams, soonest
+  first, with optimistic checkboxes. Removed because it restated the two tables directly above
+  it. The version worth building instead is the one tied to the calendar's visible week
+  (option 3 of the 2026-08-17 plan), which needs `WeekCalendar`'s week state hoisted.

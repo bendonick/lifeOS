@@ -3,8 +3,6 @@ import { Suspense } from "react";
 import { AcademicTasks } from "@/components/academic/AcademicTasks";
 import { CoursesSection } from "@/components/academic/CoursesSection";
 import { RemindersCard } from "@/components/academic/RemindersCard";
-import { ScheduleCheckSection } from "@/components/academic/ScheduleCheckSection";
-import { TimetableTodo } from "@/components/academic/TimetableTodo";
 import { CalendarSection, CalendarSkeleton } from "@/components/calendar/CalendarSection";
 import { Card } from "@/components/ui/Card";
 import { PageShell } from "@/components/ui/PageShell";
@@ -27,11 +25,6 @@ export default function AcademicPage() {
   const work = academicWork();
   const exams = academicExams();
   const enrolled = courses.filter((c) => c.status === "enrolled");
-  // Two already-sorted lists concatenated are not one sorted list — the command
-  // center promises "soonest first", so merge them properly, undated last.
-  const openWork = [...work, ...exams]
-    .filter((t) => !t.done)
-    .sort((a, b) => Number(!a.due) - Number(!b.due) || (a.due ?? "").localeCompare(b.due ?? "") || a.id - b.id);
 
   return (
     <PageShell page="Academic" title="Academic" subtitle="courses · deadlines · timetable">
@@ -116,23 +109,15 @@ export default function AcademicPage() {
           id="timetable-title"
           accent="academic"
           title="Timetable"
-          caption="blocked-off time · lives in Google Calendar · pick work from the list beside it"
+          caption="blocked-off time · lives in Google Calendar"
         />
-        {/* min-w-0: without it the 1fr track inherits the week grid's 52rem
-            min-content width, the tracks overrun the section, and the side
-            column hangs off the right edge. */}
-        <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
-          <div className="min-w-0">
-            <Suspense fallback={<CalendarSkeleton />}>
-              <CalendarSection home="academic" />
-            </Suspense>
-          </div>
-          <div className="flex flex-col gap-4">
-            <TimetableTodo tasks={openWork} />
-            <Suspense fallback={null}>
-              <ScheduleCheckSection courses={courses} />
-            </Suspense>
-          </div>
+        {/* Full width, nothing beside it (decision #28): the work is in the
+            Assignments and Exams tables directly above, so a companion column
+            only restated them. */}
+        <div className="mt-4">
+          <Suspense fallback={<CalendarSkeleton />}>
+            <CalendarSection home="academic" />
+          </Suspense>
         </div>
       </section>
     </PageShell>

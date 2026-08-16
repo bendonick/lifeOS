@@ -47,8 +47,12 @@ off dense data rows, where it costs legibility; and always ship the
 
 ## Recurring patterns
 
-- **Command center**: read-only calendar (time) rendered beside an interactive task list
-  (work). The user reads free time on one side and picks tasks on the other. Never merge them.
+- **Command center**: read-only calendar (time) and an interactive task list (work) on the same
+  page. The user reads free time on one surface and picks tasks on the other. Never merge them
+  into a single list. In practice every page built so far **stacks** the two as full-width
+  sections rather than placing them in columns — Academic tried a side column and it read as a
+  duplicate of the tables above it (decision #28). "Beside" means on the same page, not
+  necessarily in the same row.
 - **Cards**: small stat/brief cards with a title row (icon + label), one big value, one muted
   context line — e.g. "Sleep · 55 / −22 vs 7d avg", "HRV · N ms / above range · low–high",
   "Steps · N / M% of goal", "CHF X / Y · N% · day D · on pace". This exact card

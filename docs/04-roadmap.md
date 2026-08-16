@@ -53,10 +53,10 @@ Google-format recurring event renders at the correct Zurich time across a DST sw
 Verified against the user's own feeds on 2026-08-16: all four connect, and an invite stored as
 11:00 Pacific renders at 20:00 Zurich.
 
-**Addendum (same day, decision #27):** courses link out to a prefilled Google Calendar form
-rather than being created by the app, and a Schedule check panel under the timetable compares
-each course's days/times against what the Academic feed actually returns — flagging a class
-that is missing, moved, or at a different time.
+**Addendum (decision #27):** courses link out to a prefilled Google Calendar form rather than
+being created by the app — Google still creates and owns every event. A Schedule check panel
+comparing course metadata against the feed shipped alongside it and was removed the next day
+as chrome (decision #28); the timetable now renders full width with nothing beside it.
 
 ## Stage 4 — Professional page — NEXT
 
