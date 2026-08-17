@@ -21,6 +21,7 @@ import { HealthSection } from "@/components/personal/HealthSection";
 import { NotesPanel } from "@/components/personal/NotesPanel";
 import { SpendingSection } from "@/components/personal/SpendingSection";
 import { PageShell } from "@/components/ui/PageShell";
+import { Markdown } from "@/components/ui/Markdown";
 import { Tile } from "@/components/ui/Tile";
 import { billsForMonth } from "@/lib/db/bills";
 import { latestGermanWord } from "@/lib/db/briefs";
@@ -86,7 +87,12 @@ export default function PersonalPage() {
           <Tile id="german" icon={<Languages size={16} />} title="German" accent="hub">
             {germanWord ? (
               <>
-                <div className="text-sm">{germanWord.content_md}</div>
+                {/* Through the shared renderer, like the hub's brief rows. This
+                    tile printed `content_md` raw, so the headword arrived as
+                    literal `**anmelden**` and the three paragraphs ran together
+                    into one block — the one brief on the page that was not
+                    going through Markdown (decision #38). */}
+                <Markdown text={germanWord.content_md} />
                 <p className="mt-1 text-xs text-faint">
                   generated {utcToZurichLabel(germanWord.generated_at)}
                 </p>
