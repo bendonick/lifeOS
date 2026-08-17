@@ -19,11 +19,17 @@ promote to a stage deliberately, never by drift.
 
 - Health device adapters — Oura (official PAT, easy) when the ring arrives; Garmin sidecar
   (python-garminconnect, fragile) if wanted. Both write through `ingestMetrics`.
-- Per-transaction recategorisation UI (the queue works at merchant granularity; editing a
-  single already-categorised row currently needs SQL or a re-import).
-- "Re-apply rules" button — after editing `budget.rules` in config, apply them to existing
-  uncategorised rows without re-importing (done via one-off script this session).
-- Undo an import batch from the UI (`import_batches` provenance exists; no button yet).
+- ~~Per-transaction recategorisation UI~~ — **closed 2026-08-17, decision #42.** The user's
+  call: merchant granularity is the right level ("if it is Migros it should be under
+  groceries"), and no merchant in the data has ever had rows under two categories. What the
+  item was really pointing at — that an already-categorised merchant could not be changed at
+  all — was a bug, and Stage 6 fixed it in the Merchants panel.
+- ~~"Re-apply rules" button~~ — **closed 2026-08-17 as obsoleted.** The categorisation assist
+  sweeps the whole uncategorised tail in one click, which is what this button was for. With
+  111 of 122 merchants seen exactly once, retroactive rules had almost nothing to catch
+  anyway.
+- Undo an import batch from the UI (`import_batches` provenance exists; no button yet). Still
+  open, and untouched by Stage 6 — it is about imports, not categorisation.
 
 ## Stage 3 (2026-08-16)
 
@@ -122,3 +128,29 @@ becomes a session the day its data exists.
   first, with optimistic checkboxes. Removed because it restated the two tables directly above
   it. The version worth building instead is the one tied to the calendar's visible week
   (option 3 of the 2026-08-17 plan), which needs `WeekCalendar`'s week state hoisted.
+
+## Stage 6 (2026-08-17)
+
+- **Category-level budget proposals.** `proposeBudget()` computes per-category medians and
+  renders them as the basis line, but the budget is stated at line level (decision #20) so
+  there is nothing to write a category figure to. If `budget_lines` ever gains leaves, the
+  numbers are already there.
+- **A month picker on the money map.** It renders the trailing 12 months, which is the only
+  window with anything in it until September. `monthWindow()` exists in `src/lib/money/flow.ts`
+  and is currently unused — wiring a tab to it is small, and worth doing once real budget
+  months exist to compare.
+- **Recurring-charge detection.** Deliberately not built (see the Stage 6 roadmap entry): the
+  only true recurrers in a year of data are rent, the phone plan and an eSIM, and the first two are
+  already fixed budget lines. Worth revisiting only if the user starts paying subscriptions
+  from this account. The useful half — a fixed line that did not get paid — shipped as an
+  insight instead.
+- **Re-run the assist for a single merchant.** Today a bad proposal is corrected by picking a
+  category by hand, which is one click and usually faster; `--all` re-proposes everything.
+- **`budget.baseline` is still hand-computed.** `CategoryBreakdown`'s historical-average ticks
+  read a config key seeded in Stage 2, while `proposeBudget()` computes the same idea from the
+  live table. Two sources for one concept — the config key should eventually be derived, or
+  dropped in favour of the computed one.
+- **Sparse-month detection is local to the proposal.** `MIN_COVERAGE_RATIO` in `propose.ts`
+  drops a month with implausibly few transactions (July 2026 has 6, against a median of 49).
+  The money map and the history chart do not apply the same test, so a sparse month still reads
+  as a quiet month there.

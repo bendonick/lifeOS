@@ -1,13 +1,27 @@
 import { Card } from "@/components/ui/Card";
 import type { BudgetOverview } from "@/lib/db/money";
+import type { Insight, InsightTone } from "@/lib/money/insights";
 
 // The §6 card: variable-tier headline (the money the user actually decides
 // about), all-in as muted context, labelled MoM trend. Warm color only when
 // over — if everything is colored, nothing signals.
+//
+// Stage 6 adds the explaining half: up to two ranked insights from
+// src/lib/money/insights.ts, which returns an empty list whenever it has
+// nothing worth saying. With no insights the card renders exactly as before —
+// the separator and the lines both disappear rather than leaving an empty slot.
 
 const chf = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
 
-export function SpendingCard({ o }: { o: BudgetOverview }) {
+const insightTone: Record<InsightTone, string> = {
+  neutral: "text-muted",
+  warn: "text-warn",
+  danger: "text-danger",
+};
+
+const SHOWN_INSIGHTS = 2;
+
+export function SpendingCard({ o, insights = [] }: { o: BudgetOverview; insights?: Insight[] }) {
   const pct = o.variable.budget > 0 ? Math.round((o.variable.spent / o.variable.budget) * 100) : 0;
   const paceTone =
     o.variable.spent > o.variable.budget ? "text-danger" : o.variable.pace === "over" ? "text-warn" : "text-muted";
@@ -45,6 +59,15 @@ export function SpendingCard({ o }: { o: BudgetOverview }) {
         <a href="#uncategorised" className="mt-1 inline-block text-xs text-muted hover:text-text">
           {o.uncategorisedInWindow} to categorise →
         </a>
+      )}
+      {insights.length > 0 && (
+        <ul className="mt-3 flex flex-col gap-1 border-t border-border pt-2">
+          {insights.slice(0, SHOWN_INSIGHTS).map((i) => (
+            <li key={i.id} className={`text-xs ${insightTone[i.tone]}`}>
+              {i.text}
+            </li>
+          ))}
+        </ul>
       )}
     </Card>
   );

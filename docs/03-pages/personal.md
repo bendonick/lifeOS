@@ -52,6 +52,25 @@ Habits → Health → Spending → Tasks → Bills → Notes; Calendar full-widt
    imported; invisible to all budget math via `src/lib/money/window.ts` — only the labelled
    MoM line and the history chart (with start-date marker) read past the start.
 
+
+   **Stage 6 additions.** The card now *explains*: up to two ranked lines from
+   `src/lib/money/insights.ts` (decision #44) — runway, category-vs-your-own-average, per-day
+   allowance, over-budget, an unpaid fixed line — rendered only when they have something to
+   say, so a quiet month leaves the card exactly as Stage 2 left it. **Merchants panel**
+   (replaces `UncategorisedQueue`): *To review* prefills each row from `category_proposals`
+   written by `scripts/categorize_assist.py` (decisions #40/#41), with confidence and a
+   one-clause reason, plus bulk accept for the high-confidence block; *All merchants* lists
+   every merchant with count, net total and current category, and is how a misfiling gets
+   corrected — merchant granularity, no per-row editor (decision #42). **Propose from
+   history** (`src/lib/money/propose.ts`): median monthly spend per variable line over the
+   complete months of history, with its range and per-category basis printed beside it, and
+   per-line accept through the existing budget-line PATCH; it names the months it skipped as
+   too sparse and the transactions still uncategorised, because both make it an
+   understatement. **Money map** (`MoneyMap.tsx`, decision #43): a Sankey of outflow → tier →
+   budget line, coloured by tier from the validated `moneyCategorical` palette, with
+   uncategorised spend on its own branch so the map's total matches the page's. Rooted at
+   outflow, never income — every credit in this account is a transfer the user made to
+   himself. A Table tab prints every hop including categories, so no value is hover-only.
 5. **Tasks — due this week** — reuses the Stage 1 `ThisWeek` component with a
    domain-filtered query (`weekTasksByDomain('personal')`).
 

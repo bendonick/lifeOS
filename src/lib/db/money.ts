@@ -54,30 +54,6 @@ export function writeImport(
   })();
 }
 
-export interface UncategorisedGroup {
-  merchant: string;
-  count: number;
-  total_chf: number; // spend as a positive number (sum of -amount over debits)
-  newest: string;
-}
-
-/** The review queue, grouped by merchant, descending frequency (§5e: each rule
- *  written should retire the largest possible block of rows). Reads the FULL
- *  table on purpose — categorising the pre-budget history is the corpus chore. */
-export function uncategorisedGroups(): UncategorisedGroup[] {
-  return db
-    .prepare(
-      `SELECT merchant, COUNT(*) AS count,
-              ROUND(SUM(CASE WHEN amount_chf < 0 THEN -amount_chf ELSE 0 END), 2) AS total_chf,
-              MAX(date) AS newest
-       FROM transactions
-       WHERE category IS NULL
-       GROUP BY merchant
-       ORDER BY count DESC, total_chf DESC`
-    )
-    .all() as UncategorisedGroup[];
-}
-
 /** Budget-facing review count — unlike the queue, this clamps to the budget
  *  window (§5e lists it among the filtered readers). */
 export function uncategorisedCountInWindow(): number {
@@ -122,11 +98,92 @@ export function groupedCategories(): CategoryGroup[] {
   return groups;
 }
 
+export interface MerchantGroup {
+  merchant: string;
+  count: number;
+  /** Net spend as a positive number: debits add, refunds subtract. Negative
+   *  means the merchant paid *you* on balance — a refund or a rebate. The
+   *  Stage 2 queue summed debits only, so a merchant whose rows were all
+   *  credits displayed "CHF 0" and looked like a rounding artefact. */
+  total_chf: number;
+  newest: string;
+  category: string | null; // null = uncategorised; "" never escapes this layer
+  mixed: boolean; // rows disagree — impossible via this app, possible via SQL
+  proposal: CategoryProposal | null;
+}
+
+export interface CategoryProposal {
+  category: string;
+  confidence: "high" | "medium" | "low";
+  reason: string | null;
+}
+
+/** Every merchant — the "All merchants" tab and the correction path (Stage 6).
+ *  Reads the full table for the same reason the queue does: the year of history
+ *  is the corpus, and a merchant filed wrongly in March is worth fixing in
+ *  August. Proposals are joined in so one query feeds both tabs. */
+export function merchantGroups(): MerchantGroup[] {
+  const rows = db
+    .prepare(
+      `SELECT t.merchant AS merchant, COUNT(*) AS count,
+              ROUND(SUM(-t.amount_chf), 2) AS total_chf,
+              MAX(t.date) AS newest,
+              MIN(COALESCE(t.category, '')) AS category,
+              COUNT(DISTINCT COALESCE(t.category, '')) AS distinct_categories,
+              p.category AS p_category, p.confidence AS p_confidence, p.reason AS p_reason
+       FROM transactions t
+       LEFT JOIN category_proposals p ON p.merchant = t.merchant
+       WHERE t.merchant IS NOT NULL AND TRIM(t.merchant) <> ''
+       GROUP BY t.merchant
+       ORDER BY count DESC, ABS(total_chf) DESC`
+    )
+    .all() as Array<{
+      merchant: string;
+      count: number;
+      total_chf: number;
+      newest: string;
+      category: string;
+      distinct_categories: number;
+      p_category: string | null;
+      p_confidence: CategoryProposal["confidence"] | null;
+      p_reason: string | null;
+    }>;
+
+  return rows.map((r) => ({
+    merchant: r.merchant,
+    count: r.count,
+    total_chf: r.total_chf,
+    newest: r.newest,
+    category: r.category || null,
+    mixed: r.distinct_categories > 1,
+    proposal: r.p_category
+      ? { category: r.p_category, confidence: r.p_confidence ?? "low", reason: r.p_reason }
+      : null,
+  }));
+}
+
+/**
+ * File every one of a merchant's rows under `category`.
+ *
+ * Deliberately unguarded: until Stage 6 this carried `AND category IS NULL`, so
+ * re-assigning an already-categorised merchant was a silent no-op and a
+ * misfiling could only be fixed in SQL. That was survivable while rules were the
+ * only categoriser — the user wrote them — but the assist proposes, and a
+ * proposal you cannot correct is worse than no proposal. Merchant granularity is
+ * the settled level (decision #42): one Migros run being a gift is not worth a
+ * per-row editor.
+ *
+ * The proposal is dropped in the same transaction: once the user has ruled on a
+ * merchant, a stale suggestion has nothing left to say.
+ */
 export function assignCategoryToMerchant(merchant: string, category: string): number {
-  const info = db
-    .prepare("UPDATE transactions SET category = ? WHERE merchant = ? AND category IS NULL")
-    .run(category, merchant);
-  return info.changes;
+  return db.transaction(() => {
+    const info = db
+      .prepare("UPDATE transactions SET category = ? WHERE merchant = ?")
+      .run(category, merchant);
+    db.prepare("DELETE FROM category_proposals WHERE merchant = ?").run(merchant);
+    return info.changes;
+  })();
 }
 
 // ---------------------------------------------------------------------------
@@ -183,6 +240,11 @@ export interface LineStatus extends BudgetLine {
   spent: number; // net, window-clamped: this month (fixed/variable) or this year (annual)
   carried_in: number; // carryover lines: accrued unspent since budget start (can be negative)
   paid: boolean; // fixed tier: any spend landed this month
+  /** Fixed tier: this line was paid in the PREVIOUS month. The insight layer
+   *  uses it to tell "rent is late" from "this line has never been paid out of
+   *  this account" — ZVV and House cleaning are budgeted here but settled
+   *  elsewhere, so warning about them every month would cry wolf forever. */
+  paid_last_month: boolean;
 }
 
 export interface TierTotals {
@@ -220,6 +282,12 @@ export function budgetOverview(): BudgetOverview {
     .all() as BudgetLine[];
 
   const monthSpend = lineSpendBetween(windowFrom, mEnd);
+  // Deliberate full-history read (§5e): whether a line was paid last month is a
+  // fact about the line's habits, not a budget total, and in the budget's first
+  // month the previous month is entirely pre-start.
+  void fullHistory();
+  const prevMonth = monthOf(addDays(mStart, -1));
+  const prevMonthSpend = lineSpendBetween(`${prevMonth}-01`, monthEnd(prevMonth));
   const yearSpend = lineSpendBetween(budgetWindowStart(`${month.slice(0, 4)}-01-01`), mEnd);
   // Carryover accrual: standing amount per elapsed budget month minus what was
   // actually spent since the start (historical month overrides are ignored —
@@ -243,6 +311,7 @@ export function budgetOverview(): BudgetOverview {
       spent: Math.round(spent * 100) / 100,
       carried_in: Math.round(carried_in * 100) / 100,
       paid: l.tier === "fixed" && spent > 0,
+      paid_last_month: l.tier === "fixed" && (prevMonthSpend.get(l.id) ?? 0) > 0,
     };
   });
 

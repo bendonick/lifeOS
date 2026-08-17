@@ -165,6 +165,19 @@ CREATE TABLE IF NOT EXISTS category_map (
   budget_line_id INTEGER NOT NULL REFERENCES budget_lines(id) ON DELETE CASCADE
 );
 
+-- Merchant -> category proposals from scripts/categorize_assist.py (Stage 6).
+-- The assist writes here and stops; the app applies a proposal only when the user
+-- accepts it in the Merchants panel (decision #36 — the LLM proposes, the app
+-- applies). merchant is the PK so re-running replaces rather than accumulating,
+-- the same idempotence briefs get from UNIQUE (date, kind).
+CREATE TABLE IF NOT EXISTS category_proposals (
+  merchant   TEXT PRIMARY KEY,
+  category   TEXT NOT NULL,
+  confidence TEXT NOT NULL CHECK (confidence IN ('high','medium','low')),
+  reason     TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- CSV import provenance, so a bad import can be undone wholesale.
 CREATE TABLE IF NOT EXISTS import_batches (
   id          INTEGER PRIMARY KEY,

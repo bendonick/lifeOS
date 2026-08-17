@@ -98,33 +98,45 @@ and re-stamped `generated_at`. Building the Shortcut on the phone is deferred to
 the user's ask — the Mac half is complete, so it is a five-minute phone task whenever he
 wants captures flowing (`docs/07-capture-shortcut.md`).
 
-## Stage 6 — Budget intelligence — NEXT
+## Stage 6 — Budget intelligence — COMPLETE (2026-08-17)
 
-Re-scoped 2026-08-17: **budget only.** RAG over lecture PDFs, health trends/nudges and the
-stale-contact nudge moved to BACKLOG — each had no data to run against (zero lecture PDFs
-until term starts 14–16 Sep, zero `health_metrics`, zero `contacts`), and a module built
-against nothing can't be verified. They are waiting on data, not on code or on this stage.
+Re-scoped to budget only; RAG, health nudges and the contact nudge stayed in BACKLOG for want
+of data. Built after a research pass over **Origin** at the user's ask — three of its ideas
+survived contact with the real data (budget-from-history, the money map, a merchant view) and
+three did not (subscription detection finds only rent and the phone, both already fixed lines;
+natural-language Q&A is an LLM on the render path; per-transaction editing is below the
+granularity the user wants — decision #42).
 
-Build: categorisation of the **137 uncategorised transactions** (merchant rules already in
-config + LLM assist for what the rules miss), and insights on the spending card — the part
-of `03-pages/personal.md` §3 that says the card should explain, not just total.
+Five modules:
+- **Categorisation assist** (`scripts/categorize_assist.py`, decisions #40/#41) — proposes a
+  category, confidence and reason per uncategorised merchant into `category_proposals`; the
+  Merchants panel prefills from it and the user accepts, singly or in bulk.
+- **Merchants panel** — one surface for the review queue, the correction path and "where the
+  money goes", replacing `UncategorisedQueue`. Fixed two live bugs: the `AND category IS NULL`
+  guard that made re-categorising a silent no-op, and `appendRule`, which pushed a second rule
+  behind the first so a correction was undone by the next import.
+- **Spending insights** (`src/lib/money/insights.ts`, decision #44) — pure arithmetic, ranked,
+  empty when there is nothing to say; the card renders two.
+- **Budget from history** (`src/lib/money/propose.ts`) — median of complete months per variable
+  line, with its range and per-category basis printed beside it.
+- **Money map** (`src/components/personal/MoneyMap.tsx`, decision #43) — a Sankey rooted at
+  outflow rather than income, coloured by tier from a validated three-hue palette.
 
-What the data looks like today: a year of transactions, with dozens of merchant
-rules in `budget.rules`, and `budget.start_date` = 2026-09-01 (decision #23), so budget-window
-insights have no month to describe until September — trailing history is what's real until then.
+**Done when:** verified 2026-08-17. The assist proposed all 122 uncategorised merchants in four
+calls (38 high / 54 medium / 30 low confidence) with the Swiss names read correctly — Coiffure →
+barber, Apotheke → pharmacy, Transa → clothing — and honest `low` where it was guessing. Bulk
+accept filed 2 merchants / 4 rows and consumed their proposals; single assign moved SPAR DANKT
+between categories and back, and the rule ended up as **one** entry with the new category, ahead
+of the broader hand-written `spar ` pattern that would otherwise have undone it on the next
+import. Insights were verified against nine real history months (runway, category-vs-average,
+per-day allowance, over-budget, unpaid fixed line) and are correctly silent in the current
+prospective month. The proposal panel reads 8 complete months, excludes July 2026 as too sparse
+to be real, and says so. The map reconciles to the page: its four flows add up
+to the total. `npm run build` passes, no horizontal overflow at 1440px, no console errors, every
+control keyboard-focusable.
 
-Decide with the user when the session starts, not before:
-- Which insight kinds earn their place (pace vs budget, trend vs own history, unusual
-  transactions, recurring-cost detection) — this shapes the whole module.
-- Whether the Stage 2 money backlog comes along: per-transaction recategorisation, a
-  "re-apply rules" button, undo an import batch.
-
-Precedent to follow: **decision #36** — the LLM proposes and the app applies. `UncategorisedQueue`
-already works at merchant granularity, and the Sync button already shows how the app runs a
-`scripts/` job on demand, so an "assist" button is a spawn, not a new architecture.
-
-**Done when:** the uncategorised queue can be cleared without touching SQL, and the spending
-card says something a raw total alone wouldn't.
+**Left for the user:** 120 merchants still hold proposals awaiting review — the medium and low
+ones are judgement calls about his own spending, not mine to make.
 
 ## Later / BACKLOG seeds
 

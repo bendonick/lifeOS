@@ -36,6 +36,14 @@ a terminal works either way, which is what makes the failure so quiet.
 | `brief_world.py` | 07:00 Mon–Fri | Sonnet 5 + web search | ~$0.05–0.15 |
 | `brief_ai_research.py` | 07:05 Mon–Fri | Sonnet 5 + web search | ~$0.05–0.15 |
 | `brief_german.py` | 07:10 Mon–Fri | Sonnet 5, no search | fractions of a cent |
+| `categorize_assist.py` | **on demand only** | Opus 5, low effort | ~$0.02 for a 120-merchant backlog |
+
+`categorize_assist.py` has no schedule on purpose: there is no recurring backlog to drain,
+only the tail of an import, so it runs from the Assist button (`POST /api/money/assist`) or by
+hand. It is the second script to follow decision #36 — it writes **only** to
+`category_proposals` and never touches `transactions`; the app files a merchant when the user
+accepts. It sends merchant names and the valid category list to the API and nothing else
+(decision #41): no amounts, no dates, no account data.
 
 Briefs are one script per kind so one failure never kills the rest, and so a fourth brief
 is a new file rather than a refactor. They are staggered five minutes apart rather than
@@ -50,6 +58,8 @@ Every script prints a one-line JSON summary; launchd writes it to `data/logs/<la
 .venv/bin/python capture_ingest.py            # ingest + parse
 .venv/bin/python capture_ingest.py --no-parse # ingest only, no API calls
 .venv/bin/python brief_world.py               # regenerate today's world brief
+.venv/bin/python categorize_assist.py         # propose categories for uncategorised merchants
+.venv/bin/python categorize_assist.py --all   # re-propose, including merchants already proposed
 ```
 
 Re-running a brief replaces today's row (`briefs` is UNIQUE on date+kind) and re-stamps
