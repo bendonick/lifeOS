@@ -74,15 +74,29 @@ logging an interaction on A moved it from second to last and dropped the red, an
 a reload. Back-dating recorded history without moving `last_contacted`. A Day job task appeared on
 LifeOS This week with a blue domain pill. Fixtures were deleted afterwards; the page ships empty.
 
-## Stage 5 — Capture relay + briefs — NEXT
+## Stage 5 — Capture relay + briefs — COMPLETE (2026-08-17)
 
-Capture ingest from the synced file (script + Sync button), idempotent on the capture `id`;
-parse captures into tasks/metrics/notes locally at ingest (decision #34). Brief scripts (world,
-ai_research, german_word — no email, decision #35) on launchd writing to `briefs`; LifeOS brief
-cards go live with staleness badges, and `BriefRow` drops to three cards. Build the iOS Shortcut and write down what it does, so it
-can be rebuilt (decision #33). Only credential needed: `ANTHROPIC_API_KEY` (present since 2026-08-17).
-**Done when:** a phrase dictated to the Shortcut on the phone appears in the app after a sync
-and parses into the right row, and at least two brief kinds generate on schedule.
+The intelligence layer arrives: `scripts/` is standalone Python on launchd, writing into
+the data layer that the webapp renders. Capture ingest reads the Shortcut's synced
+`capture.jsonl`, dedupes on a new `inbox.external_id` (iCloud rewrites the file, so
+offsets are meaningless), and attaches a parse *proposal* to each capture — the app
+creates the task/metric/note when the proposal is accepted, so `ingestMetrics` stays the
+only door into `health_metrics` (decision #36). Three brief scripts (world, ai_research,
+german_word — decision #35) run 07:00 Mon–Fri on Sonnet 5 with web search; ingest runs
+every 15 minutes and behind a Sync button. `BriefRow` renders real markdown through a
+hand-rolled subset renderer with an honest staleness line. The Shortcut is specified in
+`docs/07-capture-shortcut.md` so it can be rebuilt from scratch.
+**Done when:** verified 2026-08-17 — three dictation-shaped lines written to the capture
+file ingested and parsed correctly ("…by friday" → task, academic, due 2026-08-21;
+"slept 7 and a half hours" → the parser noting no
+sleep-hours metric exists; "idea use rl to…" → professional idea). Accepting the task
+chip created it in This week. A second ingest run ingested 0 rows. All three briefs
+generated and render on the hub. Two manual steps remain, both outside what code can do:
+**build the Shortcut on the phone** (`docs/07-capture-shortcut.md`), and **grant Full Disk
+Access to the venv interpreter** — a launchd agent inherits no Files-and-Folders consent,
+and both `~/Desktop` and iCloud Drive are protected, so the scheduled jobs are installed
+but blocked until it is granted. `install_launchd.sh` probes for this and prints the exact
+path; the scripts themselves run correctly from a terminal either way.
 
 ## Stage 6 — Intelligence
 

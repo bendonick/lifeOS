@@ -6,6 +6,7 @@ import { InboxPanel } from "@/components/lifeos/InboxPanel";
 import { ThisWeek } from "@/components/lifeos/ThisWeek";
 import { PageShell } from "@/components/ui/PageShell";
 import { SectionBanner } from "@/components/ui/SectionBanner";
+import { latestBriefs } from "@/lib/db/briefs";
 import { unprocessedCaptures } from "@/lib/db/inbox";
 import { weekTasks } from "@/lib/db/tasks";
 import { dayLabel, zurichToday } from "@/lib/dates";
@@ -19,13 +20,14 @@ export default function LifeOSPage() {
   const today = zurichToday();
   const tasks = weekTasks();
   const captures = unprocessedCaptures();
+  const briefs = latestBriefs();
 
   return (
     <PageShell title="LifeOS" subtitle={dayLabel(today)}>
       <section>
-        <SectionBanner title="Morning brief" caption="generated on weekday mornings · stubs until Stage 5" />
+        <SectionBanner title="Morning brief" caption="generated on weekday mornings by scripts/, never at render time" />
         <div className="mt-4">
-          <BriefRow />
+          <BriefRow briefs={briefs} />
         </div>
       </section>
 
@@ -38,7 +40,7 @@ export default function LifeOSPage() {
         </section>
 
         <section>
-          <SectionBanner title="Inbox" caption="raw captures · process into tasks and notes" />
+          <SectionBanner title="Inbox" caption="raw captures from here and your phone · one click to file them" />
           <div className="mt-4">
             <InboxPanel items={captures} today={today} />
           </div>

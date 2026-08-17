@@ -17,6 +17,11 @@ next-env.d.ts
 .env*
 !.env.example
 
+# python (scripts/ — the intelligence layer)
+scripts/.venv/
+__pycache__/
+*.pyc
+
 # misc
 .DS_Store
 *.pem

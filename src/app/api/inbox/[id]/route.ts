@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { captureExists, captureToNote, captureToTask, dismissCapture } from "@/lib/db/inbox";
+import { readProposal } from "@/lib/capture/proposal";
+import {
+  acceptProposal,
+  captureExists,
+  captureParsedJson,
+  captureToNote,
+  captureToTask,
+  dismissCapture,
+} from "@/lib/db/inbox";
 import { isDomain } from "@/lib/db/tasks";
 
-// Process a capture: { action: "task", title, domain, due? } | { action: "note", domain? }
-// | { action: "dismiss" }. All variants mark the row processed.
+// Process a capture: { action: "accept" } applies the parser's proposal;
+// { action: "task", title, domain, due? } | { action: "note", domain? } |
+// { action: "dismiss" } are the manual paths. All variants mark the row processed.
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const id = Number((await ctx.params).id);
   if (!Number.isInteger(id)) return NextResponse.json({ error: "bad id" }, { status: 400 });
@@ -13,6 +22,16 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   const body = await req.json().catch(() => null);
 
   switch (body?.action) {
+    // Accept what scripts/capture_ingest.py proposed. The proposal is re-read
+    // and re-validated from the row rather than trusted from the request, so a
+    // client can't smuggle a task through the parse path.
+    case "accept": {
+      const row = captureParsedJson(id);
+      const proposal = readProposal(row?.parsed_json ?? null, row?.processed ?? 0);
+      if (!proposal)
+        return NextResponse.json({ error: "no usable proposal for this capture" }, { status: 400 });
+      return NextResponse.json({ processed: true, ...acceptProposal(id, proposal) });
+    }
     case "task": {
       const title = typeof body.title === "string" ? body.title.trim() : "";
       if (!title) return NextResponse.json({ error: "title is required" }, { status: 400 });

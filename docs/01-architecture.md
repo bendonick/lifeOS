@@ -62,7 +62,8 @@ data/
     lectures/        # PDFs, week-prefixed: 03-attention.pdf  ← RAG corpus
     notes/           # markdown
   imports/           # dropped CSVs (bank, health) — ingesters watch here
-  briefs/            # optional md archive of generated briefs
+  briefs/            # md archive of generated briefs, one file per day+kind
+  logs/              # launchd stdout/stderr, one file per job
   index/             # vector index (Stage 6)
 .env                 # ANTHROPIC_API_KEY, ICS secret URLs — never committed
 ```
@@ -108,8 +109,14 @@ mailbox, the phone writes to a **file that syncs to the Mac** — no third-party
    re-reading a file whose earlier lines are already ingested, so dedupe on the capture `id`
    rather than on offsets, which iCloud can invalidate.
 4. Parsing raw text → structured rows happens **locally at ingest** (decision #34): the script
-   sends the line to the Anthropic API and writes tasks / health_metrics / notes. The raw text
-   stays in `inbox`, so a bad parse is always re-runnable.
+   sends the line to the Anthropic API. It writes a *proposal* into `inbox.parsed_json` and
+   stops — the app creates the task / health_metrics / note when the user accepts it in the
+   Inbox (decision #36), so every derived write still goes through the module that owns that
+   table. The raw text stays in `inbox`, so a bad parse is always re-runnable.
+
+Shipped in Stage 5: `scripts/capture_ingest.py`, dedupe on the `inbox.external_id` column,
+a Sync button on the hub (`POST /api/capture/sync` runs the same script launchd runs), and
+the Shortcut itself specified in `docs/07-capture-shortcut.md`.
 
 This removes the last external dependency from the daily path. Recorded alternatives if the
 Shortcut annoys: Apple Reminders read via AppleScript/EventKit (Siri-native, needs a macOS
@@ -143,14 +150,23 @@ that and needs no LLM at all.
 Swiss banking ≠ Plaid-easy. Default: monthly CSV export into `data/imports/`, one parser per
 bank format, category rules in config. Aggregators only if CSV proves painful.
 
-## Scheduled jobs (Stage 5)
+## Scheduled jobs (Stage 5 — shipped)
 
 - Python scripts, one per brief (world, ai_research, german_word — email dropped, decision #35)
   so one failure doesn't kill the rest; write to `briefs`. This isolation is also what makes a
   fourth brief a new file rather than a refactor.
-- macOS → prefer `launchd`; otherwise cron. Detect and document whichever is installed.
-- Jobs only run while the machine is awake — accepted. UI shows generated_at / a stale badge
-  rather than pretending.
+- **launchd**, installed by `scripts/install_launchd.sh`: `com.lifeos.capture` every 15 minutes,
+  and `com.lifeos.brief.{world,ai_research,german_word}` at 07:00 Mon–Fri (decision #37). Logs
+  land in `data/logs/<label>.log`. Note `com.lifeos.sync` already exists on this machine from an
+  unrelated project — the labels here deliberately don't collide.
+- Jobs only run while the machine is awake — accepted. The hub shows each brief's age and calls
+  a three-day-old one out, rather than pretending.
+- Models: Sonnet 5 for briefs (web search on for world/ai_research), Opus 5 for the capture
+  parser (decision #37). Both live in `scripts/lifeos/claude.py`, which also owns the
+  `pause_turn` resume loop that a server-side tool run needs.
+- **`config` is the contract between the app and the scripts** (decision #39): `capture.file_path`
+  is user-owned and seeded once; `health.metric_keys` is rewritten from the TypeScript metric
+  registry on every app start, so the parser never keeps its own copy of the metric names.
 
 ## RAG (Stage 6)
 

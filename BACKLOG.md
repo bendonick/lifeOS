@@ -62,6 +62,31 @@ promote to a stage deliberately, never by drift.
 - The "AI Engineer & RL Learning Roadmap" link in the Navigation rail card, once that doc exists —
   the user is still writing it, and no dead link ships.
 
+## Stage 5 (2026-08-17)
+
+- **A `sleep_hours` metric.** The parser handled "slept 7 and a half hours" by
+  reporting that no sleep-duration metric exists — the registry has
+  `sleep_score` (a device number) and nothing for hours slept, which is the most natural thing
+  to dictate. Adding it touches the metric registry, the health page and the trends charts, so
+  it is a deliberate change rather than a side effect of Stage 5.
+- Re-parse a capture whose proposal is wrong or missing. Today the fix is to use the manual
+  "→ task" / "→ note" buttons; clearing `inbox.parsed_json` by hand makes the next ingest run
+  re-propose it.
+- Edit a proposal before accepting. A *task* proposal prefills the manual form, so it is
+  correctable; metric and note proposals are accept-or-redo.
+- A brief archive view. `data/briefs/YYYY-MM-DD-kind.md` accumulates every brief ever
+  generated and nothing in the UI reads it — "what did the world brief say last Tuesday" is
+  currently a `cat`.
+- A per-brief "regenerate" button on the hub. The scripts are re-runnable by hand and the
+  upsert is idempotent; there is just no UI for it.
+- Schedule in `config` rather than baked into `install_launchd.sh` — changing 07:00 or adding
+  weekends currently means editing the installer and re-running it.
+- Trim the capture file. `capture.jsonl` grows forever and every ingest re-reads it whole;
+  the dedupe makes that harmless but not free. Rotating it means keeping the ids of trimmed
+  lines somewhere, or accepting that a trimmed line could re-ingest if its inbox row is gone.
+- Surface a failed scheduled job in the UI. A brief that fails shows as a stale card, which is
+  honest but indirect; the reason is only in `data/logs/`.
+
 ## Removed on 2026-08-17 — recoverable from commit 6625ba3
 
 - **Schedule check panel** — compared each course's days/times against the Academic ICS feed

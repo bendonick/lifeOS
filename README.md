@@ -28,10 +28,13 @@ Open http://localhost:3000. That one process is the whole runtime.
 - **`src/lib/db/schema.sql`** — the full schema, applied idempotently at startup.
   All tables exist from Stage 1, even those first used later (schema-first).
 - **`.env`** (gitignored) — secrets, copied from [`.env.example`](.env.example).
-  The four `ICS_URL_*` entries drive the calendar (see below); API keys arrive in Stage 5.
+  The four `ICS_URL_*` entries drive the calendar (see below); `ANTHROPIC_API_KEY` drives
+  everything in `scripts/`.
 - **`data/cache/ics/`** — last-good copy of each calendar feed, so the week still renders
   (labelled *stale*) when Google is unreachable. Safe to delete.
-- **`scripts/`** (from Stage 5) — Python brief/ingest scripts run by launchd/cron.
+- **`scripts/`** — Python brief and capture-ingest scripts run by launchd, with their own
+  [README](scripts/README.md). They write into `data/lifeos.db`; the app only renders what
+  they produced.
 
 ## Connecting the calendar
 
@@ -46,6 +49,26 @@ For each of **Academic**, **Personal**, **Professional** and your primary calend
 Feeds are cached for 10 minutes; the *refresh* link under any calendar forces a re-fetch.
 Calendars you leave blank are listed as *not configured* rather than silently missing.
 
+## The morning briefs and phone capture
+
+The intelligence layer is four scheduled Python jobs — the app itself never calls an LLM
+while rendering a page.
+
+```sh
+./scripts/setup.sh            # one venv, one dependency (anthropic)
+./scripts/install_launchd.sh  # capture ingest every 15 min; three briefs at 07:00 Mon–Fri
+```
+
+Both need `ANTHROPIC_API_KEY` in `.env`. Logs land in `data/logs/`; each job prints a
+one-line JSON summary. Remove everything with `./scripts/install_launchd.sh --remove`.
+
+**Phone capture** is an iOS Shortcut that appends one JSON line to
+`iCloud Drive/LifeOS/capture.jsonl` — no third-party service, no token. Build it once from
+[`docs/07-capture-shortcut.md`](docs/07-capture-shortcut.md); ingest then reads that file,
+proposes what each capture should become, and the LifeOS Inbox files it on one click. The
+**Sync phone** button there runs the same ingest script by hand when you don't want to
+wait fifteen minutes.
+
 ## Backing up `data/`
 
 SQLite runs in WAL mode, so recent writes can live in `data/lifeos.db-wal` rather than the
@@ -58,7 +81,9 @@ cp data/lifeos.db data/lifeos.db-wal data/lifeos.db-shm backup/   # or all three
 
 ## Status
 
-Stages 1–3 complete: scaffold + schema + design system; the Personal page (habits, health,
-three-tier budget, UBS import); and the Academic page with the real Google Calendar (ICS)
-integration now feeding every page's calendar. Next: Stage 4 — the Professional page.
+Stages 1–5 complete: scaffold + schema + design system; the Personal page (habits, health,
+three-tier budget, UBS import); the Academic page with the real Google Calendar (ICS)
+integration feeding every page; the Professional page (day job, learning, projects, network
+CRM); and the intelligence layer — phone capture, parsed at ingest, plus the three morning
+briefs. Next: Stage 6 — RAG over lecture PDFs, budget and health insights.
 See [`docs/04-roadmap.md`](docs/04-roadmap.md).

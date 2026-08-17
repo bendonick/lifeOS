@@ -1,6 +1,8 @@
 import Database from "better-sqlite3";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
+import { METRIC_KEYS } from "@/lib/health/metrics";
 import { seedStage2 } from "./seed-stage2";
 
 // Server-only: imported by route handlers and server components, never by client
@@ -45,6 +47,17 @@ function migrate(db: Database.Database) {
   }
   db.exec(
     "CREATE UNIQUE INDEX IF NOT EXISTS idx_transactions_dedupe ON transactions (dedupe_key) WHERE dedupe_key IS NOT NULL"
+  );
+
+  // Stage 5: the capture id the iOS Shortcut writes, which ingest dedupes on.
+  const inboxColumns = new Set(
+    (db.pragma("table_info(inbox)") as Array<{ name: string }>).map((c) => c.name)
+  );
+  if (!inboxColumns.has("external_id")) {
+    db.exec("ALTER TABLE inbox ADD COLUMN external_id TEXT");
+  }
+  db.exec(
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_inbox_external ON inbox (external_id) WHERE external_id IS NOT NULL"
   );
 }
 
@@ -105,6 +118,27 @@ function seed(db: Database.Database) {
         "Look into potential golf-AI intersection products"
       );
     }
+
+    // Where the iOS Shortcut's capture file lands (decision #33). Configurable
+    // rather than hardcoded — the architecture says so, and the folder name is
+    // the user's choice. Guarded on its own absence, like the day-job key.
+    const capturePath = db
+      .prepare("SELECT value FROM config WHERE key = 'capture.file_path'")
+      .get() as { value: string } | undefined;
+    if (!capturePath) {
+      db.prepare("INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)").run(
+        "capture.file_path",
+        path.join(os.homedir(), "Library/Mobile Documents/com~apple~CloudDocs/LifeOS/capture.jsonl")
+      );
+    }
+
+    // The metric registry, published for scripts/ to read (Stage 5). NOT guarded:
+    // it is derived from src/lib/health/metrics.ts and must track it, so every
+    // startup rewrites it. This is the cross-language contract for metric names —
+    // the Python capture parser must never keep its own copy of the list.
+    db.prepare(
+      "INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value"
+    ).run("health.metric_keys", JSON.stringify(METRIC_KEYS));
 
     seedStage2(db);
   }).immediate();

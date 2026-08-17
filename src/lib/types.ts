@@ -3,8 +3,13 @@
 export type Domain = "academic" | "personal" | "professional";
 export type TaskType = "task" | "assignment" | "exam" | "meeting";
 
+// The `notes.kind` enum, hoisted here in Stage 5 so the capture parser and the
+// notes module validate against one list rather than two.
+export type NoteKind = "note" | "reminder" | "idea";
+
 export const DOMAINS: Domain[] = ["academic", "personal", "professional"];
 export const TASK_TYPES: TaskType[] = ["task", "assignment", "exam", "meeting"];
+export const NOTE_KINDS: NoteKind[] = ["note", "reminder", "idea"];
 
 export interface Task {
   id: number;
@@ -50,7 +55,11 @@ export interface InboxItem {
   source: "app" | "phone_relay";
   created_at: string;
   processed: 0 | 1;
+  // While unprocessed: the parser's proposal (src/lib/capture/proposal.ts).
+  // Once processed: what the capture became, with the proposal nested inside.
   parsed_json: string | null;
+  // The iOS Shortcut's capture id; null for captures typed into the app.
+  external_id: string | null;
 }
 
 export type CourseStatus = "enrolled" | "completed" | "dropped";

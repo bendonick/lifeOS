@@ -1,10 +1,11 @@
 import { db } from "@/lib/db";
+import type { NoteKind } from "@/lib/types";
 
 export interface Note {
   id: number;
   text: string;
   domain: string | null;
-  kind: "note" | "reminder" | "idea";
+  kind: NoteKind;
   reviewed: number;
   created_at: string;
 }
