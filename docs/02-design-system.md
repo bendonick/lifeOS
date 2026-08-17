@@ -20,6 +20,21 @@ off dense data rows, where it costs legibility; and always ship the
 
 ## Color
 
+> **Superseded for the four main pages by the editorial theme (decisions #48/#55).** The palette
+> below is still what `:root` holds and what the two detail pages render with; everything under
+> `.theme-editorial` overrides it. Both are live — read the theme block in `globals.css` before
+> changing a colour.
+
+**Editorial theme (shipped, all four main pages).** Grounds: Graphite `#121212` page, Midnight
+Blue `#1C2430` tiles, Merlot `#4B1E23` field (page header only). Ink: Bone `#E6E0D6`, with
+`muted`/`faint` stepped down from it. Accents are split **by layout, not only by domain**: the
+left rail is Olive `#9aa075` on every page, and the main column carries the domain —
+Tobacco `#c68a4a` (Personal) · Merlot `#cc7480` (Academic) · blue `#5590cc` (Professional) ·
+Olive (hub, which is domain-less). Budget categories get exactly **three** validated slots plus a
+neutral remainder — a fourth has failed the ΔE 15 floor on both reference palettes, each time on
+the green against the warm yellow-brown.
+
+**Original theme (`:root`, detail pages).**
 - Background: near-black; cards one step lighter; hairline borders.
 - **Domain colors are the identity of the system** — used for section banners, tags, calendar
   event tints, and page accents:
@@ -34,15 +49,26 @@ off dense data rows, where it costs legibility; and always ship the
 ## Page anatomy (every page follows this)
 
 1. Breadcrumb (LifeOS / <Page>) + page title.
-2. **Section banners**: full-width heading strip tinted with the domain color, followed by a
-   small muted caption line — e.g. "Exams" / "midterms · finals", "Calendar" / "blocked-off
-   time · lives in Google Calendar", "Notes" / "to review · Sunday". This banner+caption pair
-   is the strongest visual signature carried over from Notion; keep it.
+2. **Tiles** (`src/components/ui/Tile.tsx`) — the card shell with the section header inside it:
+   icon, serif title, caption, optional trailing `action` link or `meta` stat, and a caller-set
+   grid `span`. **`accent` is required, not defaulted** (#59): it defaulted once, and three pages
+   silently rendered in a fourth page's colour with nothing failing.
+
+   Tiles replaced `SectionBanner` on the four main pages in the design pass. The banner was the
+   signature carried over from Notion, and seven identical ones stacked down a page turned out to
+   be the single strongest reason it read as generated — every section at the same volume, so the
+   page had no subject. Hierarchy now comes from **tile size**, which needs no decoration to
+   express. `SectionBanner` is unchanged and still serves the two detail pages; the description
+   below applies there.
    The banner takes an optional trailing **link** (`action`) or **stat** (`meta`, e.g. Courses →
    "1 course · 6 credits"). A single headline number belongs there rather than in its own card —
    two stat cards above a short table cost more room than the table itself.
-3. Two-column layout on wide screens: narrow left rail (~20%) of stacked **cards**
-   (Quick Actions, Navigation, Reminders, Ideas), wide main column (~80%) of sections.
+3. **Rail + bento** on wide screens: a sticky **19rem** left rail of the ways out of the page
+   and the day's small state (Go to, Quick add, Reminders/Ideas, and on Personal also Habits and
+   German), beside a **twelve-column** grid of tiles with `items-start`. Set spans from the
+   content, not from symmetry. The hub has **no rail** — it is the navigation. The week calendar
+   sits **outside** the rail grid at full page width: `WeekCalendar` has a 52rem floor and the
+   main column beside a 19rem rail is narrower than that (#58).
    Full-width sections below where a module needs the room (calendar, big tables).
 
 ## Recurring patterns
@@ -106,5 +132,6 @@ These are the non-negotiable mechanics; the aesthetic above is guidance, not law
 
 - No light theme work until asked.
 - No emoji noise in chrome (emoji fine inside user content).
-- Don't introduce new accent colors; extend within the domain palette. Domain colors remain the
+- Don't introduce new accent colors; extend within the domain palette (or, under
+  `.theme-editorial`, within its six). Domain colors remain the
   identity of the system.

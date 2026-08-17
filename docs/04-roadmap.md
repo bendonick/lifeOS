@@ -155,6 +155,67 @@ produced by temporarily backdating `budget.start_date` (restored afterwards).
 **Left for the user:** 120 merchants still hold proposals awaiting review — the medium and low
 ones are judgement calls about his own spending, not mine to make.
 
+## Design pass — COMPLETE (2026-08-17)
+
+Not a planned stage. After Stage 6 shipped, the user's verdict on the finished page was that it
+"looked AI generated", and the work that followed rebuilt how the whole app looks without
+changing what it does. **No data, no queries and no functions changed in any of it** — every
+module, form, view tab and anchor that existed before still exists. Decisions **#46–#59**.
+
+It ran in five moves:
+
+1. **Spending, restructured** (#46/#47). One hero card replaced two that stated the same number;
+   insights got their own place; committed tiers collapsed; the bookkeeping moved behind a
+   `Manage transactions` disclosure. The money map was cut as "cool but not that insightful".
+2. **An editorial theme** (#48/#49, superseded by #55). A scoped token override plus one serif
+   (Instrument Serif) for display type. The diagnosis that drove it: the strongest
+   generated-feeling signal was not the colour but **seven identical filled section banners** —
+   every section at one volume, so the page had no subject.
+3. **A bento layout** (#50/#51), taken from a Google Stitch mock the user generated. Its *layout*
+   was adopted; **none of its content was** — every number in it was fabricated (#51 records the
+   specifics, because the next mock will be just as persuasive).
+4. **Palette, twice** (#52 → #55/#56). The first reference palette went in at its exact values,
+   then was replaced wholesale by a second — Graphite / Midnight Blue / Merlot / Olive / Tobacco /
+   Bone — which is structured for a dark interface in a way the first was not. Both times the
+   categorical palette capped at **three slots**, and both times on the same failing pair.
+5. **Rolled across the app** (#54, #57–#59). A constant Olive left rail beside a domain-accented
+   bento — Tobacco (Personal) · Merlot (Academic) · blue (Professional) — and the hub a bento with
+   no rail, because the hub *is* the navigation.
+
+**Where that leaves the code:** `src/components/ui/Tile.tsx` is the page-building unit;
+`SectionBanner` survives only on the two detail pages (`/academic/courses/[id]`,
+`/professional/projects/[id]`), which were not re-laid-out. `.theme-editorial` in `globals.css`
+holds every token; the original cool theme is still in `:root` and is what those detail pages and
+any un-themed page render with.
+
+**Verified:** build passes; overflow, focus rings, console errors and heading outlines checked
+across nine page/width combinations at 1440px and 390px, including all three detail pages. Every
+text tone clears AA (4.5:1) on all three grounds — page, tile and field.
+
+**Known loose ends, none blocking:**
+- `--color-focus` is inert: `globals.css` hardcodes the ring colour because unused `@theme` vars
+  get tree-shaken. It still reads correctly on the new grounds.
+- The two detail pages are un-themed, so they render in the old palette. Deliberate — they were
+  out of scope, not forgotten.
+- `docs/02-design-system.md` §"Page anatomy" is rewritten for tiles, but the four private tab
+  implementations noted in BACKLOG are still unmigrated.
+
+## Where the plan stands (2026-08-17)
+
+**Stage 6 was the last planned stage. There is no Stage 7 yet** — the sections below are backlog
+seeds, not a plan. The three items deferred out of Stage 6 are all still blocked on the same
+thing, data, and none of it has arrived:
+
+| Deferred | Blocker, re-checked 2026-08-17 |
+|---|---|
+| RAG over lecture PDFs | 0 PDFs in `data/academic/`; F26 courses start **14–16 Sep** |
+| Health trends & nudges | `health_metrics` = 0 rows |
+| Stale-contact nudge | `contacts` = 0 rows |
+
+Ready with no blocker: **build the capture Shortcut on the phone** (`docs/07-capture-shortcut.md`
+— the Mac half is finished and verified), and **review the 120 category proposals** waiting in
+`category_proposals`, which is what makes `Propose from history` trustworthy.
+
 ## Later / BACKLOG seeds
 
 Streak heatmaps; Day job accomplishments log; Google Calendar write-back; class-session

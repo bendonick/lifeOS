@@ -1,5 +1,14 @@
 # Page — Professional (`/professional`, blue)
 
+**Themed and re-laid-out 2026-08-17 (decision #59).** On `theme-editorial` with a sticky 19rem
+left rail (Go to · Quick add · Ideas, Olive-titled) beside a twelve-column bento of `Tile`s in
+Professional's blue. Section order is unchanged — Day job · learning · projects · network — and
+the calendar still sits full width outside the rail grid (#28/#58). `minmax(0,1fr)` stays on the
+main track: this page has four tables and is where that lesson was learned. Every module, form
+and anchor is unchanged; only the containers moved. The project detail page was out of scope and
+still renders on the original theme.
+
+
 Four zones settled during design: Day job, Learning, Projects, Network.
 Job-hunt tracking was explicitly dropped — don't build pipeline/application features.
 

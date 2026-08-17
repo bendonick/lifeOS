@@ -1,5 +1,12 @@
 # Page — LifeOS (hub, `/`)
 
+**Themed and re-laid-out 2026-08-17 (decision #59).** On `theme-editorial` as a twelve-column
+bento of `Tile`s — brief row 12, This week 8 + Inbox 4, Domains 12 — with the calendar full width
+below. **No left rail**, deliberately: the hub is the navigation, so a shortcuts column here would
+point at the page you are already on. Everything takes the `hub` accent (Olive), the hub being
+domain-less by definition. Order and content follow the sections below unchanged.
+
+
 Neutral-toned home. Everything here is a rollup or a doorway; nothing is owned by this page.
 
 ## Modules
