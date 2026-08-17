@@ -44,7 +44,7 @@
      the cool theme has no categorical palette to offer (decision #19: the
      domain accents fail the dark categorical lightness band), so all three
      resolve to the single personal hue and the bars degrade to one colour.
-     .theme-warm redefines them with a validated three-hue set. */
+     .theme-editorial redefines them with a validated three-hue set. */
   --color-cat-1: var(--color-personal);
   --color-cat-2: var(--color-personal);
   --color-cat-3: var(--color-personal);
@@ -66,94 +66,92 @@
 
 /*
  * ---------------------------------------------------------------------------
- * Warm theme — prototype, scoped to /personal (decision #48).
+ * Editorial theme — prototype, scoped to /personal (decisions #48/#55).
  *
- * Built from the user's Pantone reference: Java Brown #231815, Potting Soil
- * #4A2E27, Sceptre Red #4D0E12, Transparent Yellow #F5EFC6, Cerulean #A5BCD6.
+ * Named for the intent, not the palette: an editorial serif for display against
+ * a muted, low-chroma ground. It was `theme-warm` while it held the first
+ * reference palette, which stopped being true the moment that palette was
+ * replaced by a Graphite/Midnight one — a theme name should survive the swap.
  *
- * The palette splits into two inks and two grounds, and that split is the whole
- * design. Measured against Java Brown: Transparent Yellow 14.88:1 and Cerulean
- * 8.87:1 are text; Potting Soil 1.41:1 and Sceptre Red 1.14:1 can never be, so
- * they are surfaces and fields. Potting Soil as the card step is a real
- * improvement — the cool theme's surface separation is 1.09:1, which is
- * rounding error, and this is 1.41:1.
+ * Built from the user's second reference palette: Graphite #121212, Midnight
+ * Blue #1C2430, Merlot #4B1E23, Olive #6B6F4E, Tobacco #8A5A2B, Bone #E6E0D6.
  *
- * Scoped rather than global so both looks can coexist while this is judged:
- * every token below is a redefinition of one @theme variable, so every existing
- * utility (bg-surface, text-muted, …) re-themes with no component changes.
- * Anything NOT redefined here deliberately inherits the cool theme.
+ * This palette is structured for a dark interface in a way the first one was
+ * not: it ships a true near-black (Graphite), a true text tone (Bone), a second
+ * dark that is a *different hue* rather than a lighter shade (Midnight), a deep
+ * field (Merlot), and two mark colours (Olive, Tobacco). Measured on Graphite,
+ * Bone is 14.27:1 and everything else is 3.6:1 or below — so exactly one of the
+ * six is ink, and the rest are grounds and marks.
+ *
+ * Four values are the reference EXACTLY: Graphite, Midnight Blue, Merlot, Bone.
+ * Olive and Tobacco are used at their exact values as *marks* and lifted for
+ * *text*, because at 2.98:1 and 2.66:1 on a Midnight tile neither can carry a
+ * title. Lifting preserves the hue and is the only way to keep them as accents
+ * without failing contrast.
+ *
+ * Scoped, so both looks coexist while this is judged; every token below is one
+ * @theme variable redefined, so every existing utility re-themes with no
+ * component changes.
  * ---------------------------------------------------------------------------
  */
-.theme-warm {
-  /* Grounds. Four of the five values on this page are the Pantone reference
-     EXACTLY as specified — Java Brown #231815, Potting Soil #4A2E27, Sceptre
-     Red #4D0E12, Transparent Yellow #F5EFC6, Cerulean #A5BCD6 — at the user's
-     ask. Only `--color-surface` is derived, and it has to be: a tile needs to
-     sit a step off the page, and no Pantone value in the set does that job.
-     It is the *minimum* lift that works, because the tile surface is what
-     Sceptre Red is judged against — at a lighter brown the field read as one
-     more brown (ΔE 7.7), and at this step it clears the ΔE 8 threshold where a
-     colour starts reading as its own. */
-  --color-bg: #231815; /* Java Brown, exact */
-  --color-surface: #281a16; /* derived — see above */
-  /* Derived, and pulled hard toward Sceptre Red. This is every button, input,
-     bar track and ring track on the page — by far the largest tinted surface
-     area available — so reddening it puts the third Pantone tone everywhere at
-     low volume, which no single accent element can do. Cream still reads
-     12.5:1 on it and muted 7.3:1. */
-  --color-raised: #40201d;
-  /* Barely off the tile: a track is context for the fill, never a mark itself. */
-  --color-track: #33221c;
-  --color-border: #4a2e27; /* Potting Soil, exact */
+.theme-editorial {
+  /* Grounds. Graphite is the page, Midnight the tile — a cool dark on a neutral
+     black, which separates by hue rather than by lightness (ΔE 8.0, exactly the
+     threshold where a colour reads as its own). `raised` and `track` are the two
+     derived steps: controls want to be seen, tracks want to disappear. */
+  --color-bg: #121212; /* Graphite, exact */
+  --color-surface: #1c2430; /* Midnight Blue, exact */
+  --color-raised: #29323f; /* derived — buttons, inputs */
+  --color-track: #222a36; /* derived — the unfilled part of a progress bar */
+  --color-border: #37414f; /* derived */
 
-  /* Sceptre Red, exact. Used as a *field*: it cannot carry text at 1.14:1
-     against the ground, but it hosts text superbly — Transparent Yellow reads
-     13.01:1 on it and Cerulean 7.76:1 — so it takes whole surfaces (the page
-     header, the spending hero) rather than stripes. */
-  --color-field: #4d0e12; /* Sceptre Red, exact */
+  /* Merlot, exact. A field: 1.35:1 on Graphite so it can never carry text, but
+     Bone reads 10.60:1 on it, so it hosts whole surfaces. */
+  --color-field: #4b1e23; /* Merlot, exact */
 
-  /* Two title accents, and the split is the layout's: the left rail is
-     Cerulean, the main column is ochre. That is not decoration — it is how you
-     tell the rail (shortcuts, navigation, the day's small state) from the
-     subject matter (health, money, time) without a divider. `hub` carries the
-     rail because it already means "domain-less", which is exactly what a
-     shortcuts column is. Both clear AA on all three grounds: ochre 6.3–7.2:1,
-     Cerulean 7.8–8.9:1. */
-  --color-personal: #c9a227; /* main column — the warm accent */
-  --color-academic: #8aa06a;
-  --color-professional: #a5bcd6; /* Cerulean, exact */
-  --color-hub: #a5bcd6; /* left rail — Cerulean, exact */
+  /* Bone, exact, with two warm neutrals stepped down from it. faint carries
+     real 11px text and stays above the 4.5:1 floor on all three grounds. */
+  --color-text: #e6e0d6; /* Bone, exact */
+  --color-muted: #b8b2a6;
+  --color-faint: #a49d90;
 
-  /* urgency — Sceptre Red is 1.14:1 and cannot carry a warning, so danger is
-     lifted to 5.30:1 and warn to 7.93:1. Both stay in family; neither is
-     reachable from the category hues below. */
-  --color-danger: #e4685c;
+  /* The two title accents, split by layout as before: Olive for the left rail,
+     Tobacco for the main column — cool for the day's small state, warm for the
+     subject matter. Both are the reference hue lifted to clear 4.5:1 on every
+     ground (Olive 5.1–6.8:1, Tobacco 4.7–6.4:1); at their exact values they sit
+     below 3:1 on a Midnight tile and could not be read. */
+  --color-personal: #c68a4a; /* Tobacco, lifted — main column */
+  --color-academic: #9aa075;
+  --color-professional: #5590cc;
+  --color-hub: #9aa075; /* Olive, lifted — left rail */
+
+  /* Urgency. Deliberately brighter than any category or accent: Merlot is a
+     ground and cannot warn, and a status colour that sits at the same weight as
+     decoration has stopped being a status colour. Both always ship with text. */
+  --color-danger: #e87a70;
   --color-warn: #e0a458;
 
-  --color-focus: #f5efc6;
+  --color-focus: #e6e0d6;
 
-  /* Budget categories — the ONLY categorical palette that survives the maths on
-     this ground. Validated with dataviz/validate_palette.js against #231815:
-     all-pairs ΔE 17.0 normal vision, 13.9 CVD, chroma and lightness band pass.
-     Three slots is the ceiling, not a preference: a fourth hue drops the worst
-     pair below the ΔE 15 floor whichever hue is chosen, and green fails hardest
-     (ΔE 2.4 against ochre for protanopia). Terracotta sits at 2.93:1 against the
-     ground, which obliges a visible label on every mark that uses it — every
-     surface below prints its name and value, so that debt is paid. */
-  --color-cat-1: #5b8fd6; /* groceries */
-  --color-cat-2: #b8860b; /* restaurants */
-  --color-cat-3: #a8452a; /* bars */
-  --color-cat-rest: #8a7360; /* remainder — 3.88:1, quieter than all three */
+  /* Budget categories — validated with dataviz/validate_palette.js against the
+     Midnight tile: all-pairs ΔE 15.2 normal vision, 11.1 CVD, chroma and
+     lightness band pass. Three slots again, and for the same reason as the last
+     palette: a fourth drops the worst pair below the ΔE 15 floor, and here it
+     is Olive against Tobacco that fails hardest (ΔE 4.3 deutan) — the two
+     reference hues that are closest together. Merlot at 2.84:1 against the tile
+     obliges a visible label on every mark using it; all three surfaces print
+     their name and value, so that debt is paid. */
+  --color-cat-1: #5590cc; /* groceries */
+  --color-cat-2: #b87d3c; /* restaurants */
+  --color-cat-3: #b34252; /* bars */
+  --color-cat-rest: #6b7382; /* the remainder — quieter than all three */
 
-  /* `accent-color` is set on :root, where it resolves against the cool palette
-     however this subtree is themed — so unchecked-to-checked controls kept
-     painting violet on brown. It has to be restated wherever the token moves. */
+  /* `accent-color` resolves at :root against the other palette however this
+     subtree is themed, so it has to be restated wherever the token moves. */
   accent-color: var(--color-personal);
 }
 
-/* The scoped theme must paint its own ground: --color-bg is applied to <body>,
-   which sits outside this subtree. */
-.theme-warm {
+.theme-editorial {
   background-color: var(--color-bg);
   color: var(--color-text);
 }
@@ -161,7 +159,7 @@
 /* Display type. The serif is for titles and hero numerals only — never for
    tables, labels or controls, which need the sans's tabular figures and its
    legibility at 11px. */
-.theme-warm .t-serif {
+.theme-editorial .t-serif {
   font-family: var(--font-serif), Georgia, "Times New Roman", serif;
   font-weight: 400;
   letter-spacing: 0;
@@ -175,12 +173,12 @@
    field colour costs nothing and sets the tone immediately. Translucent over
    the field rather than over the page ground, so content scrolling under it
    still tints. */
-.theme-warm [data-page-header] {
+.theme-editorial [data-page-header] {
   background-color: color-mix(in oklab, var(--color-field) 88%, transparent);
   border-bottom-color: color-mix(in oklab, var(--color-field) 60%, var(--color-border));
 }
 
-.theme-warm [data-banner] {
+.theme-editorial [data-banner] {
   background-color: transparent !important;
   border-radius: 0;
   border-bottom: 1px solid var(--color-border);
@@ -189,7 +187,7 @@
   padding-bottom: 0.5rem;
   color: var(--color-text) !important;
 }
-.theme-warm [data-banner] h2 {
+.theme-editorial [data-banner] h2 {
   font-family: var(--font-serif), Georgia, serif;
   font-weight: 400;
   font-size: 1.25rem;
@@ -285,10 +283,10 @@ body {
   }
   /* The warm theme owes the same obligation — its own steps, not the cool
      theme's, or a high-contrast request would drag grey text onto brown. */
-  .theme-warm {
-    --color-muted: #ded3b8;
-    --color-faint: #c4b79a;
-    --color-border: #6b4438;
+  .theme-editorial {
+    --color-muted: #d6d0c4;
+    --color-faint: #c2bbad;
+    --color-border: #55606f;
   }
   .material {
     background-color: var(--color-surface) !important;

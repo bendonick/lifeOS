@@ -46,7 +46,7 @@ export default function PersonalPage() {
   const germanWord = latestGermanWord();
 
   return (
-    <PageShell page="Personal" title="Personal" subtitle="habits · health · money" theme="theme-warm">
+    <PageShell page="Personal" title="Personal" subtitle="habits · health · money" theme="theme-editorial">
       {/* Rail + main, with a bento inside the main column.
           The rail is the day's small state and the ways out of the page —
           shortcuts, navigation, the review count, the word, the habit ticks.

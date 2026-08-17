@@ -6,7 +6,7 @@ describes what exists.
 
 ## Layout
 
-**Rebuilt as a rail + bento, 2026-08-17 (decisions #50/#54).** A sticky 19rem left rail — Quick
+**Themed `theme-editorial` (decisions #48/#55) — Graphite ground, Midnight Blue tiles, Bone text, Olive rail titles, Tobacco main titles. Rebuilt as a rail + bento, 2026-08-17 (decisions #50/#54).** A sticky 19rem left rail — Quick
 add · Go to · To review · Habits · German, all Cerulean-titled — beside a twelve-column bento of
 `Tile`s in ochre: Health 12, Spending 12, Tasks 6 · Bills 6, Notes 12, Calendar 12. The accent
 split is the point: cool for the day's small state, warm for the subject matter, so the halves

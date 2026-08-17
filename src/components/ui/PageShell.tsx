@@ -20,7 +20,7 @@ export function PageShell({
   page?: string;
   title: string;
   subtitle?: string;
-  /** Opt-in theme class (currently `theme-warm`, prototyped on /personal).
+  /** Opt-in theme class (currently `theme-editorial`, prototyped on /personal).
    *  Applied here rather than on <body> so two themes can coexist while one is
    *  being judged, and so the page paints its own ground. */
   theme?: string;
