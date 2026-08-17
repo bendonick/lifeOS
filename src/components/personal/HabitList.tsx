@@ -108,7 +108,7 @@ function CompletionRing({ done, total }: { done: number; total: number }) {
     <div className="flex justify-center py-1">
       <div className="relative" style={{ width: SIZE, height: SIZE }}>
         <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} aria-hidden="true">
-          <circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none" strokeWidth={STROKE} className="stroke-raised" />
+          <circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none" strokeWidth={STROKE} className="stroke-track" />
           {/* Below ~0.5% a round cap renders as a stray dot on an empty ring. */}
           {frac > 0.005 && (
             <circle

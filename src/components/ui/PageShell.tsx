@@ -36,7 +36,10 @@ export function PageShell({
   // its own content, which is what a sticky bar has to do to look attached.
   return (
     <div className={`min-h-screen ${theme ?? ""}`}>
-      <header className="material sticky top-0 z-20 border-b border-border/80 bg-bg/70 backdrop-blur-xl">
+      <header
+        data-page-header=""
+        className="material sticky top-0 z-20 border-b border-border/80 bg-bg/70 backdrop-blur-xl"
+      >
         <div className="mx-auto max-w-6xl px-6 py-4">
           <nav aria-label="Breadcrumb" className="text-xs text-faint">
             {page ? (

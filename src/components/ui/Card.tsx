@@ -12,6 +12,7 @@ export function Card({
   value,
   context,
   children,
+  surface = "bg-surface",
   className = "",
 }: {
   icon?: ReactNode;
@@ -20,10 +21,14 @@ export function Card({
   value?: ReactNode;
   context?: string;
   children?: ReactNode;
+  /** Ground for the card. A lead card can take `bg-field` to sit apart from the
+   *  tiles around it; passing it through className would not reliably win, as
+   *  Tailwind utilities share specificity and source order decides. */
+  surface?: string;
   className?: string;
 }) {
   return (
-    <div className={`rounded-lg border border-border bg-surface p-4 ${className}`}>
+    <div className={`rounded-lg border border-border p-4 ${surface} ${className}`}>
       <div className={`flex items-center gap-2 text-xs font-medium ${accentText[accent]}`}>
         {icon}
         <span>{label}</span>

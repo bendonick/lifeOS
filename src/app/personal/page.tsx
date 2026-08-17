@@ -55,7 +55,14 @@ export default function PersonalPage() {
           module (hero, budget, history, review) and Calendar is a week grid,
           and both look cramped at anything less. */}
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
-        <Tile id="shortcuts" icon={<Zap size={16} />} title="Quick add" accent="hub" span="lg:col-span-3">
+        <Tile
+          id="shortcuts"
+          icon={<Zap size={16} />}
+          title="Quick add"
+          accent="hub"
+          span="lg:col-span-3"
+          surface="bg-field"
+        >
           <div className="grid grid-cols-2 gap-1.5">
             <QuickAction href="#new-task" label="Task" />
             <QuickAction href="#new-metric" label="Metric" />
@@ -73,12 +80,17 @@ export default function PersonalPage() {
           </nav>
         </Tile>
 
+        {/* Two small tiles carry the field as well as the spending hero, so the
+            oxblood recurs down the page instead of appearing once and reading
+            as an accident. Deliberately the two smallest — a field this
+            saturated earns its place by being scarce. */}
         <Tile
           id="review"
           icon={<Inbox size={16} />}
           title="To review"
           caption={toReview === 1 ? "note · Sunday" : "notes · Sunday"}
           span="lg:col-span-2"
+          surface="bg-field"
         >
           <a href="#notes" className="tabular t-display block text-3xl font-semibold hover:text-personal">
             {toReview}

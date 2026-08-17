@@ -69,7 +69,7 @@ export function CategoryBreakdown({
         {rows.map((r) => (
           <li key={r.label} className="flex items-center gap-2.5">
             <span className="w-20 truncate text-xs text-muted">{r.label}</span>
-            <div className="relative h-2 flex-1 rounded-full bg-raised">
+            <div className="relative h-2 flex-1 rounded-full bg-track">
               <div
                 className={`absolute inset-y-0 left-0 rounded-full ${
                   CATEGORY_FILL[r.label] ?? NEUTRAL_FILL

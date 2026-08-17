@@ -52,6 +52,16 @@
      text tone at 8.7:1 and as a fill it out-shouted the three real categories,
      making the loudest band on every chart the one that means "unclassified". */
   --color-cat-rest: #6b6b78;
+
+  /* A tinted field behind a surface that should lead. Neutral in the cool
+     theme, oxblood in the warm one. */
+  --color-field: var(--color-raised);
+
+  /* The unfilled part of a progress track. Deliberately NOT --color-raised:
+     buttons and inputs want to be visible, a track wants to disappear. Tinting
+     raised made every empty budget bar read as a filled warm bar — a line at 0%
+     spent looked maxed out, which is the worst thing a budget bar can say. */
+  --color-track: var(--color-raised);
 }
 
 /*
@@ -75,26 +85,43 @@
  * ---------------------------------------------------------------------------
  */
 .theme-warm {
-  /* grounds — the two Pantone browns, plus one step between them for cards */
-  --color-bg: #231815;
-  --color-surface: #2c1f1b;
-  --color-raised: #3a2a24;
-  --color-border: #4a2e27;
+  /* Grounds. Four of the five values on this page are the Pantone reference
+     EXACTLY as specified — Java Brown #231815, Potting Soil #4A2E27, Sceptre
+     Red #4D0E12, Transparent Yellow #F5EFC6, Cerulean #A5BCD6 — at the user's
+     ask. Only `--color-surface` is derived, and it has to be: a tile needs to
+     sit a step off the page, and no Pantone value in the set does that job.
+     It is the *minimum* lift that works, because the tile surface is what
+     Sceptre Red is judged against — at a lighter brown the field read as one
+     more brown (ΔE 7.7), and at this step it clears the ΔE 8 threshold where a
+     colour starts reading as its own. */
+  --color-bg: #231815; /* Java Brown, exact */
+  --color-surface: #281a16; /* derived — see above */
+  /* Derived, and pulled hard toward Sceptre Red. This is every button, input,
+     bar track and ring track on the page — by far the largest tinted surface
+     area available — so reddening it puts the third Pantone tone everywhere at
+     low volume, which no single accent element can do. Cream still reads
+     12.5:1 on it and muted 7.3:1. */
+  --color-raised: #40201d;
+  /* Barely off the tile: a track is context for the fill, never a mark itself. */
+  --color-track: #33221c;
+  --color-border: #4a2e27; /* Potting Soil, exact */
 
-  /* inks — cream primary, warm neutrals stepped down from it. muted 8.73:1 and
-     faint 5.46:1 on the ground; faint carries real 11px text and must stay
-     above 4.5:1, which the cool theme's own 5.13:1 barely managed. */
-  --color-text: #f5efc6;
-  --color-muted: #c4b79a;
-  --color-faint: #9c8f79;
+  /* Sceptre Red, exact. Used as a *field*: it cannot carry text at 1.14:1
+     against the ground, but it hosts text superbly — Transparent Yellow reads
+     13.01:1 on it and Cerulean 7.76:1 — so it takes whole surfaces (the page
+     header, the spending hero) rather than stripes. */
+  --color-field: #4d0e12; /* Sceptre Red, exact */
 
-  /* domains — Professional takes Cerulean, the palette's own accent. Academic
-     and Personal are derived in family rather than kept green/purple, which
-     would read as two foreign objects on a warm ground. */
-  --color-personal: #c9a227;
+  /* The accent is Cerulean, exact — the palette's one cool tone, and the only
+     thing on the page that is not brown, cream or oxblood. Putting it on tile
+     titles, links and controls is what stops the page reading as monochrome
+     warm: cream states, oxblood grounds, and one blue that means "this is
+     interactive or this is a heading". 8.87:1 on the ground, 7.76:1 on the
+     field, so it holds up on both. */
+  --color-personal: #a5bcd6; /* Cerulean, exact */
   --color-academic: #8aa06a;
-  --color-professional: #a5bcd6;
-  --color-hub: #b8a894;
+  --color-professional: #a5bcd6; /* Cerulean, exact */
+  --color-hub: #c4b79a;
 
   /* urgency — Sceptre Red is 1.14:1 and cannot carry a warning, so danger is
      lifted to 5.30:1 and warn to 7.93:1. Both stay in family; neither is
@@ -103,10 +130,6 @@
   --color-warn: #e0a458;
 
   --color-focus: #f5efc6;
-
-  /* Sceptre Red itself: a field colour, used behind cream type where a section
-     needs to read as a band rather than a line. */
-  --color-field: #4d0e12;
 
   /* Budget categories — the ONLY categorical palette that survives the maths on
      this ground. Validated with dataviz/validate_palette.js against #231815:
@@ -147,6 +170,15 @@
    subject because every section shouted at the same volume; a serif name over a
    hairline gives the same landmark with none of the noise, and hands the colour
    budget back to the data. */
+/* The sticky header is the one full-bleed band on the page, so it is where a
+   field colour costs nothing and sets the tone immediately. Translucent over
+   the field rather than over the page ground, so content scrolling under it
+   still tints. */
+.theme-warm [data-page-header] {
+  background-color: color-mix(in oklab, var(--color-field) 88%, transparent);
+  border-bottom-color: color-mix(in oklab, var(--color-field) 60%, var(--color-border));
+}
+
 .theme-warm [data-banner] {
   background-color: transparent !important;
   border-radius: 0;
@@ -255,7 +287,7 @@ body {
   .theme-warm {
     --color-muted: #ded3b8;
     --color-faint: #c4b79a;
-    --color-border: #6b463a;
+    --color-border: #6b4438;
   }
   .material {
     background-color: var(--color-surface) !important;

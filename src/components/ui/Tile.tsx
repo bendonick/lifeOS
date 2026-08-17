@@ -27,6 +27,7 @@ export function Tile({
   action,
   meta,
   span = "",
+  surface = "bg-surface",
   bodyClassName = "",
   children,
 }: {
@@ -42,6 +43,10 @@ export function Tile({
   meta?: ReactNode;
   /** Grid span classes, e.g. "lg:col-span-8". */
   span?: string;
+  /** Ground for the tile — `bg-field` makes it a lead surface. Passed as a prop
+   *  rather than through className because Tailwind utilities share
+   *  specificity, so source order, not class order, would decide the winner. */
+  surface?: string;
   bodyClassName?: string;
   children: ReactNode;
 }) {
@@ -49,7 +54,7 @@ export function Tile({
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className={`flex flex-col rounded-lg border border-border bg-surface p-4 ${span}`}
+      className={`flex flex-col rounded-lg border border-border p-4 ${surface} ${span}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">

@@ -214,7 +214,7 @@ function BudgetRow({
           )}
         </span>
       ) : (
-        <div className="relative h-2 min-w-24 flex-1 overflow-hidden rounded-full bg-raised">
+        <div className="relative h-2 min-w-24 flex-1 overflow-hidden rounded-full bg-track">
           {/* Stacked only while the line is behaving. Once it is over pace or
               over budget the warm fill takes the whole track — a warning split
               into three decorative colours is not a warning. */}

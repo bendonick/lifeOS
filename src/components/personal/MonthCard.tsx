@@ -36,7 +36,7 @@ export function MonthCard({ o, insights = [] }: { o: BudgetOverview; insights?: 
   });
 
   return (
-    <Card label={monthLabel} accent="personal" className="lg:col-span-2">
+    <Card label={monthLabel} accent="personal" surface="bg-field" className="lg:col-span-2">
       {o.prospective ? <Prospective o={o} /> : <InFlight o={o} insights={insights} />}
     </Card>
   );
@@ -115,7 +115,7 @@ function InFlight({ o, insights }: { o: BudgetOverview; insights: Insight[] }) {
         {over ? "over" : "left"} of {chf.format(budget)} variable
       </p>
 
-      <div className="relative mt-3 h-2 rounded-full bg-raised">
+      <div className="relative mt-3 h-2 rounded-full bg-track">
         <div
           className={`absolute inset-y-0 left-0 rounded-full ${fillClass}`}
           style={{ width: `${fraction * 100}%` }}
