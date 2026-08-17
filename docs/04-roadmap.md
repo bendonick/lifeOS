@@ -144,6 +144,14 @@ restarts, with 36 transactions and 24 pending proposals remapped, rules rewritte
 `budget.baseline` folded by summation rather than recomputed (its numbers came from the user's
 own spreadsheet and the table still holds uncategorised rows).
 
+**Design pass (decisions #46/#47), same day.** On reviewing the finished page against Origin and
+against how a financial-advisor-grade screen is organised, the Spending section was restructured
+to answer *what's left · where is it going · what needs my attention* in that order. One hero card
+replaced two that stated the same number; the money map was cut; committed tiers collapsed; the
+bookkeeping moved to the bottom behind a disclosure. No new data or queries — presentation only.
+Verified in both states: the prospective one the user sees today, and a real in-flight month
+produced by temporarily backdating `budget.start_date` (restored afterwards).
+
 **Left for the user:** 120 merchants still hold proposals awaiting review — the medium and low
 ones are judgement calls about his own spending, not mine to make.
 

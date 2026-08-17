@@ -22,9 +22,14 @@ export function BudgetTable({ o }: { o: BudgetOverview }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const refresh = () => startTransition(() => router.refresh());
-  // Annual lines are committed, not decided daily — collapsed by default so the
-  // table stays monthly-sized; the subtotal row still carries /yr and /mo.
-  const [showAnnual, setShowAnnual] = useState(false);
+  // Fixed and annual lines are committed, not decided daily, so both collapse by
+  // default and the table opens at the size of the decisions in it: three
+  // variable rows. Fixed used to render five rows that all read "CHF 0 / X"
+  // beside an empty gap where a bar would be — a bar it deliberately never gets,
+  // because a committed cost is not paced (§6). The header carries the one live
+  // fact those rows held between them: how many have landed.
+  const [open, setOpen] = useState<Record<string, boolean>>({ variable: true });
+  const toggle = (tier: string) => setOpen((o) => ({ ...o, [tier]: !o[tier] }));
 
   const paceFraction = o.prospective ? 0 : o.dayOfMonth / o.daysInMonth;
 
@@ -35,20 +40,21 @@ export function BudgetTable({ o }: { o: BudgetOverview }) {
         const lines = o.lines.filter((l) => l.tier === tier);
         if (!lines.length) return null;
         const t = o.tiers[tier];
-        const collapsible = tier === "annual";
-        const open = !collapsible || showAnnual;
+        const collapsible = tier !== "variable";
+        const isOpen = !collapsible || open[tier] === true;
+        const paidCount = tier === "fixed" ? lines.filter((l) => l.paid).length : 0;
         return (
           <div key={tier} className="border-b border-border last:border-b-0">
-            <div className={`flex items-baseline justify-between px-3 pt-3 ${open ? "pb-1" : "pb-3"}`}>
+            <div className={`flex items-baseline justify-between gap-3 px-3 pt-3 ${isOpen ? "pb-1" : "pb-3"}`}>
               {collapsible ? (
                 <button
                   type="button"
-                  onClick={() => setShowAnnual((v) => !v)}
+                  onClick={() => toggle(tier)}
                   className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-muted transition-colors hover:text-text"
-                  aria-expanded={open}
+                  aria-expanded={isOpen}
                 >
                   <span aria-hidden="true" className="text-[11px] text-faint">
-                    {open ? "▾" : "▸"}
+                    {isOpen ? "▾" : "▸"}
                   </span>
                   {label}
                 </button>
@@ -56,14 +62,32 @@ export function BudgetTable({ o }: { o: BudgetOverview }) {
                 <span className="text-xs font-semibold tracking-wide text-muted">{label}</span>
               )}
               <span className="tabular text-xs font-medium text-muted">
-                {/* Annual spend is year-to-date, not this month — say so, or it
-                    reads as a monthly figure sitting beside two monthly ones. */}
-                CHF {chf.format(t.spent)}
-                {tier === "annual" && <span className="text-faint"> YTD</span>} / {chf.format(t.budget)}
-                {tier === "annual" && <span className="text-faint"> /yr · {chf.format(t.budget / 12)}/mo</span>}
+                {/* A paid count is the summary worth having, and only once the
+                    month can have produced one — before the budget starts,
+                    "0 of 5 paid" is a status that cannot yet be true. */}
+                {tier === "fixed" && !o.prospective && (
+                  <span className="text-faint">
+                    {paidCount} of {lines.length} paid ·{" "}
+                  </span>
+                )}
+                {/* Annual is a per-YEAR budget, so it says so in words rather
+                    than stacking YTD, /yr and /mo abbreviations in one line. */}
+                {tier === "annual" ? (
+                  <>
+                    CHF {chf.format(t.spent)} of {chf.format(t.budget)}
+                    <span className="text-faint">
+                      {" "}
+                      this year · {chf.format(t.budget / 12)}/mo equivalent
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    CHF {chf.format(t.spent)} / {chf.format(t.budget)}
+                  </>
+                )}
               </span>
             </div>
-            {open && (
+            {isOpen && (
               <ul>
                 {lines.map((l) => (
                   <BudgetRow
@@ -139,15 +163,27 @@ function BudgetRow({
         {line.name}
       </span>
 
-      {/* §6: fixed lines are committed, not paced — no track. */}
+      {/* §6: fixed lines are committed, not paced — no track, so a dot carries
+          the only state they have. Neutral tones on purpose: a bill that is not
+          due yet is not a problem, and the alarm case (a line paid last month
+          that hasn't landed this one) is already an insight on the hero card.
+          Colouring every unpaid row warm would spend the warn token on the
+          normal state of the first of the month. */}
       {isFixed ? (
-        <span className="min-w-24 flex-1 text-[11px]">
-          {!prospective &&
-            (line.paid ? (
-              <span className="text-muted">paid this month</span>
-            ) : (
-              <span className="text-faint">not yet paid</span>
-            ))}
+        <span className="flex min-w-24 flex-1 items-center gap-1.5 text-[11px]">
+          {!prospective && (
+            <>
+              <span
+                aria-hidden="true"
+                className={`inline-block h-1.5 w-1.5 rounded-full ${
+                  line.paid ? "bg-personal" : "bg-border"
+                }`}
+              />
+              <span className={line.paid ? "text-muted" : "text-faint"}>
+                {line.paid ? "paid this month" : "not yet paid"}
+              </span>
+            </>
+          )}
         </span>
       ) : (
         <div className="relative h-2 min-w-24 flex-1 rounded-full bg-raised">

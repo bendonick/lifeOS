@@ -69,12 +69,17 @@ Habits → Health → Spending → Tasks → Bills → Notes; Calendar full-widt
    understatement. **Category taxonomy** (decision #45): Food & drink is
    `groceries` / `restaurants` / `bars` and nothing else — five near-identical leaves made
    every chart look busier than the spending is. Additional expenses keeps its six leaves in
-   the assignment picker but renders as a single row everywhere visual. **Money map**
-   (`MoneyMap.tsx`, decision #43): a Sankey of outflow → tier →
-   budget line, coloured by tier from the validated `moneyCategorical` palette, with
-   uncategorised spend on its own branch so the map's total matches the page's. Rooted at
-   outflow, never income — every credit in this account is a transfer the user made to
-   himself. A Table tab prints every hop including categories, so no value is hover-only.
+   the assignment picker but renders as a single row everywhere visual. **Design pass, 2026-08-17
+   (decisions #46/#47).** The section reads in the order the questions get asked: hero →
+   categories → budget → propose → history → chores. `MonthCard` replaced `SpendingCard` +
+   `SpendGauge`, which had been stating the same number twice across two thirds of the row; it
+   is month-scoped with no daily rate, uses the budget rows' own filled-track-plus-pace-tick
+   glyph rather than a second radial grammar, states the *plan's composition* before the month
+   starts instead of a wall of zeros, and gives insights their own place below a rule. Fixed and
+   Annual collapse (Fixed carrying `N of M paid`); quick-add, import and the merchant queue sit
+   behind a `Manage transactions` disclosure that auto-opens when `#uncategorised` is targeted.
+   The money map was cut as "cool but not that insightful" — it was also trailing-12-month,
+   which fought the month focus the page is for.
 5. **Tasks — due this week** — reuses the Stage 1 `ThisWeek` component with a
    domain-filtered query (`weekTasksByDomain('personal')`).
 

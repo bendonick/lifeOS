@@ -126,16 +126,23 @@ export function spendingInsights(input: InsightInput): Insight[] {
     const unpaid = lines.filter(
       (l) => l.tier === "fixed" && !l.paid && l.paid_last_month && l.effective_amount > 0
     );
+    // Wording matters here: the budget table's Fixed header reports "0 of 5
+    // paid", and an insight reading "2 bills haven't been paid" beside it looks
+    // like a contradiction. It isn't — the filter above is narrower than the
+    // count — so the text states the narrower claim rather than the true-but-
+    // incomplete one.
     if (unpaid.length === 1) {
       out.push({
         id: "unpaid",
-        text: `${unpaid[0].name} (CHF ${chf.format(unpaid[0].effective_amount)}) hasn't been paid this month.`,
+        text: `${unpaid[0].name} (CHF ${chf.format(
+          unpaid[0].effective_amount
+        )}) usually lands by now — it hasn't this month.`,
         tone: "warn",
       });
     } else if (unpaid.length > 1) {
       out.push({
         id: "unpaid",
-        text: `${unpaid.length} fixed bills haven't been paid this month: ${unpaid
+        text: `${unpaid.length} bills that usually land by now haven't: ${unpaid
           .map((l) => l.name)
           .join(LIST_SEP)}.`,
         tone: "warn",
@@ -184,20 +191,10 @@ export function spendingInsights(input: InsightInput): Insight[] {
     }
   }
 
-  // 5. What's left, per day — "left to spend" made actionable. Last because it
-  //    is the least surprising; skipped on the final day, when a daily rate is
-  //    just the remaining balance wearing a different hat, and skipped when
-  //    nothing has been spent, where it degenerates into budget ÷ days and
-  //    describes the budget rather than the month.
-  if (left >= 0 && daysLeft >= 1 && variable.spent > 0) {
-    out.push({
-      id: "allowance",
-      text: `CHF ${chf.format(left / daysLeft)} a day for the remaining ${daysLeft} ${
-        daysLeft === 1 ? "day" : "days"
-      }.`,
-      tone: "neutral",
-    });
-  }
+  // A fifth insight — "CHF X a day for the remaining N days" — was cut on the
+  // user's call: he reads this page by the month, and a daily rate is both noise
+  // and the number that swings hardest in the first days of one. `runway` keeps
+  // the useful half, as a date inside the month rather than a rate.
 
   return out;
 }
