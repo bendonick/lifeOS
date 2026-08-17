@@ -23,7 +23,7 @@ export function Tile({
   icon,
   title,
   caption,
-  accent = "personal",
+  accent,
   action,
   meta,
   span = "",
@@ -36,7 +36,10 @@ export function Tile({
   icon?: ReactNode;
   title: string;
   caption?: string;
-  accent?: Accent;
+  /** Required, not defaulted: a default silently painted Academic's and
+   *  Professional's tiles in Personal's tobacco, and nothing failed — the pages
+   *  simply looked wrong. Making it explicit turns that into a type error. */
+  accent: Accent;
   /** Trailing link — never a caption implying an action it can't perform. */
   action?: { href: string; label: string };
   /** Trailing read-only stat, when a number belongs in the header. */

@@ -66,7 +66,7 @@ export default function PersonalPage() {
           that read as unfinished. */}
       <div className="grid gap-6 lg:grid-cols-[19rem_1fr]">
         <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-28">
-          <Tile id="nav" icon={<Compass size={16} />} title="Go to" accent="hub">
+          <Tile id="nav" accent="hub" icon={<Compass size={16} />} title="Go to">
             <nav aria-label="Sections" className="flex flex-col gap-1.5 text-sm">
               <NavLink href="/personal/health" label="Health trends →" />
               <NavLink href="/" label="LifeOS" />
@@ -75,7 +75,7 @@ export default function PersonalPage() {
             </nav>
           </Tile>
 
-          <Tile id="shortcuts" icon={<Zap size={16} />} title="Quick add" accent="hub">
+          <Tile id="shortcuts" accent="hub" icon={<Zap size={16} />} title="Quick add">
             <div className="grid grid-cols-2 gap-1.5">
               <QuickAction href="#new-task" label="Task" />
               <QuickAction href="#new-metric" label="Metric" />
@@ -84,7 +84,7 @@ export default function PersonalPage() {
             </div>
           </Tile>
 
-          <Tile id="german" icon={<Languages size={16} />} title="German" accent="hub">
+          <Tile id="german" accent="hub" icon={<Languages size={16} />} title="German">
             {germanWord ? (
               <>
                 {/* Through the shared renderer, like the hub's brief rows. This
@@ -128,6 +128,7 @@ export default function PersonalPage() {
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
           <Tile
             id="health"
+            accent="personal"
             icon={<Activity size={16} />}
             title="Health"
             caption="manual entry & CSV import"
@@ -139,6 +140,7 @@ export default function PersonalPage() {
 
           <Tile
             id="spending"
+            accent="personal"
             icon={<Wallet size={16} />}
             title="Spending"
             caption="current month · UBS import"
@@ -147,7 +149,7 @@ export default function PersonalPage() {
             <SpendingSection today={today} />
           </Tile>
 
-          <Tile id="tasks" icon={<ListChecks size={16} />} title="Tasks" caption="due this week" span="lg:col-span-6">
+          <Tile id="tasks" accent="personal" icon={<ListChecks size={16} />} title="Tasks" caption="due this week" span="lg:col-span-6">
             <ThisWeek
               tasks={weekTasksByDomain("personal")}
               today={today}
@@ -156,7 +158,7 @@ export default function PersonalPage() {
             />
           </Tile>
 
-          <Tile id="bills" icon={<Receipt size={16} />} title="Bills" caption="this month" span="lg:col-span-6">
+          <Tile id="bills" accent="personal" icon={<Receipt size={16} />} title="Bills" caption="this month" span="lg:col-span-6">
             <BillsPanel
               bills={billsForMonth(monthOf(today))}
               month={monthOf(today)}
@@ -166,6 +168,7 @@ export default function PersonalPage() {
 
           <Tile
             id="notes"
+            accent="personal"
             icon={<NotebookPen size={16} />}
             title="Notes"
             caption="lightweight inbox · reviewed on Sunday"
@@ -183,6 +186,7 @@ export default function PersonalPage() {
           have to scroll is not a week view. */}
       <Tile
         id="calendar"
+        accent="personal"
         icon={<CalendarDays size={16} />}
         title="Calendar"
         caption="blocked-off time · lives in Google Calendar"

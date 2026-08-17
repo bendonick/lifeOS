@@ -54,7 +54,7 @@ export default function AcademicPage() {
           course links and the four quick-add anchors. */}
       <div className="grid gap-6 lg:grid-cols-[19rem_1fr]">
         <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-28">
-          <Tile id="nav" icon={<Compass size={16} />} title="Go to" accent="hub">
+          <Tile id="nav" accent="hub" icon={<Compass size={16} />} title="Go to">
             <nav aria-label="Sections" className="flex flex-col gap-1.5 text-sm">
               {enrolled.length > 0 && (
                 <>
@@ -76,7 +76,7 @@ export default function AcademicPage() {
             </nav>
           </Tile>
 
-          <Tile id="shortcuts" icon={<Zap size={16} />} title="Quick add" accent="hub">
+          <Tile id="shortcuts" accent="hub" icon={<Zap size={16} />} title="Quick add">
             <div className="grid grid-cols-2 gap-1.5">
               <QuickAction href="#new-course" label="Course" />
               <QuickAction href="#new-assignment" label="Assignment" />
@@ -93,6 +93,7 @@ export default function AcademicPage() {
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
           <Tile
             id="courses"
+            accent="academic"
             icon={<GraduationCap size={16} />}
             title="Courses"
             caption="credits · not grades"
@@ -104,6 +105,7 @@ export default function AcademicPage() {
 
           <Tile
             id="assignments"
+            accent="academic"
             icon={<ClipboardList size={16} />}
             title="Assignments & tasks"
             caption="due dates · days left"
@@ -114,6 +116,7 @@ export default function AcademicPage() {
 
           <Tile
             id="exams"
+            accent="academic"
             icon={<FileText size={16} />}
             title="Exams"
             caption="dates as they are announced"
@@ -131,6 +134,7 @@ export default function AcademicPage() {
           have to scroll is not a week view. */}
       <Tile
         id="timetable"
+        accent="academic"
         icon={<CalendarDays size={16} />}
         title="Timetable"
         caption="blocked-off time · nothing beside it, so the week has the room"

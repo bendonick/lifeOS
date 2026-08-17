@@ -1,11 +1,12 @@
 import { Suspense } from "react";
+import { CalendarDays, Inbox, LayoutGrid, ListChecks, Sunrise } from "lucide-react";
 import { CalendarSection, CalendarSkeleton } from "@/components/calendar/CalendarSection";
 import { BriefRow } from "@/components/lifeos/BriefRow";
 import { DomainTiles } from "@/components/lifeos/DomainTiles";
 import { InboxPanel } from "@/components/lifeos/InboxPanel";
 import { ThisWeek } from "@/components/lifeos/ThisWeek";
 import { PageShell } from "@/components/ui/PageShell";
-import { SectionBanner } from "@/components/ui/SectionBanner";
+import { Tile } from "@/components/ui/Tile";
 import { latestBriefs } from "@/lib/db/briefs";
 import { unprocessedCaptures } from "@/lib/db/inbox";
 import { weekTasks } from "@/lib/db/tasks";
@@ -15,7 +16,9 @@ import { dayLabel, zurichToday } from "@/lib/dates";
 // mutate through /api/* and router.refresh() back to this page's data.
 export const dynamic = "force-dynamic";
 
-// Layout per docs/03-pages/lifeos.md: brief row → This week | Inbox → calendar → tiles.
+// Layout (decision #59): a bento on the editorial theme, keeping the order of
+// docs/03-pages/lifeos.md — brief row → This week | Inbox → domains — with the
+// calendar full width below. No left rail: the hub is the navigation.
 export default function LifeOSPage() {
   const today = zurichToday();
   const tasks = weekTasks();
@@ -23,48 +26,71 @@ export default function LifeOSPage() {
   const briefs = latestBriefs();
 
   return (
-    <PageShell title="LifeOS" subtitle={dayLabel(today)}>
-      <section>
-        <SectionBanner title="Morning brief" caption="generated on weekday mornings by scripts/, never at render time" />
-        <div className="mt-4">
+    <PageShell title="LifeOS" subtitle={dayLabel(today)} theme="theme-editorial">
+      {/* No rail here: the hub *is* the navigation, so a shortcuts column would
+          be a menu pointing at the page you are on. A bento without one, in the
+          order of docs/03-pages/lifeos.md — brief → this week | inbox → domains
+          — with the calendar full width below (decisions #28/#58).
+
+          Everything is Olive: the hub is domain-less by definition, which is
+          exactly what --color-hub means. */}
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
+        <Tile
+          id="brief"
+          icon={<Sunrise size={16} />}
+          title="Morning brief"
+          caption="generated on weekday mornings by scripts/, never at render time"
+          accent="hub"
+          span="lg:col-span-12"
+        >
           <BriefRow briefs={briefs} />
-        </div>
-      </section>
+        </Tile>
 
-      <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
-        <section>
-          <SectionBanner title="This week" caption="due in the next 7 days or overdue · all domains" />
-          <div className="mt-4">
-            <ThisWeek tasks={tasks} today={today} />
-          </div>
-        </section>
+        <Tile
+          id="week"
+          icon={<ListChecks size={16} />}
+          title="This week"
+          caption="due in the next 7 days or overdue · all domains"
+          accent="hub"
+          span="lg:col-span-8"
+        >
+          <ThisWeek tasks={tasks} today={today} />
+        </Tile>
 
-        <section>
-          <SectionBanner title="Inbox" caption="raw captures from here and your phone · one click to file them" />
-          <div className="mt-4">
-            <InboxPanel items={captures} today={today} />
-          </div>
-        </section>
+        <Tile
+          id="inbox"
+          icon={<Inbox size={16} />}
+          title="Inbox"
+          caption="raw captures from here and your phone · one click to file them"
+          accent="hub"
+          span="lg:col-span-4"
+        >
+          <InboxPanel items={captures} today={today} />
+        </Tile>
+
+        <Tile
+          id="domains"
+          icon={<LayoutGrid size={16} />}
+          title="Domains"
+          caption="three pages, one system"
+          accent="hub"
+          span="lg:col-span-12"
+        >
+          <DomainTiles />
+        </Tile>
       </div>
 
-      <section>
-        <SectionBanner
-          title="Calendar"
-          caption="blocked-off time · lives in Google Calendar"
-        />
-        <div className="mt-4">
-          <Suspense fallback={<CalendarSkeleton />}>
-            <CalendarSection />
-          </Suspense>
-        </div>
-      </section>
-
-      <section>
-        <SectionBanner title="Domains" caption="three pages, one system" />
-        <div className="mt-4">
-          <DomainTiles />
-        </div>
-      </section>
+      <Tile
+        id="calendar"
+        icon={<CalendarDays size={16} />}
+        title="Calendar"
+        caption="blocked-off time · lives in Google Calendar"
+        accent="hub"
+      >
+        <Suspense fallback={<CalendarSkeleton />}>
+          <CalendarSection />
+        </Suspense>
+      </Tile>
     </PageShell>
   );
 }
