@@ -73,7 +73,10 @@ export function NotesCard({
       className="rounded-lg border border-border bg-surface p-4"
     >
       <div className={`flex items-center gap-2 text-xs font-medium ${accentText[accent]}`}>
-        <span>{title}</span>
+        {/* Theming hook — the editorial theme renders this as a serif title so
+            NotesCard sits in a rail of Tiles without looking like a stranger.
+            Inert everywhere else. */}
+        <span data-card-label="">{title}</span>
       </div>
       <p className="mt-1 text-xs text-muted">
         {open.length === 0 ? "nothing pending" : `${open.length} pending`}

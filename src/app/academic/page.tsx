@@ -1,12 +1,19 @@
 import Link from "next/link";
+import {
+  CalendarDays,
+  ClipboardList,
+  Compass,
+  FileText,
+  GraduationCap,
+  Zap,
+} from "lucide-react";
 import { Suspense } from "react";
 import { AcademicTasks } from "@/components/academic/AcademicTasks";
 import { CoursesSection } from "@/components/academic/CoursesSection";
 import { RemindersCard } from "@/components/academic/RemindersCard";
 import { CalendarSection, CalendarSkeleton } from "@/components/calendar/CalendarSection";
-import { Card } from "@/components/ui/Card";
 import { PageShell } from "@/components/ui/PageShell";
-import { SectionBanner } from "@/components/ui/SectionBanner";
+import { Tile } from "@/components/ui/Tile";
 import { allCourses, creditTotals, type CreditTotals } from "@/lib/db/courses";
 import { notesFor } from "@/lib/db/notes";
 import { academicExams, academicWork } from "@/lib/db/tasks";
@@ -16,9 +23,11 @@ import { zurichToday } from "@/lib/dates";
 // mutate through /api/* and router.refresh() back to this page's data.
 export const dynamic = "force-dynamic";
 
-// Layout per docs/02-design-system.md: narrow left rail of stacked cards, wide
-// main column of banner+caption sections, and the timetable full-width below —
-// the command center needs the room for a week grid beside its task list.
+// Layout (decision #57): the rail + bento of /personal, on the editorial theme.
+// Same modules, same data — the rail cards and the banner sections are all
+// `Tile`s now. Every main-column tile takes all twelve columns: courses,
+// assignments and exams are wide tables and the timetable is a week grid, and
+// none of them reads at half width.
 export default function AcademicPage() {
   const today = zurichToday();
   const courses = allCourses();
@@ -27,20 +36,26 @@ export default function AcademicPage() {
   const enrolled = courses.filter((c) => c.status === "enrolled");
 
   return (
-    <PageShell page="Academic" title="Academic" subtitle="courses · deadlines · timetable">
-      <div className="grid gap-10 lg:grid-cols-[15rem_1fr]">
-        <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-28">
-          <Card label="Quick Actions" accent="hub">
-            <div className="mt-3 grid grid-cols-2 gap-1.5">
-              <QuickAction href="#new-course" label="Course" />
-              <QuickAction href="#new-assignment" label="Assignment" />
-              <QuickAction href="#new-exam" label="Exam" />
-              <QuickAction href="#new-reminder" label="Reminder" />
-            </div>
-          </Card>
+    <PageShell
+      page="Academic"
+      title="Academic"
+      subtitle="courses · deadlines · timetable"
+      theme="theme-editorial"
+    >
+      {/* Rail + bento, matching /personal (decisions #50/#54/#57). The rail is
+          the ways out of the page and the day's small state — course links,
+          quick adds, reminders — and carries the Olive rail accent; the main
+          column carries Academic's own lifted Merlot, so the two halves are
+          told apart by temperature and the page stays distinguishable from
+          Personal at a glance.
 
-          <Card label="Navigation" accent="hub">
-            <nav aria-label="Sections" className="mt-3 flex flex-col gap-1.5 text-sm">
+          Every module the banner layout had is here, unchanged: courses with
+          the credit summary, assignments, exams, the timetable, reminders, the
+          course links and the four quick-add anchors. */}
+      <div className="grid gap-6 lg:grid-cols-[19rem_1fr]">
+        <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-28">
+          <Tile id="nav" icon={<Compass size={16} />} title="Go to" accent="hub">
+            <nav aria-label="Sections" className="flex flex-col gap-1.5 text-sm">
               {enrolled.length > 0 && (
                 <>
                   {enrolled.map((c) => (
@@ -59,67 +74,71 @@ export default function AcademicPage() {
               <NavLink href="/personal" label="Personal" />
               <NavLink href="/professional" label="Professional" />
             </nav>
-          </Card>
+          </Tile>
 
-          <RemindersCard reminders={notesFor("academic", "reminder")} />
+          <Tile id="shortcuts" icon={<Zap size={16} />} title="Quick add" accent="hub">
+            <div className="grid grid-cols-2 gap-1.5">
+              <QuickAction href="#new-course" label="Course" />
+              <QuickAction href="#new-assignment" label="Assignment" />
+              <QuickAction href="#new-exam" label="Exam" />
+              <QuickAction href="#new-reminder" label="Reminder" />
+            </div>
+          </Tile>
+
+          {/* NotesCard brings its own shell, so it sits in the rail directly
+              rather than inside a Tile — it would otherwise be a card in a card. */}
+          <RemindersCard reminders={notesFor("academic", "reminder")} accent="hub" />
         </aside>
 
-        <div className="flex flex-col gap-10">
-          <section id="courses" aria-labelledby="courses-title">
-            <SectionBanner
-              id="courses-title"
-              accent="academic"
-              title="Courses"
-              caption="credits · not grades"
-              meta={creditSummary(enrolled.length, creditTotals())}
-            />
-            <div className="mt-4">
-              <CoursesSection courses={courses} />
-            </div>
-          </section>
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
+          <Tile
+            id="courses"
+            icon={<GraduationCap size={16} />}
+            title="Courses"
+            caption="credits · not grades"
+            meta={creditSummary(enrolled.length, creditTotals())}
+            span="lg:col-span-12"
+          >
+            <CoursesSection courses={courses} />
+          </Tile>
 
-          <section id="assignments" aria-labelledby="assignments-title">
-            <SectionBanner
-              id="assignments-title"
-              accent="academic"
-              title="Assignments & tasks"
-              caption="due dates · days left"
-            />
-            <div className="mt-4">
-              <AcademicTasks tasks={work} courses={courses} today={today} mode="work" />
-            </div>
-          </section>
+          <Tile
+            id="assignments"
+            icon={<ClipboardList size={16} />}
+            title="Assignments & tasks"
+            caption="due dates · days left"
+            span="lg:col-span-12"
+          >
+            <AcademicTasks tasks={work} courses={courses} today={today} mode="work" />
+          </Tile>
 
-          <section id="exams" aria-labelledby="exams-title">
-            <SectionBanner
-              id="exams-title"
-              accent="academic"
-              title="Exams"
-              caption="dates as they are announced"
-            />
-            <div className="mt-4">
-              <AcademicTasks tasks={exams} courses={courses} today={today} mode="exams" />
-            </div>
-          </section>
+          <Tile
+            id="exams"
+            icon={<FileText size={16} />}
+            title="Exams"
+            caption="dates as they are announced"
+            span="lg:col-span-12"
+          >
+            <AcademicTasks tasks={exams} courses={courses} today={today} mode="exams" />
+          </Tile>
+
         </div>
       </div>
 
-      <section id="timetable" aria-labelledby="timetable-title">
-        <SectionBanner
-          id="timetable-title"
-          accent="academic"
-          title="Timetable"
-          caption="blocked-off time · lives in Google Calendar"
-        />
-        {/* Full width, nothing beside it (decision #28): the work is in the
-            Assignments and Exams tables directly above, so a companion column
-            only restated them. */}
-        <div className="mt-4">
-          <Suspense fallback={<CalendarSkeleton />}>
-            <CalendarSection home="academic" />
-          </Suspense>
-        </div>
-      </section>
+      {/* Outside the rail grid, at full page width (decision #28). The week grid
+          has a 52rem floor and the main column beside a 19rem rail is narrower
+          than that, so in there it scrolled and clipped Sunday. A week view you
+          have to scroll is not a week view. */}
+      <Tile
+        id="timetable"
+        icon={<CalendarDays size={16} />}
+        title="Timetable"
+        caption="blocked-off time · nothing beside it, so the week has the room"
+      >
+        <Suspense fallback={<CalendarSkeleton />}>
+          <CalendarSection home="academic" />
+        </Suspense>
+      </Tile>
     </PageShell>
   );
 }
@@ -140,7 +159,7 @@ function QuickAction({ href, label }: { href: string; label: string }) {
   return (
     <a
       href={href}
-      className="rounded-md border border-border bg-raised px-2 py-1.5 text-center text-xs text-text transition-colors hover:border-academic/40"
+      className="rounded-md border border-border bg-raised px-2 py-1.5 text-center text-xs text-text transition-colors hover:border-hub/40"
     >
       + {label}
     </a>

@@ -1,4 +1,5 @@
 import { NotesCard } from "@/components/notes/NotesCard";
+import type { Accent } from "@/components/ui/accents";
 import type { Note } from "@/lib/db/notes";
 
 /**
@@ -6,14 +7,22 @@ import type { Note } from "@/lib/db/notes";
  * shared NotesCard so /academic keeps a zero-line diff — the generalisation
  * happened in Stage 4 and Academic must not have to change to benefit from it.
  */
-export function RemindersCard({ reminders }: { reminders: Note[] }) {
+export function RemindersCard({
+  reminders,
+  accent = "academic",
+}: {
+  reminders: Note[];
+  /** Rail placements pass the rail's accent; the default keeps every existing
+   *  caller's rendering identical. */
+  accent?: Accent;
+}) {
   return (
     <NotesCard
       notes={reminders}
       domain="academic"
       kind="reminder"
       title="Reminders"
-      accent="academic"
+      accent={accent}
       inputId="new-reminder"
       placeholder="Add a reminder…"
     />

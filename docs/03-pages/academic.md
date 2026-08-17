@@ -1,5 +1,13 @@
 # Page — Academic (`/academic`, green)
 
+**Themed and re-laid-out 2026-08-17 (decisions #57/#58).** On `theme-editorial` — Graphite
+ground, Midnight Blue tiles, Bone text — with a sticky 19rem left rail (Go to · Quick add ·
+Reminders, Olive-titled) beside a twelve-column bento of `Tile`s in Academic's own lifted Merlot:
+Courses, Assignments & tasks, Exams. The timetable sits outside the rail grid at full page width,
+because the week grid's 52rem floor does not fit the main column. Every module, form, view tab and
+anchor from the banner layout is unchanged — only the containers moved.
+
+
 The MSc command center: courses, deadlines, timetable, and (later) course-content RAG.
 
 ## Modules

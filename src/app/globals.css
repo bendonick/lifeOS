@@ -116,14 +116,17 @@
   --color-faint: #a49d90;
 
   /* The two title accents, split by layout as before: Olive for the left rail,
-     Tobacco for the main column — cool for the day's small state, warm for the
-     subject matter. Both are the reference hue lifted to clear 4.5:1 on every
+     and one per domain for the main column. The rail is Olive on every page and
+     the main column is the domain's own hue — Tobacco for Personal, lifted
+     Merlot for Academic, the palette's blue for Professional — so the pages
+     stay distinguishable at a glance the way the green/purple/blue accents used
+     to make them, while the rail stays constant across all three. Both are the reference hue lifted to clear 4.5:1 on every
      ground (Olive 5.1–6.8:1, Tobacco 4.7–6.4:1); at their exact values they sit
      below 3:1 on a Midnight tile and could not be read. */
-  --color-personal: #c68a4a; /* Tobacco, lifted — main column */
-  --color-academic: #9aa075;
-  --color-professional: #5590cc;
-  --color-hub: #9aa075; /* Olive, lifted — left rail */
+  --color-personal: #c68a4a; /* Tobacco, lifted — Personal's main column */
+  --color-academic: #cc7480; /* Merlot, lifted — Academic's main column */
+  --color-professional: #5590cc; /* the palette's blue — Professional's */
+  --color-hub: #9aa075; /* Olive, lifted — the left rail, on every page */
 
   /* Urgency. Deliberately brighter than any category or accent: Merlot is a
      ground and cannot warn, and a status colour that sits at the same weight as
@@ -176,6 +179,18 @@
 .theme-editorial [data-page-header] {
   background-color: color-mix(in oklab, var(--color-field) 88%, transparent);
   border-bottom-color: color-mix(in oklab, var(--color-field) 60%, var(--color-border));
+}
+
+/* NotesCard brings its own shell (identical to Tile's) and its own small label.
+   In this theme that label becomes a serif title so a rail of NotesCards and
+   Tiles reads as one set. Scoped to that hook alone — Card's labels stay small,
+   because a health metric tile wants a caption, not a headline. */
+.theme-editorial [data-card-label] {
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 400;
+  font-size: 1.125rem;
+  line-height: 1.1;
+  letter-spacing: 0;
 }
 
 .theme-editorial [data-banner] {

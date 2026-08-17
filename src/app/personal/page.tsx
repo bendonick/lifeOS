@@ -174,19 +174,23 @@ export default function PersonalPage() {
             <NotesPanel notes={personalNotes()} />
           </Tile>
 
-          <Tile
-            id="calendar"
-            icon={<CalendarDays size={16} />}
-            title="Calendar"
-            caption="blocked-off time · lives in Google Calendar"
-            span="lg:col-span-12"
-          >
-            <Suspense fallback={<CalendarSkeleton />}>
-              <CalendarSection home="personal" />
-            </Suspense>
-          </Tile>
         </div>
       </div>
+
+      {/* Outside the rail grid, at full page width (decision #28). The week grid
+          has a 52rem floor and the main column beside a 19rem rail is narrower
+          than that, so in there it scrolled and clipped Sunday. A week view you
+          have to scroll is not a week view. */}
+      <Tile
+        id="calendar"
+        icon={<CalendarDays size={16} />}
+        title="Calendar"
+        caption="blocked-off time · lives in Google Calendar"
+      >
+        <Suspense fallback={<CalendarSkeleton />}>
+          <CalendarSection home="personal" />
+        </Suspense>
+      </Tile>
     </PageShell>
   );
 }
