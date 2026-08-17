@@ -36,7 +36,7 @@ export function MonthCard({ o, insights = [] }: { o: BudgetOverview; insights?: 
   });
 
   return (
-    <Card label={monthLabel} accent="personal" surface="bg-field" className="lg:col-span-2">
+    <Card label={monthLabel} accent="personal" className="lg:col-span-2">
       {o.prospective ? <Prospective o={o} /> : <InFlight o={o} insights={insights} />}
     </Card>
   );
