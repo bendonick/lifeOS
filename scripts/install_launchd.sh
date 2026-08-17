@@ -107,6 +107,11 @@ PROBE_LABEL=com.lifeos.tccprobe
 PROBE_PLIST="/tmp/$PROBE_LABEL.plist"
 PROBE_LOG="/tmp/$PROBE_LABEL.log"
 rm -f "$PROBE_LOG"
+
+# The probe must run the *same interpreter the jobs run*, not /bin/sh: a Full Disk
+# Access grant is per-binary, so a shell-based probe reports "denied" forever no
+# matter what has been granted to python. Getting this wrong is how a passing grant
+# looks like a failing one.
 cat > "$PROBE_PLIST" <<PROBE
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -115,8 +120,16 @@ cat > "$PROBE_PLIST" <<PROBE
     <key>Label</key><string>$PROBE_LABEL</string>
     <key>ProgramArguments</key>
     <array>
-      <string>/bin/sh</string><string>-c</string>
-      <string>ls "$SCRIPTS_DIR" >/dev/null 2>&amp;1 || echo "repo denied"; [ -n "$CAPTURE_DIR" ] &amp;&amp; { ls "$CAPTURE_DIR" >/dev/null 2>&amp;1 || echo "capture denied"; }; echo done</string>
+      <string>$PYTHON</string><string>-c</string>
+      <string>import os
+for label, path in (("repo", "$SCRIPTS_DIR"), ("capture", "$CAPTURE_DIR")):
+    if not path:
+        continue
+    try:
+        os.listdir(path)
+    except OSError as exc:
+        print(f"{label} denied: {exc.strerror}")
+print("done")</string>
     </array>
     <key>StandardOutPath</key><string>$PROBE_LOG</string>
     <key>StandardErrorPath</key><string>$PROBE_LOG</string>
@@ -127,10 +140,16 @@ PROBE
 launchctl bootout "gui/$UID/$PROBE_LABEL" 2>/dev/null || true
 launchctl bootstrap "gui/$UID" "$PROBE_PLIST" 2>/dev/null || true
 launchctl kickstart -p "gui/$UID/$PROBE_LABEL" >/dev/null 2>&1 || true
-for _ in $(seq 1 15); do grep -q done "$PROBE_LOG" 2>/dev/null && break; sleep 1; done
+for _ in $(seq 1 20); do grep -q done "$PROBE_LOG" 2>/dev/null && break; sleep 1; done
 launchctl bootout "gui/$UID/$PROBE_LABEL" 2>/dev/null || true
 
-if grep -q denied "$PROBE_LOG" 2>/dev/null; then
+# An empty log is the hang, not a pass: denied at startup, the interpreter never
+# reaches the code above and writes nothing at all.
+if [[ ! -s "$PROBE_LOG" ]]; then
+  echo "probe produced no output at all — the interpreter hung before running (denied)" > "$PROBE_LOG"
+fi
+
+if grep -qE "denied" "$PROBE_LOG" 2>/dev/null; then
   PYTHON_REAL="$(python3 -c 'import os,sys;print(os.path.realpath(sys.argv[1]))' "$PYTHON" 2>/dev/null || echo "$PYTHON")"
   cat <<MSG
 
