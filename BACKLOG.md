@@ -11,7 +11,9 @@ promote to a stage deliberately, never by drift.
 - Cross-check ICS class blocks against course schedule metadata; flag mismatches.
 - Stale-contact nudges surfacing on the LifeOS hub (early version lands in Stage 6).
 - Job-hunt module (only if the user brings it back).
-- Alternative capture channels (iOS Shortcut → synced file; Telegram bot).
+- Alternative capture channels, now that the Shortcut is the primary one (decision #33): Apple
+  Reminders read via AppleScript/EventKit (Siri-native, needs a macOS automation grant), Telegram
+  bot, or the original Notion relay (decision #7, superseded — recoverable from the ledger).
 
 ## Stage 2 (2026-08-16)
 

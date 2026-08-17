@@ -213,6 +213,10 @@ CREATE TABLE IF NOT EXISTS briefs (
 CREATE TABLE IF NOT EXISTS inbox (
   id          INTEGER PRIMARY KEY,
   text        TEXT NOT NULL,
+  -- 'phone_relay' means "captured on the phone", not "via a relay": decision #33
+  -- replaced the Notion mailbox with an iOS Shortcut writing to a synced file. The
+  -- value is kept rather than migrated — the CHECK constraint would need rebuilding
+  -- for a cosmetic rename, and the UI already renders it as "phone".
   source      TEXT NOT NULL DEFAULT 'app' CHECK (source IN ('app','phone_relay')),
   created_at  TEXT NOT NULL DEFAULT (datetime('now')),
   processed   INTEGER NOT NULL DEFAULT 0,

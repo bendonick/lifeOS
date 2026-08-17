@@ -15,9 +15,9 @@ flag it, log to BACKLOG.md, proceed only if the user says so.
       **Secret address in iCal format** into a note for `.env` later. Treat as passwords.
 - [ ] Create one recurring Google event per course on the Academic calendar (e.g. Advanced
       Topics in AI — Wed 08:00–12:00, weekly until term end, Europe/Zurich).
-- [ ] (Stage 5 prep) In Notion, create a **Capture Inbox** database with properties:
-      Text (title), Kind (select: food/task/note/reminder/idea), Domain (select), Processed
-      (checkbox). Note its ID.
+- [ ] ~~(Stage 5 prep) In Notion, create a **Capture Inbox** database.~~ Dropped — decision #33
+      replaced the Notion relay with an iOS Shortcut writing to a synced file. The Shortcut is
+      built *with* Stage 5, so there is nothing to do here in advance.
 
 ## Stage 1 — Scaffold + data layer + LifeOS shell
 
@@ -76,13 +76,14 @@ LifeOS This week with a blue domain pill. Fixtures were deleted afterwards; the 
 
 ## Stage 5 — Capture relay + briefs — NEXT
 
-Notion Capture Inbox ingest (script + Sync button); parse captures into tasks/metrics/notes
-(decide parse-at-ingest vs at-capture). Brief scripts (email_todos*, world, ai_research,
-german_word) on cron/launchd writing to `briefs`; LifeOS brief cards go live with staleness
-badges. Write the phone-side instruction snippet the user pastes into their Claude mobile
-preferences. (*Gmail OAuth is OPEN — evaluate; briefs may ship without email first.)
-**Done when:** a message typed to phone Claude appears in the app after a sync, and at least
-two brief kinds generate on schedule.
+Capture ingest from the synced file (script + Sync button), idempotent on the capture `id`;
+parse captures into tasks/metrics/notes locally at ingest (decision #34). Brief scripts
+(email_todos*, world, ai_research, german_word) on launchd writing to `briefs`; LifeOS brief
+cards go live with staleness badges. Build the iOS Shortcut and write down what it does, so it
+can be rebuilt (decision #33). (*Gmail OAuth is OPEN — evaluate; briefs may ship without email.)
+Only credential needed: `ANTHROPIC_API_KEY`.
+**Done when:** a phrase dictated to the Shortcut on the phone appears in the app after a sync
+and parses into the right row, and at least two brief kinds generate on schedule.
 
 ## Stage 6 — Intelligence
 

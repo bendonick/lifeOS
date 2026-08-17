@@ -45,7 +45,7 @@ startup; these fields are the contract:
   generated_at. Written by scripts, rendered by the app; always show generated_at so staleness
   is honest.
 - **inbox** — raw captures: text, source (`app|phone_relay`), created_at, processed,
-  parsed_json?. Quick-capture in the app and the phone relay both land here.
+  parsed_json?. Quick-capture in the app and the phone Shortcut both land here.
 - **notes** — text, domain?, kind (`note|reminder|idea`), reviewed, created_at. The Personal
   notes inbox, the Academic Reminders / Professional Ideas rail cards, and the target of
   inbox "process → note" (decision #16).
@@ -63,7 +63,7 @@ data/
   imports/           # dropped CSVs (bank, health) — ingesters watch here
   briefs/            # optional md archive of generated briefs
   index/             # vector index (Stage 6)
-.env                 # ANTHROPIC_API_KEY, ICS secret URLs, NOTION_* — never committed
+.env                 # ANTHROPIC_API_KEY, ICS secret URLs — never committed
 ```
 
 ## Interface layer
@@ -91,24 +91,28 @@ data/
 - Writing events (Google Calendar API + OAuth, e.g. generating class sessions) is OPEN and
   deferred — the user can create a recurring class event in Google in seconds.
 
-### Capture relay — phone → system (Stage 5; SETTLED pattern)
+### Capture — phone → system (Stage 5; SETTLED, decision #33)
 
-Phone Claude (cloud) cannot reach local disk. Relay instead:
+Phone Claude runs in the cloud and cannot reach local disk. Rather than route through a cloud
+mailbox, the phone writes to a **file that syncs to the Mac** — no third-party API, no token.
 
-1. User messages Claude on phone: "ate chicken salad ~650kcal", "task: email supervisor",
-   "idea: golf swing analyzer v2".
-2. Claude (with the existing Notion connector) appends a row to a small Notion **Capture Inbox**
-   database — fields: Text, Kind (`food|task|note|reminder|idea`), Domain?, Created. A short
-   instruction block (user preferences or project instructions on the phone) tells Claude the
-   convention.
-3. Local ingest script (cron and/or a "Sync" button in the app) pulls unprocessed rows via the
-   Notion API into `inbox`, marks them processed in Notion.
-4. Parsing raw text → structured rows (a food capture → health_metrics kcal/macros; a task →
-   tasks) happens locally, LLM-assisted where useful. Parse-at-ingest vs parse-at-capture: OPEN,
-   decide in Stage 5.
+1. An **iOS Shortcut** (Siri-triggerable, e.g. "Hey Siri, LifeOS") takes dictated or typed text
+   and appends one JSON line to `capture.jsonl` in iCloud Drive. Each line carries a
+   client-generated `id` and an ISO timestamp; the Shortcut never parses or classifies.
+2. iCloud syncs the file to the Mac, where it is readable at
+   `~/Library/Mobile Documents/com~apple~CloudDocs/<folder>/capture.jsonl` (exact path
+   configurable — it belongs in `config`, not hardcoded).
+3. A local ingest script (launchd, and a "Sync" button in the app) reads the file and inserts
+   unseen lines into `inbox` verbatim. **Ingest must be idempotent**: the normal case is
+   re-reading a file whose earlier lines are already ingested, so dedupe on the capture `id`
+   rather than on offsets, which iCloud can invalidate.
+4. Parsing raw text → structured rows happens **locally at ingest** (decision #34): the script
+   sends the line to the Anthropic API and writes tasks / health_metrics / notes. The raw text
+   stays in `inbox`, so a bad parse is always re-runnable.
 
-This keeps exactly one thin Notion dependency. An iOS-Shortcut → synced-file drop is the
-recorded fallback if the relay annoys.
+This removes the last external dependency from the daily path. Recorded alternatives if the
+Shortcut annoys: Apple Reminders read via AppleScript/EventKit (Siri-native, needs a macOS
+automation grant, task-shaped), or the original Notion relay (decision #7, superseded).
 
 ### Anthropic API (Stages 5–6)
 
