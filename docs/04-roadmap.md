@@ -91,12 +91,12 @@ file ingested and parsed correctly ("…by friday" → task, academic, due 2026-
 "slept 7 and a half hours" → the parser noting no
 sleep-hours metric exists; "idea use rl to…" → professional idea). Accepting the task
 chip created it in This week. A second ingest run ingested 0 rows. All three briefs
-generated and render on the hub. Two manual steps remain, both outside what code can do:
-**build the Shortcut on the phone** (`docs/07-capture-shortcut.md`), and **grant Full Disk
-Access to the venv interpreter** — a launchd agent inherits no Files-and-Folders consent,
-and both `~/Desktop` and iCloud Drive are protected, so the scheduled jobs are installed
-but blocked until it is granted. `install_launchd.sh` probes for this and prints the exact
-path; the scripts themselves run correctly from a terminal either way.
+generated and render on the hub. Full Disk Access was granted and the scheduled path is
+verified *through launchd*, not from a shell: the capture job read iCloud Drive, ingested a
+new line and resolved "before the end of the month" to 2026-08-31; a brief job regenerated
+and re-stamped `generated_at`. Building the Shortcut on the phone is deferred to BACKLOG at
+the user's ask — the Mac half is complete, so it is a five-minute phone task whenever he
+wants captures flowing (`docs/07-capture-shortcut.md`).
 
 ## Stage 6 — Intelligence
 

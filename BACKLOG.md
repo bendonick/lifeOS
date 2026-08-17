@@ -64,6 +64,12 @@ promote to a stage deliberately, never by drift.
 
 ## Stage 5 (2026-08-17)
 
+- **Build the capture Shortcut on the phone** — deferred 2026-08-17 at the user's ask. The Mac
+  half is finished and verified against hand-written lines in the Shortcut's format: ingest runs
+  every 15 minutes under launchd, dedupes, parses, and proposes. Until the Shortcut exists the
+  only way in is the app's own capture box, and `capture.jsonl` stays empty. Steps are in
+  `docs/07-capture-shortcut.md`; nothing in the codebase is waiting on it.
+
 - **A `sleep_hours` metric.** The parser handled "slept 7 and a half hours" by
   reporting that no sleep-duration metric exists — the registry has
   `sleep_score` (a device number) and nothing for hours slept, which is the most natural thing
