@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { BudgetOverview, LineStatus } from "@/lib/db/money";
+import type { BudgetOverview, LineStatus, VariableCategorySpend } from "@/lib/db/money";
 import { paceState } from "@/lib/money/pace";
 
 // YNAB's category-row pattern, restyled for this design system (§6): filled
@@ -18,7 +18,25 @@ const TIERS = [
   ["annual", "Annual"],
 ] as const;
 
-export function BudgetTable({ o }: { o: BudgetOverview }) {
+// The three category hues mean groceries / restaurants / bars everywhere on this
+// page, so they cannot be reused here to mean budget *lines* — one hue, one
+// meaning, or the page teaches two conflicting keys. Food & drink instead fills
+// as a stack of its own three categories, which is the same key applied one
+// level up. Every other line keeps the single pace-driven fill: they are status
+// bars, and urgency has to be able to take the whole track.
+const CATEGORY_FILL: Record<string, string> = {
+  groceries: "bg-cat-1",
+  restaurants: "bg-cat-2",
+  bars: "bg-cat-3",
+};
+
+export function BudgetTable({
+  o,
+  categorySpend = [],
+}: {
+  o: BudgetOverview;
+  categorySpend?: VariableCategorySpend[];
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const refresh = () => startTransition(() => router.refresh());
@@ -98,6 +116,7 @@ export function BudgetTable({ o }: { o: BudgetOverview }) {
                     dayOfMonth={o.dayOfMonth}
                     daysInMonth={o.daysInMonth}
                     prospective={o.prospective}
+                    segments={categorySpend.filter((c) => c.line === l.name)}
                     onSaved={refresh}
                   />
                 ))}
@@ -132,6 +151,7 @@ function BudgetRow({
   dayOfMonth,
   daysInMonth,
   prospective,
+  segments = [],
   onSaved,
 }: {
   line: LineStatus;
@@ -140,6 +160,8 @@ function BudgetRow({
   dayOfMonth: number;
   daysInMonth: number;
   prospective: boolean;
+  /** Category split for this line, if it has one worth showing. */
+  segments?: VariableCategorySpend[];
   onSaved: () => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -156,6 +178,12 @@ function BudgetRow({
   // card beside them still reads "on pace".
   const pace = isVariable ? paceState(line.spent, envelope, dayOfMonth, daysInMonth) : "on pace";
   const fillClass = over ? "bg-danger" : pace === "over" ? "bg-warn" : "bg-personal";
+
+  const lineSpent = segments.reduce((sum, c) => sum + c.spent, 0);
+  const stacked =
+    isVariable && !over && pace !== "over" && lineSpent > 0
+      ? [...segments].filter((c) => c.spent > 0).sort((a, b) => b.spent - a.spent)
+      : [];
 
   return (
     <li className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-1.5">
@@ -186,11 +214,27 @@ function BudgetRow({
           )}
         </span>
       ) : (
-        <div className="relative h-2 min-w-24 flex-1 rounded-full bg-raised">
-          <div
-            className={`absolute inset-y-0 left-0 rounded-full ${fillClass}`}
-            style={{ width: `${Math.min(100, Math.max(0, fraction * 100))}%` }}
-          />
+        <div className="relative h-2 min-w-24 flex-1 overflow-hidden rounded-full bg-raised">
+          {/* Stacked only while the line is behaving. Once it is over pace or
+              over budget the warm fill takes the whole track — a warning split
+              into three decorative colours is not a warning. */}
+          {stacked.length > 0 ? (
+            <div className="absolute inset-y-0 left-0 flex" style={{ width: `${Math.min(100, fraction * 100)}%` }}>
+              {stacked.map((seg) => (
+                <div
+                  key={seg.category}
+                  className={CATEGORY_FILL[seg.category] ?? "bg-cat-rest"}
+                  style={{ width: `${(seg.spent / lineSpent) * 100}%` }}
+                  title={`${seg.category}: CHF ${chf.format(seg.spent)}`}
+                />
+              ))}
+            </div>
+          ) : (
+            <div
+              className={`absolute inset-y-0 left-0 rounded-full ${fillClass}`}
+              style={{ width: `${Math.min(100, Math.max(0, fraction * 100))}%` }}
+            />
+          )}
           {isVariable && paceFraction > 0 && (
             <div
               className="absolute -inset-y-0.5 w-px bg-faint"

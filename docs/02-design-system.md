@@ -72,8 +72,15 @@ off dense data rows, where it costs legibility; and always ship the
 
 ## Typography & spacing
 
-- One clean sans (system stack or a single webfont). Clear hierarchy: page title > section
-  banner > card title > body. Generous line-height; sections breathe.
+- One clean sans (system stack or a single webfont) for everything functional — tables, labels,
+  controls, data. Clear hierarchy: page title > section banner > card title > body. Generous
+  line-height; sections breathe.
+- **Display type (decision #48, `.theme-warm` only for now):** one high-contrast editorial serif
+  (Instrument Serif, self-hosted via `next/font`) for page titles, section names and hero
+  numerals — never for tables or controls, which need the sans's tabular figures and its
+  legibility at 11px. The `.t-serif` class is the hook. A single serif paired against a
+  functional sans is the strongest "authored rather than generated" signal available, and it is
+  what the user's own reference is built on.
 - No more than two font weights per view. Numbers in stat cards may be larger/tabular.
 
 ## Craft standards (added 2026-08-16 — decision #24)

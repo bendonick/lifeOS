@@ -58,7 +58,7 @@ export function SpendingSection({ today }: { today: string }) {
         <MonthCard o={overview} insights={insights} />
         <CategoryBreakdown spend={categorySpend} baseline={baseline} />
       </div>
-      <BudgetTable o={overview} />
+      <BudgetTable o={overview} categorySpend={categorySpend} />
       <BudgetProposalPanel proposal={proposeBudget()} />
       <SpendingHistory months={monthlySpendHistory()} startDate={budgetStartDate()} />
       <ManagePanel pendingLabel={toReview > 0 ? `${toReview} merchants to review` : undefined}>

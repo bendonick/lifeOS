@@ -13,38 +13,55 @@ export function PageShell({
   page,
   title,
   subtitle,
+  theme,
   children,
 }: {
   /** Sub-page name for the breadcrumb; omit on the hub itself. */
   page?: string;
   title: string;
   subtitle?: string;
+  /** Opt-in theme class (currently `theme-warm`, prototyped on /personal).
+   *  Applied here rather than on <body> so two themes can coexist while one is
+   *  being judged, and so the page paints its own ground. */
+  theme?: string;
   children: ReactNode;
 }) {
+  // The theme wrapper is full-bleed and the column sits inside it: painting the
+  // ground on the centred <main> left the page's own background showing down
+  // both margins, which read as a slab rather than a page.
+  // The theme wrapper is full-bleed and the column sits inside it: painting the
+  // ground on the centred <main> left the page's own background showing down
+  // both margins, and the sticky header read as a floating slab because it
+  // stopped at the column's edge. The header now spans the viewport and centres
+  // its own content, which is what a sticky bar has to do to look attached.
   return (
-    <main className="mx-auto max-w-6xl px-6 pb-16">
-      <div className="material sticky top-0 z-20 -mx-6 mb-8 border-b border-border/80 bg-bg/70 px-6 py-4 backdrop-blur-xl">
-        <nav aria-label="Breadcrumb" className="text-xs text-faint">
-          {page ? (
-            <>
-              <Link href="/" className="hover:text-muted">
-                LifeOS
-              </Link>
-              <span className="mx-1.5" aria-hidden="true">
-                /
-              </span>
-              <span className="text-muted">{page}</span>
-            </>
-          ) : (
-            <span>LifeOS</span>
-          )}
-        </nav>
-        <div className="mt-1 flex flex-wrap items-baseline gap-x-3">
-          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-          {subtitle && <p className="text-sm text-muted">{subtitle}</p>}
+    <div className={`min-h-screen ${theme ?? ""}`}>
+      <header className="material sticky top-0 z-20 border-b border-border/80 bg-bg/70 backdrop-blur-xl">
+        <div className="mx-auto max-w-6xl px-6 py-4">
+          <nav aria-label="Breadcrumb" className="text-xs text-faint">
+            {page ? (
+              <>
+                <Link href="/" className="hover:text-muted">
+                  LifeOS
+                </Link>
+                <span className="mx-1.5" aria-hidden="true">
+                  /
+                </span>
+                <span className="text-muted">{page}</span>
+              </>
+            ) : (
+              <span>LifeOS</span>
+            )}
+          </nav>
+          <div className="mt-1 flex flex-wrap items-baseline gap-x-3">
+            <h1 className="t-serif text-3xl font-semibold tracking-tight">{title}</h1>
+            {subtitle && <p className="text-sm text-muted">{subtitle}</p>}
+          </div>
         </div>
-      </div>
-      <div className="flex flex-col gap-10">{children}</div>
-    </main>
+      </header>
+      <main className="mx-auto max-w-6xl px-6 pt-8 pb-16">
+        <div className="flex flex-col gap-10">{children}</div>
+      </main>
+    </div>
   );
 }

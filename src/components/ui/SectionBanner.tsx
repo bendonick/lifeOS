@@ -31,7 +31,11 @@ export function SectionBanner({
 }) {
   return (
     <div>
+      {/* `data-banner` is a theming hook, not a style: the warm theme (globals.css)
+          restyles banners from a filled strip to a serif name over a hairline,
+          and this is what it targets. Inert everywhere else. */}
       <div
+        data-banner=""
         className={`flex items-baseline justify-between gap-3 rounded-md px-4 py-2 ${accentBanner[accent]}`}
       >
         <h2 id={id} className="text-sm font-semibold tracking-wide">

@@ -31,7 +31,7 @@ export default function PersonalPage() {
   const germanWord = latestGermanWord();
 
   return (
-    <PageShell page="Personal" title="Personal" subtitle="habits · health · money">
+    <PageShell page="Personal" title="Personal" subtitle="habits · health · money" theme="theme-warm">
       <div className="grid gap-10 lg:grid-cols-[15rem_1fr]">
         <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-28">
           <Card label="Quick Actions" accent="hub">

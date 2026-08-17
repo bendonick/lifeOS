@@ -39,6 +39,129 @@
 
   /* domain-neutral focus indicator */
   --color-focus: #c9c9d1;
+
+  /* Budget category slots. Declared here so Tailwind generates bg-cat-*, but
+     the cool theme has no categorical palette to offer (decision #19: the
+     domain accents fail the dark categorical lightness band), so all three
+     resolve to the single personal hue and the bars degrade to one colour.
+     .theme-warm redefines them with a validated three-hue set. */
+  --color-cat-1: var(--color-personal);
+  --color-cat-2: var(--color-personal);
+  --color-cat-3: var(--color-personal);
+  /* The "everything else" segment. Deliberately NOT --color-muted: that is a
+     text tone at 8.7:1 and as a fill it out-shouted the three real categories,
+     making the loudest band on every chart the one that means "unclassified". */
+  --color-cat-rest: #6b6b78;
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Warm theme — prototype, scoped to /personal (decision #48).
+ *
+ * Built from the user's Pantone reference: Java Brown #231815, Potting Soil
+ * #4A2E27, Sceptre Red #4D0E12, Transparent Yellow #F5EFC6, Cerulean #A5BCD6.
+ *
+ * The palette splits into two inks and two grounds, and that split is the whole
+ * design. Measured against Java Brown: Transparent Yellow 14.88:1 and Cerulean
+ * 8.87:1 are text; Potting Soil 1.41:1 and Sceptre Red 1.14:1 can never be, so
+ * they are surfaces and fields. Potting Soil as the card step is a real
+ * improvement — the cool theme's surface separation is 1.09:1, which is
+ * rounding error, and this is 1.41:1.
+ *
+ * Scoped rather than global so both looks can coexist while this is judged:
+ * every token below is a redefinition of one @theme variable, so every existing
+ * utility (bg-surface, text-muted, …) re-themes with no component changes.
+ * Anything NOT redefined here deliberately inherits the cool theme.
+ * ---------------------------------------------------------------------------
+ */
+.theme-warm {
+  /* grounds — the two Pantone browns, plus one step between them for cards */
+  --color-bg: #231815;
+  --color-surface: #2c1f1b;
+  --color-raised: #3a2a24;
+  --color-border: #4a2e27;
+
+  /* inks — cream primary, warm neutrals stepped down from it. muted 8.73:1 and
+     faint 5.46:1 on the ground; faint carries real 11px text and must stay
+     above 4.5:1, which the cool theme's own 5.13:1 barely managed. */
+  --color-text: #f5efc6;
+  --color-muted: #c4b79a;
+  --color-faint: #9c8f79;
+
+  /* domains — Professional takes Cerulean, the palette's own accent. Academic
+     and Personal are derived in family rather than kept green/purple, which
+     would read as two foreign objects on a warm ground. */
+  --color-personal: #c9a227;
+  --color-academic: #8aa06a;
+  --color-professional: #a5bcd6;
+  --color-hub: #b8a894;
+
+  /* urgency — Sceptre Red is 1.14:1 and cannot carry a warning, so danger is
+     lifted to 5.30:1 and warn to 7.93:1. Both stay in family; neither is
+     reachable from the category hues below. */
+  --color-danger: #e4685c;
+  --color-warn: #e0a458;
+
+  --color-focus: #f5efc6;
+
+  /* Sceptre Red itself: a field colour, used behind cream type where a section
+     needs to read as a band rather than a line. */
+  --color-field: #4d0e12;
+
+  /* Budget categories — the ONLY categorical palette that survives the maths on
+     this ground. Validated with dataviz/validate_palette.js against #231815:
+     all-pairs ΔE 17.0 normal vision, 13.9 CVD, chroma and lightness band pass.
+     Three slots is the ceiling, not a preference: a fourth hue drops the worst
+     pair below the ΔE 15 floor whichever hue is chosen, and green fails hardest
+     (ΔE 2.4 against ochre for protanopia). Terracotta sits at 2.93:1 against the
+     ground, which obliges a visible label on every mark that uses it — every
+     surface below prints its name and value, so that debt is paid. */
+  --color-cat-1: #5b8fd6; /* groceries */
+  --color-cat-2: #b8860b; /* restaurants */
+  --color-cat-3: #a8452a; /* bars */
+  --color-cat-rest: #8a7360; /* remainder — 3.88:1, quieter than all three */
+
+  /* `accent-color` is set on :root, where it resolves against the cool palette
+     however this subtree is themed — so unchecked-to-checked controls kept
+     painting violet on brown. It has to be restated wherever the token moves. */
+  accent-color: var(--color-personal);
+}
+
+/* The scoped theme must paint its own ground: --color-bg is applied to <body>,
+   which sits outside this subtree. */
+.theme-warm {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Display type. The serif is for titles and hero numerals only — never for
+   tables, labels or controls, which need the sans's tabular figures and its
+   legibility at 11px. */
+.theme-warm .t-serif {
+  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* Section banners stop being seven identical filled strips. The page had no
+   subject because every section shouted at the same volume; a serif name over a
+   hairline gives the same landmark with none of the noise, and hands the colour
+   budget back to the data. */
+.theme-warm [data-banner] {
+  background-color: transparent !important;
+  border-radius: 0;
+  border-bottom: 1px solid var(--color-border);
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0.5rem;
+  color: var(--color-text) !important;
+}
+.theme-warm [data-banner] h2 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 400;
+  font-size: 1.25rem;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 /* Tells the UA to render its own controls dark. Without it, unchecked
@@ -126,6 +249,13 @@ body {
     --color-muted: #c2c2c9;
     --color-faint: #a6a6ae;
     --color-border: #4a4a56;
+  }
+  /* The warm theme owes the same obligation — its own steps, not the cool
+     theme's, or a high-contrast request would drag grey text onto brown. */
+  .theme-warm {
+    --color-muted: #ded3b8;
+    --color-faint: #c4b79a;
+    --color-border: #6b463a;
   }
   .material {
     background-color: var(--color-surface) !important;

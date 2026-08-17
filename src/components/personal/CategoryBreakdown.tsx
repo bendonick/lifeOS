@@ -25,6 +25,17 @@ interface Row {
   baseline: number | null;
 }
 
+// The three validated category slots (decision #48), assigned in fixed order and
+// never cycled. `additional` is deliberately NOT a fourth hue: a fourth drops
+// the worst pair below the ΔE 15 normal-vision floor whichever hue is chosen, so
+// the envelope that isn't one of the three food leaves takes a neutral instead.
+const CATEGORY_FILL: Record<string, string> = {
+  groceries: "bg-cat-1",
+  restaurants: "bg-cat-2",
+  bars: "bg-cat-3",
+};
+const NEUTRAL_FILL = "bg-cat-rest";
+
 export function CategoryBreakdown({
   spend,
   baseline,
@@ -60,7 +71,9 @@ export function CategoryBreakdown({
             <span className="w-20 truncate text-xs text-muted">{r.label}</span>
             <div className="relative h-2 flex-1 rounded-full bg-raised">
               <div
-                className="absolute inset-y-0 left-0 rounded-full bg-personal"
+                className={`absolute inset-y-0 left-0 rounded-full ${
+                  CATEGORY_FILL[r.label] ?? NEUTRAL_FILL
+                }`}
                 style={{ width: `${Math.min(100, (r.spent / max) * 100)}%` }}
               />
               {/* A caret under the track, not a vertical rule — the budget

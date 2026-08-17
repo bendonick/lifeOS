@@ -6,6 +6,14 @@ import type { MonthSpend } from "@/lib/db/money";
 
 const chf = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
 
+// Same three slots, same meaning, as the category card and the budget table.
+const STACK = ["groceries", "restaurants", "bars"] as const;
+const FILL: Record<string, string> = {
+  groceries: "fill-cat-1",
+  restaurants: "fill-cat-2",
+  bars: "fill-cat-3",
+};
+
 const W = 720;
 const H = 132;
 const PAD = { top: 18, right: 8, bottom: 22, left: 8 };
@@ -30,7 +38,19 @@ export function SpendingHistory({ months, startDate }: { months: MonthSpend[]; s
     <div className="rounded-lg border border-border bg-surface p-3">
       <div className="flex items-baseline justify-between px-1">
         <span className="text-xs font-medium text-muted">Monthly spend · full history</span>
-        <span className="text-[11px] text-faint">pre-budget months shown for context only</span>
+        <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-faint">
+          {STACK.map((c) => (
+            <span key={c} className="flex items-center gap-1">
+              <span aria-hidden="true" className={`inline-block h-1.5 w-1.5 rounded-full ${FILL[c].replace("fill-", "bg-")}`} />
+              {c}
+            </span>
+          ))}
+          <span className="flex items-center gap-1">
+            <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-cat-rest" />
+            other
+          </span>
+          <span>· pre-budget months faded</span>
+        </span>
       </div>
       <div className="overflow-x-auto">
         <svg viewBox={`0 0 ${W} ${H}`} className="mt-1 w-full min-w-130" role="img" aria-label="monthly spend history">
@@ -38,16 +58,38 @@ export function SpendingHistory({ months, startDate }: { months: MonthSpend[]; s
             const h = Math.max(2, (m.spent / max) * innerH);
             const x = PAD.left + i * step + (step - barW) / 2;
             const pre = m.month < startMonth;
+            // Stacked by the three food categories, with everything else as one
+            // neutral remainder on top. A fourth hue is not available (decision
+            // #48), and inventing one for "the rest" would claim a category that
+            // doesn't exist. Pre-budget months keep their reduced opacity, so the
+            // "before tracking" marker still reads.
+            const segs = STACK.map((c) => ({ c, v: m.byCategory[c] ?? 0 })).filter((s) => s.v > 0);
+            const named = segs.reduce((sum, s) => sum + s.v, 0);
+            const rest = Math.max(0, m.spent - named);
+            const parts = [...segs.map((s) => ({ fill: FILL[s.c], v: s.v })), { fill: "fill-cat-rest", v: rest }];
+            let cursor = 0;
             return (
               <g key={m.month}>
-                <rect
-                  x={x}
-                  y={PAD.top + innerH - h}
-                  width={barW}
-                  height={h}
-                  rx={2}
-                  className={pre ? "fill-personal/30" : "fill-personal"}
-                >
+                <g opacity={pre ? 0.45 : 1}>
+                  {parts
+                    .filter((p) => p.v > 0)
+                    .map((p, idx) => {
+                      const segH = (p.v / m.spent) * h;
+                      const y = PAD.top + innerH - cursor - segH;
+                      cursor += segH;
+                      return (
+                        <rect
+                          key={idx}
+                          x={x}
+                          y={y}
+                          width={barW}
+                          height={Math.max(1, segH)}
+                          className={p.fill}
+                        />
+                      );
+                    })}
+                </g>
+                <rect x={x} y={PAD.top + innerH - h} width={barW} height={h} fill="transparent">
                   <title>{`${m.month} · CHF ${chf.format(m.spent)}`}</title>
                 </rect>
                 <text

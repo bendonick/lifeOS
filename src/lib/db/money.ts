@@ -432,18 +432,44 @@ export function variableCategorySpend(month: string): VariableCategorySpend[] {
 export interface MonthSpend {
   month: string;
   spent: number;
+  /** Net spend per Food & drink leaf, for the stacked history bars. The rest of
+   *  the month's spend is `spent` minus these — rendered as one neutral
+   *  remainder rather than a fourth colour, because three hues is the ceiling a
+   *  categorical palette reaches on this ground (decision #48). */
+  byCategory: Record<string, number>;
 }
+
+const HISTORY_CATEGORIES = ["groceries", "restaurants", "bars"] as const;
 
 export function monthlySpendHistory(): MonthSpend[] {
   const { since } = fullHistory();
-  return db
+  const totals = db
     .prepare(
       `SELECT substr(t.date, 1, 7) AS month, ROUND(${NET_SPEND}, 2) AS spent
        FROM transactions t
        WHERE t.date >= ? AND (t.category IS NULL OR t.category NOT IN ('transfer','income'))
        GROUP BY month ORDER BY month`
     )
-    .all(since) as MonthSpend[];
+    .all(since) as Array<{ month: string; spent: number }>;
+
+  const placeholders = HISTORY_CATEGORIES.map(() => "?").join(",");
+  const split = db
+    .prepare(
+      `SELECT substr(t.date, 1, 7) AS month, t.category AS category, ROUND(${NET_SPEND}, 2) AS spent
+       FROM transactions t
+       WHERE t.date >= ? AND t.category IN (${placeholders})
+       GROUP BY month, t.category`
+    )
+    .all(since, ...HISTORY_CATEGORIES) as Array<{ month: string; category: string; spent: number }>;
+
+  const byMonth = new Map<string, Record<string, number>>();
+  for (const r of split) {
+    const m = byMonth.get(r.month) ?? {};
+    m[r.category] = r.spent;
+    byMonth.set(r.month, m);
+  }
+
+  return totals.map((t) => ({ ...t, byCategory: byMonth.get(t.month) ?? {} }));
 }
 
 /** Manual quick-add: spend entered as a positive number, stored bank-signed. */
