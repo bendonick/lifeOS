@@ -20,9 +20,9 @@ import { proposeBudget } from "@/lib/money/propose";
 import { budgetStartDate } from "@/lib/money/window";
 
 // Server half of the Spending section. The order is the order the questions get
-// asked: how is the month going (hero, and what needs attention) → where is it
-// going (categories) → what was the plan (budget) → is the plan right (propose)
-// → how does this month compare (history) → and, last and folded away, the
+// asked: is this month unusual (history) → how is it going (hero, and what
+// needs attention) → where is it going (categories) → what was the plan
+// (budget) → is the plan right (propose) → and, last and folded away, the
 // bookkeeping.
 //
 // The section used to lead with two cards stating the same number and put a
@@ -54,13 +54,16 @@ export function SpendingSection({ today }: { today: string }) {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* The tile opens with the picture, not the number: a bento tile is read
+          at a glance, and a year of bars answers "is this month unusual" before
+          any figure does. */}
+      <SpendingHistory months={monthlySpendHistory()} startDate={budgetStartDate()} />
       <div className="grid gap-4 lg:grid-cols-3">
         <MonthCard o={overview} insights={insights} />
         <CategoryBreakdown spend={categorySpend} baseline={baseline} />
       </div>
       <BudgetTable o={overview} categorySpend={categorySpend} />
       <BudgetProposalPanel proposal={proposeBudget()} />
-      <SpendingHistory months={monthlySpendHistory()} startDate={budgetStartDate()} />
       <ManagePanel pendingLabel={toReview > 0 ? `${toReview} merchants to review` : undefined}>
         <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
           <TxnQuickAdd categories={categories} today={today} />

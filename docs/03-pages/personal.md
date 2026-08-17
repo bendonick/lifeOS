@@ -6,6 +6,13 @@ describes what exists.
 
 ## Layout
 
+**Rebuilt as a bento, 2026-08-17 (decision #50).** Twelve columns of `Tile`s — the card shell
+with the section header inside it — sized by importance rather than stacked at one weight.
+Row 1 is the utility strip (Quick add 3 · Go to 3 · To review 2 · German 4); then Habits 4 ·
+Health 8; Spending 12; Tasks 4 · Bills 4 · Notes 4; Calendar 12. Habits leads with a completion
+ring and Spending leads with the history chart, so both tiles open with a picture. The original
+rail-and-column description below is superseded.
+
 Breadcrumb `LifeOS / Personal`; narrow left rail (Quick Actions · Navigation ·
 Notes-to-review count · German card); wide main column of banner+caption sections:
 Habits → Health → Spending → Tasks → Bills → Notes; Calendar full-width below.

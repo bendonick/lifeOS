@@ -20,7 +20,7 @@ export function HealthSection({ today }: { today: string }) {
     <div className="flex flex-col gap-4">
       {/* min-w-0 on the items: grid 1fr is minmax(auto,1fr), so a long macro
           line would otherwise push the row past the container. */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 [&>*]:min-w-0">
+      <div className="grid gap-4 sm:grid-cols-2 [&>*]:min-w-0">
         <Card label="Macros left" accent="personal">
           {d.macros.logged ? (
             <>

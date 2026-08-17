@@ -22,7 +22,7 @@ export function HabitList({ habits, today }: { habits: HabitWeek[]; today: strin
 
   if (habits.length === 0) {
     return (
-      <div className="max-w-lg rounded-lg border border-border bg-surface px-4 py-6 text-center text-xs text-faint">
+      <div className="px-4 py-6 text-center text-xs text-faint">
         no habits yet — seed them in the database to start tracking
       </div>
     );
@@ -31,9 +31,10 @@ export function HabitList({ habits, today }: { habits: HabitWeek[]; today: strin
   const doneCount = habits.filter((h) => valueFor(h, h.days[6])).length;
 
   return (
-    <div className="max-w-lg rounded-lg border border-border bg-surface" aria-busy={isPending}>
-      {isPending && <div className="h-0.5 rounded-t-lg bg-personal/40" aria-hidden="true" />}
-      <div className="flex items-baseline justify-between px-4 pt-2.5 pb-1">
+    <div aria-busy={isPending}>
+      {isPending && <div className="mb-2 h-0.5 rounded-full bg-personal/40" aria-hidden="true" />}
+      <CompletionRing done={doneCount} total={habits.length} />
+      <div className="flex items-baseline justify-between pt-1 pb-1">
         <span className="tabular text-[11px] text-muted">
           {doneCount} of {habits.length} today
         </span>
@@ -83,6 +84,52 @@ export function HabitList({ habits, today }: { habits: HabitWeek[]; today: strin
           );
         })}
       </ul>
+    </div>
+  );
+}
+
+/**
+ * Today's completion, as one mark above the list.
+ *
+ * A ring rather than a bar here on purpose: this is a single self-contained
+ * fraction with no time axis and no pace to mark, which is the one shape a
+ * radial reads better than a track. The budget's progress bars are the opposite
+ * case — they carry a pace tick — and that is why they stayed bars.
+ */
+function CompletionRing({ done, total }: { done: number; total: number }) {
+  const SIZE = 104;
+  const R = 42;
+  const STROKE = 8;
+  const C = 2 * Math.PI * R;
+  const frac = total > 0 ? done / total : 0;
+  const complete = total > 0 && done === total;
+
+  return (
+    <div className="flex justify-center py-1">
+      <div className="relative" style={{ width: SIZE, height: SIZE }}>
+        <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} aria-hidden="true">
+          <circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none" strokeWidth={STROKE} className="stroke-raised" />
+          {/* Below ~0.5% a round cap renders as a stray dot on an empty ring. */}
+          {frac > 0.005 && (
+            <circle
+              cx={SIZE / 2}
+              cy={SIZE / 2}
+              r={R}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={STROKE}
+              strokeLinecap="round"
+              strokeDasharray={`${frac * C} ${C}`}
+              transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
+              className="text-personal transition-[stroke-dasharray] duration-200 ease-out"
+            />
+          )}
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="tabular t-display text-xl font-semibold">{Math.round(frac * 100)}%</span>
+          <span className="text-[10px] text-faint">{complete ? "all done" : "today"}</span>
+        </div>
+      </div>
     </div>
   );
 }
