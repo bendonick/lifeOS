@@ -41,7 +41,8 @@ startup; these fields are the contract:
   **budgets** — month, category (nullable = overall), amount_chf.
 - **bills** — name, due_day, amount?, active; per-month paid log in **bill_payments**
   (bill_id, month, paid_at).
-- **briefs** — date, kind (`email_todos|world|ai_research|german_word`), content_md,
+- **briefs** — date, kind (`world|ai_research|german_word`; `email_todos` reserved but
+  unused — decision #35), content_md,
   generated_at. Written by scripts, rendered by the app; always show generated_at so staleness
   is honest.
 - **inbox** — raw captures: text, source (`app|phone_relay`), created_at, processed,
@@ -119,11 +120,14 @@ automation grant, task-shaped), or the original Notion relay (decision #7, super
 Used by brief scripts and the RAG answerer. Key in `.env`. Model names live in
 `scripts/lifeos/claude.py`.
 
-### Gmail — email-todos brief (Stage 5, OPEN)
+### Gmail — not integrated (decision #35)
 
-Needs Gmail API OAuth from a local script (Google Cloud project, consent screen, token
-refresh) — the fiddliest integration here. Evaluate honestly at Stage 5; shipping briefs
-*without* the email section is an acceptable outcome.
+The email-todos brief was dropped from Stage 5 and is not scheduled. If it returns: try an App
+Password + stdlib `imaplib` first; full OAuth (Google Cloud project, consent screen, and the
+publish-to-production step that stops refresh tokens expiring every 7 days) only if that path has
+closed. Note that summarising mail means sending subjects and snippets to the Anthropic API —
+the only place LifeOS would send the user's own content off the machine. A rule-based scan avoids
+that and needs no LLM at all.
 
 ### Health data (Stage 2, OPEN — ask the user what devices they actually use)
 
@@ -141,8 +145,9 @@ bank format, category rules in config. Aggregators only if CSV proves painful.
 
 ## Scheduled jobs (Stage 5)
 
-- Python scripts, one per brief (email_todos, world, ai_research, german_word) so one failure
-  doesn't kill the rest; write to `briefs`.
+- Python scripts, one per brief (world, ai_research, german_word — email dropped, decision #35)
+  so one failure doesn't kill the rest; write to `briefs`. This isolation is also what makes a
+  fourth brief a new file rather than a refactor.
 - macOS → prefer `launchd`; otherwise cron. Detect and document whichever is installed.
 - Jobs only run while the machine is awake — accepted. UI shows generated_at / a stale badge
   rather than pretending.

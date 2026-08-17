@@ -203,6 +203,8 @@ CREATE TABLE IF NOT EXISTS bill_payments (
 CREATE TABLE IF NOT EXISTS briefs (
   id           INTEGER PRIMARY KEY,
   date         TEXT NOT NULL,        -- 'YYYY-MM-DD' the brief is for
+  -- 'email_todos' is reserved, not used: decision #35 dropped the Gmail brief from
+  -- Stage 5. The value stays in the CHECK so bringing it back needs no table rebuild.
   kind         TEXT NOT NULL CHECK (kind IN ('email_todos','world','ai_research','german_word')),
   content_md   TEXT NOT NULL,
   generated_at TEXT NOT NULL DEFAULT (datetime('now')),

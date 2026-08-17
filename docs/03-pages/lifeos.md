@@ -4,8 +4,8 @@ Neutral-toned home. Everything here is a rollup or a doorway; nothing is owned b
 
 ## Modules
 
-1. **Morning brief** — row of cards, one per brief kind:
-   - *Email todos* — "invoices and replies pulled from Gmail, weekday mornings"
+1. **Morning brief** — row of cards, one per brief kind (three since decision #35 dropped the
+   *Email todos* card; the Stage 1 stub shows four until Stage 5 wires them):
    - *World brief* — "a few headline summaries worth knowing"
    - *AI research* — "suggested papers and articles, with links"
    - *German word of the day* — word, translation, example sentence

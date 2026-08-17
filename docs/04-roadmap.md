@@ -77,11 +77,10 @@ LifeOS This week with a blue domain pill. Fixtures were deleted afterwards; the 
 ## Stage 5 — Capture relay + briefs — NEXT
 
 Capture ingest from the synced file (script + Sync button), idempotent on the capture `id`;
-parse captures into tasks/metrics/notes locally at ingest (decision #34). Brief scripts
-(email_todos*, world, ai_research, german_word) on launchd writing to `briefs`; LifeOS brief
-cards go live with staleness badges. Build the iOS Shortcut and write down what it does, so it
-can be rebuilt (decision #33). (*Gmail OAuth is OPEN — evaluate; briefs may ship without email.)
-Only credential needed: `ANTHROPIC_API_KEY`.
+parse captures into tasks/metrics/notes locally at ingest (decision #34). Brief scripts (world,
+ai_research, german_word — no email, decision #35) on launchd writing to `briefs`; LifeOS brief
+cards go live with staleness badges, and `BriefRow` drops to three cards. Build the iOS Shortcut and write down what it does, so it
+can be rebuilt (decision #33). Only credential needed: `ANTHROPIC_API_KEY` (present since 2026-08-17).
 **Done when:** a phrase dictated to the Shortcut on the phone appears in the app after a sync
 and parses into the right row, and at least two brief kinds generate on schedule.
 
