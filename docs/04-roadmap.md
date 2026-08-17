@@ -98,12 +98,32 @@ and re-stamped `generated_at`. Building the Shortcut on the phone is deferred to
 the user's ask — the Mac half is complete, so it is a five-minute phone task whenever he
 wants captures flowing (`docs/07-capture-shortcut.md`).
 
-## Stage 6 — Intelligence
+## Stage 6 — Budget intelligence — NEXT
 
-RAG over `data/academic/courses/*/lectures` (index + cited Q&A in the Academic page);
-budget intelligence (categorization rules + LLM assist, insights on the spending card);
-health trends/nudges; stale-contact nudge on LifeOS.
-**Done when:** a question about a lecture PDF returns a correct cited answer; the spending
+Re-scoped 2026-08-17: **budget only.** RAG over lecture PDFs, health trends/nudges and the
+stale-contact nudge moved to BACKLOG — each had no data to run against (zero lecture PDFs
+until term starts 14–16 Sep, zero `health_metrics`, zero `contacts`), and a module built
+against nothing can't be verified. They are waiting on data, not on code or on this stage.
+
+Build: categorisation of the **137 uncategorised transactions** (merchant rules already in
+config + LLM assist for what the rules miss), and insights on the spending card — the part
+of `03-pages/personal.md` §3 that says the card should explain, not just total.
+
+What the data looks like today: a year of transactions, with dozens of merchant
+rules in `budget.rules`, and `budget.start_date` = 2026-09-01 (decision #23), so budget-window
+insights have no month to describe until September — trailing history is what's real until then.
+
+Decide with the user when the session starts, not before:
+- Which insight kinds earn their place (pace vs budget, trend vs own history, unusual
+  transactions, recurring-cost detection) — this shapes the whole module.
+- Whether the Stage 2 money backlog comes along: per-transaction recategorisation, a
+  "re-apply rules" button, undo an import batch.
+
+Precedent to follow: **decision #36** — the LLM proposes and the app applies. `UncategorisedQueue`
+already works at merchant granularity, and the Sync button already shows how the app runs a
+`scripts/` job on demand, so an "assist" button is a spawn, not a new architecture.
+
+**Done when:** the uncategorised queue can be cleared without touching SQL, and the spending
 card says something a raw total alone wouldn't.
 
 ## Later / BACKLOG seeds

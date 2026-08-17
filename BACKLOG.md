@@ -62,6 +62,24 @@ promote to a stage deliberately, never by drift.
 - The "AI Engineer & RL Learning Roadmap" link in the Navigation rail card, once that doc exists —
   the user is still writing it, and no dead link ships.
 
+## Deferred from Stage 6 — waiting on data, not on code (2026-08-17)
+
+Moved out of Stage 6 at the user's ask: build a module fully or not at all, and three of the
+four had nothing to run against. None of them is blocked by design or by another stage — each
+becomes a session the day its data exists.
+
+- **RAG over lecture PDFs.** `data/academic/` holds zero PDFs and both F26 courses start
+  14–16 Sep, so "a question about a lecture PDF returns a correct cited answer" is unverifiable
+  today. Brings decision **G** with it (embeddings: API vs local model; sqlite-vec vs Chroma),
+  which should be decided against a real corpus rather than a hypothetical one. The indexer's
+  shape is already written down in `docs/01-architecture.md` → RAG.
+- **Health trends and nudges.** `health_metrics` is empty — Stage 2 shipped manual entry, CSV
+  import and the trends page, and nothing has been logged. Needs a week or two of real data
+  before a nudge can be judged useful rather than merely correct.
+- **Stale-contact nudge on the hub.** `contacts` is empty by design (Stage 4's fixtures were
+  deleted). Cheap to unblock — a handful of real contacts — and the follow-up maths already
+  exists in `src/lib/professional/followup.ts`.
+
 ## Stage 5 (2026-08-17)
 
 - **Build the capture Shortcut on the phone** — deferred 2026-08-17 at the user's ask. The Mac
