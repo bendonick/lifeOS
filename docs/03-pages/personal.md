@@ -66,7 +66,11 @@ Habits → Health → Spending → Tasks → Bills → Notes; Calendar full-widt
    complete months of history, with its range and per-category basis printed beside it, and
    per-line accept through the existing budget-line PATCH; it names the months it skipped as
    too sparse and the transactions still uncategorised, because both make it an
-   understatement. **Money map** (`MoneyMap.tsx`, decision #43): a Sankey of outflow → tier →
+   understatement. **Category taxonomy** (decision #45): Food & drink is
+   `groceries` / `restaurants` / `bars` and nothing else — five near-identical leaves made
+   every chart look busier than the spending is. Additional expenses keeps its six leaves in
+   the assignment picker but renders as a single row everywhere visual. **Money map**
+   (`MoneyMap.tsx`, decision #43): a Sankey of outflow → tier →
    budget line, coloured by tier from the validated `moneyCategorical` palette, with
    uncategorised spend on its own branch so the map's total matches the page's. Rooted at
    outflow, never income — every credit in this account is a transfer the user made to

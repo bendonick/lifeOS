@@ -8,7 +8,12 @@ import type { VariableCategorySpend } from "@/lib/db/money";
 // Single hue; every value is printed, so nothing is hover-only.
 
 export interface BaselineConfig {
-  food: { groceries: number; restaurants: number; mensa: number; kiosk: number; coffee: number; total: number };
+  /** Per-leaf monthly averages, keyed by category, plus a `total`. A map rather
+   *  than a fixed shape because the leaves are data, not code — decision #45
+   *  folded five of them into three and this type should not have needed a
+   *  change to allow it. `total` is never a category, so the lookup below
+   *  cannot collide with it. */
+  food: Record<string, number>;
   additional: { avg: number; min: number; max: number };
 }
 

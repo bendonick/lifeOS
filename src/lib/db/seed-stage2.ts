@@ -26,16 +26,16 @@ const BUDGET_LINES: Array<
   ["Gym", "annual", 0, 0, "Paid upfront"],
 ];
 
+// Food & drink has exactly three leaves (decision #45): a canteen lunch and a
+// station-kiosk sandwich are not distinctions the user budgets by, and five
+// near-identical labels made every chart look busier than the spending is.
 const CATEGORY_MAP: Array<[category: string, lineName: string]> = [
   ["groceries", "Food & drink"],
   ["restaurants", "Food & drink"],
-  ["mensa", "Food & drink"],
-  ["kiosk", "Food & drink"],
-  ["coffee", "Food & drink"],
+  ["bars", "Food & drink"],
   ["clothing", "Additional expenses"],
   ["travel", "Additional expenses"],
   ["pharmacy", "Additional expenses"],
-  ["nightlife", "Additional expenses"],
   ["payback", "Additional expenses"],
   ["barber", "Additional expenses"],
   ["apps_misc", "Additional expenses"],
@@ -66,8 +66,8 @@ const NOTES = ["Try a new running route", "Bill-split app idea", "Gift idea for 
 // (coop pronto before coop). 'transfer' has no
 // category_map row on purpose: self-transfers and income roll into no line.
 const STARTER_RULES: Array<{ match: string; category: string }> = [
-  { match: "coop pronto", category: "kiosk" },
-  { match: "k kiosk", category: "kiosk" },
+  { match: "coop pronto", category: "groceries" },
+  { match: "k kiosk", category: "groceries" },
   { match: "migros", category: "groceries" },
   { match: "coop", category: "groceries" },
   { match: "spar ", category: "groceries" },
@@ -90,8 +90,8 @@ const STARTER_RULES: Array<{ match: string; category: string }> = [
   { match: "rest.", category: "restaurants" },
   { match: "restaur", category: "restaurants" },
   { match: "pizzeria", category: "restaurants" },
-  { match: "starbucks", category: "coffee" },
-  { match: "irish pub", category: "nightlife" },
+  { match: "starbucks", category: "restaurants" },
+  { match: "irish pub", category: "bars" },
   { match: "digitec", category: "apps_misc" },
   { match: "galaxus", category: "apps_misc" },
   { match: "amzn", category: "apps_misc" },
@@ -128,7 +128,10 @@ const CONFIG_DEFAULTS: Record<string, string> = {
   }),
   "budget.start_date": "2026-09-01",
   "budget.baseline": JSON.stringify({
-    food: { groceries: 0, restaurants: 0, mensa: 0, kiosk: 0, coffee: 0, total: 0 },
+    // Folded to the three leaves of decision #45: groceries += kiosk,
+    // restaurants += mensa + coffee, bars is nightlife moving over from
+    // Additional expenses.
+    food: { groceries: 0, restaurants: 0, bars: 0, total: 0 },
     additional: { avg: 0, min: 0, max: 0 },
   }),
   "budget.rules": JSON.stringify(STARTER_RULES),

@@ -135,6 +135,15 @@ to be real, and says so. The map reconciles to the page: its four flows add up
 to the total. `npm run build` passes, no horizontal overflow at 1440px, no console errors, every
 control keyboard-focusable.
 
+**Addendum (decision #45), same day.** On seeing the finished page the user cut the category
+list: Food & drink is now `groceries` / `restaurants` / `bars`, with `mensa` + `coffee` folding
+into restaurants, `kiosk` into groceries, and `nightlife` arriving from Additional expenses as
+`bars`. Additional expenses keeps its leaves for assignment and renders as one row on every
+visual. Folded by a guarded migration in `src/lib/db/index.ts` — verified idempotent across two
+restarts, with 36 transactions and 24 pending proposals remapped, rules rewritten in place, and
+`budget.baseline` folded by summation rather than recomputed (its numbers came from the user's
+own spreadsheet and the table still holds uncategorised rows).
+
 **Left for the user:** 120 merchants still hold proposals awaiting review — the medium and low
 ones are judgement calls about his own spending, not mine to make.
 

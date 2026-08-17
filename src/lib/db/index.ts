@@ -59,6 +59,92 @@ function migrate(db: Database.Database) {
   db.exec(
     "CREATE UNIQUE INDEX IF NOT EXISTS idx_inbox_external ON inbox (external_id) WHERE external_id IS NOT NULL"
   );
+
+  foldFoodCategories(db);
+}
+
+// Stage 6 (decision #45): Food & drink collapses from five leaves to three.
+// `mensa`, `kiosk` and `coffee` were distinctions the user does not budget by,
+// and `nightlife` was filed under Additional expenses although every row in it
+// is a pub. Seeded databases get the new taxonomy from seed-stage2.ts; this
+// folds the one that already has a year of history in it.
+//
+// Guarded on the old categories still being present in `category_map`, so it
+// runs exactly once and is a no-op on every later startup.
+const FOOD_FOLD: Array<[from: string, to: string]> = [
+  ["kiosk", "groceries"],
+  ["mensa", "restaurants"],
+  ["coffee", "restaurants"],
+  ["nightlife", "bars"],
+];
+
+function foldFoodCategories(db: Database.Database) {
+  const gone = FOOD_FOLD.map(([from]) => from);
+  const present = db
+    .prepare(
+      `SELECT COUNT(*) AS n FROM category_map WHERE category IN (${gone.map(() => "?").join(",")})`
+    )
+    .get(...gone) as { n: number };
+  if (present.n === 0) return;
+
+  const foodLine = db.prepare("SELECT id FROM budget_lines WHERE name = ?").get("Food & drink") as
+    | { id: number }
+    | undefined;
+  if (!foodLine) return; // pre-Stage-2 database: nothing to fold yet
+
+  db.transaction(() => {
+    for (const [from, to] of FOOD_FOLD) {
+      db.prepare("UPDATE transactions SET category = ? WHERE category = ?").run(to, from);
+      // Proposals are advice about a taxonomy that no longer exists; rewrite
+      // rather than drop, so a merchant still awaiting review keeps its suggestion.
+      db.prepare("UPDATE category_proposals SET category = ? WHERE category = ?").run(to, from);
+    }
+
+    db.prepare(
+      "INSERT OR IGNORE INTO category_map (category, budget_line_id) VALUES ('bars', ?)"
+    ).run(foodLine.id);
+    db.prepare(
+      `DELETE FROM category_map WHERE category IN (${gone.map(() => "?").join(",")})`
+    ).run(...gone);
+
+    // budget.rules is user-editable config, so it is rewritten in place rather
+    // than reseeded — hand-added rules must survive the fold.
+    const row = db.prepare("SELECT value FROM config WHERE key = 'budget.rules'").get() as
+      | { value: string }
+      | undefined;
+    if (row) {
+      const remap = new Map(FOOD_FOLD);
+      const rules = (JSON.parse(row.value) as Array<{ match: string; category: string }>).map((r) =>
+        remap.has(r.category) ? { ...r, category: remap.get(r.category)! } : r
+      );
+      db.prepare("UPDATE config SET value = ? WHERE key = 'budget.rules'").run(JSON.stringify(rules));
+    }
+
+    // budget.baseline carries a per-leaf monthly average, so its food keys move
+    // with the leaves. Summed, not recomputed: these numbers are averages the
+    // user's own spreadsheet produced, and folding them keeps that provenance —
+    // recomputing from a table that still holds uncategorised rows would swap a
+    // known figure for a quietly understated one.
+    const base = db.prepare("SELECT value FROM config WHERE key = 'budget.baseline'").get() as
+      | { value: string }
+      | undefined;
+    if (base) {
+      const b = JSON.parse(base.value) as {
+        food: Record<string, number>;
+        additional: { avg: number; min: number; max: number };
+      };
+      const take = (k: string) => b.food[k] ?? 0;
+      const bars = take("bars") || 5; // nightlife's share, arriving from Additional
+      b.food = {
+        groceries: take("groceries") + take("kiosk"),
+        restaurants: take("restaurants") + take("mensa") + take("coffee"),
+        bars,
+        total: take("total") + bars,
+      };
+      b.additional = { ...b.additional, avg: Math.max(0, b.additional.avg - bars) };
+      db.prepare("UPDATE config SET value = ? WHERE key = 'budget.baseline'").run(JSON.stringify(b));
+    }
+  })();
 }
 
 // Seeds from docs: projects (01-architecture.md), habits (03-pages/personal.md §1).
