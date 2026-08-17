@@ -112,16 +112,17 @@
      header, the spending hero) rather than stripes. */
   --color-field: #4d0e12; /* Sceptre Red, exact */
 
-  /* The accent is Cerulean, exact — the palette's one cool tone, and the only
-     thing on the page that is not brown, cream or oxblood. Putting it on tile
-     titles, links and controls is what stops the page reading as monochrome
-     warm: cream states, oxblood grounds, and one blue that means "this is
-     interactive or this is a heading". 8.87:1 on the ground, 7.76:1 on the
-     field, so it holds up on both. */
-  --color-personal: #a5bcd6; /* Cerulean, exact */
+  /* Two title accents, and the split is the layout's: the left rail is
+     Cerulean, the main column is ochre. That is not decoration — it is how you
+     tell the rail (shortcuts, navigation, the day's small state) from the
+     subject matter (health, money, time) without a divider. `hub` carries the
+     rail because it already means "domain-less", which is exactly what a
+     shortcuts column is. Both clear AA on all three grounds: ochre 6.3–7.2:1,
+     Cerulean 7.8–8.9:1. */
+  --color-personal: #c9a227; /* main column — the warm accent */
   --color-academic: #8aa06a;
   --color-professional: #a5bcd6; /* Cerulean, exact */
-  --color-hub: #c4b79a;
+  --color-hub: #a5bcd6; /* left rail — Cerulean, exact */
 
   /* urgency — Sceptre Red is 1.14:1 and cannot carry a warning, so danger is
      lifted to 5.30:1 and warn to 7.93:1. Both stay in family; neither is

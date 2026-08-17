@@ -32,7 +32,7 @@ export function HabitList({ habits, today }: { habits: HabitWeek[]; today: strin
 
   return (
     <div aria-busy={isPending}>
-      {isPending && <div className="mb-2 h-0.5 rounded-full bg-personal/40" aria-hidden="true" />}
+      {isPending && <div className="mb-2 h-0.5 rounded-full bg-hub/40" aria-hidden="true" />}
       <CompletionRing done={doneCount} total={habits.length} />
       <div className="flex items-baseline justify-between pt-1 pb-1">
         <span className="tabular text-[11px] text-muted">
@@ -121,7 +121,9 @@ function CompletionRing({ done, total }: { done: number; total: number }) {
               strokeLinecap="round"
               strokeDasharray={`${frac * C} ${C}`}
               transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
-              className="text-personal transition-[stroke-dasharray] duration-200 ease-out"
+              /* Habits sits in the left rail, so the ring takes the rail's accent
+                 rather than the main column's. */
+              className="text-hub transition-[stroke-dasharray] duration-200 ease-out"
             />
           )}
         </svg>
