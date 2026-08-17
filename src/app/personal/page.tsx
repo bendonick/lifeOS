@@ -54,26 +54,17 @@ export default function PersonalPage() {
           accent; the main column carries ochre, so the two halves are told
           apart by temperature rather than by a divider.
 
+          Rail tiles all sit on the plain surface. Two of them briefly took the
+          oxblood field and it made the rail the loudest thing on the page —
+          the field is reserved for the page header and the spending hero,
+          where it marks something that leads rather than something you glance
+          at.
+
           `items-start` inside the main grid so a tile ends where its content
           does — stretching every tile to its tallest neighbour left dead space
           that read as unfinished. */}
       <div className="grid gap-6 lg:grid-cols-[19rem_1fr]">
         <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-28">
-          <Tile
-            id="shortcuts"
-            icon={<Zap size={16} />}
-            title="Quick add"
-            accent="hub"
-            surface="bg-field"
-          >
-            <div className="grid grid-cols-2 gap-1.5">
-              <QuickAction href="#new-task" label="Task" />
-              <QuickAction href="#new-metric" label="Metric" />
-              <QuickAction href="#new-expense" label="Expense" />
-              <QuickAction href="#new-note" label="Note" />
-            </div>
-          </Tile>
-
           <Tile id="nav" icon={<Compass size={16} />} title="Go to" accent="hub">
             <nav aria-label="Sections" className="flex flex-col gap-1.5 text-sm">
               <NavLink href="/personal/health" label="Health trends →" />
@@ -83,13 +74,34 @@ export default function PersonalPage() {
             </nav>
           </Tile>
 
+          <Tile id="shortcuts" icon={<Zap size={16} />} title="Quick add" accent="hub">
+            <div className="grid grid-cols-2 gap-1.5">
+              <QuickAction href="#new-task" label="Task" />
+              <QuickAction href="#new-metric" label="Metric" />
+              <QuickAction href="#new-expense" label="Expense" />
+              <QuickAction href="#new-note" label="Note" />
+            </div>
+          </Tile>
+
+          <Tile id="german" icon={<Languages size={16} />} title="German" accent="hub">
+            {germanWord ? (
+              <>
+                <div className="text-sm">{germanWord.content_md}</div>
+                <p className="mt-1 text-xs text-faint">
+                  generated {utcToZurichLabel(germanWord.generated_at)}
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-faint">no word yet</p>
+            )}
+          </Tile>
+
           <Tile
             id="review"
             icon={<Inbox size={16} />}
             title="To review"
             caption={toReview === 1 ? "note · Sunday" : "notes · Sunday"}
             accent="hub"
-            surface="bg-field"
           >
             <a href="#notes" className="tabular t-display block text-3xl font-semibold hover:text-hub">
               {toReview}
@@ -104,19 +116,6 @@ export default function PersonalPage() {
             accent="hub"
           >
             <HabitList habits={habitsWithWeek(today)} today={today} />
-          </Tile>
-
-          <Tile id="german" icon={<Languages size={16} />} title="German" accent="hub">
-            {germanWord ? (
-              <>
-                <div className="text-sm">{germanWord.content_md}</div>
-                <p className="mt-1 text-xs text-faint">
-                  generated {utcToZurichLabel(germanWord.generated_at)}
-                </p>
-              </>
-            ) : (
-              <p className="text-xs text-faint">no word yet</p>
-            )}
           </Tile>
         </aside>
 
