@@ -5,6 +5,7 @@ import { zurichToday } from "@/lib/dates";
 import { METRIC_KEYS, type MetricKey } from "@/lib/health/metrics";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Health trends" };
 
 // Health trends (§4c): linked single-series small multiples + a correlation
 // scatter — never a dual-axis chart (decision #19). All series are read here

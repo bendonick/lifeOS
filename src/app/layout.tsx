@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Instrument_Serif } from "next/font/google";
 import "./globals.css";
 
@@ -20,8 +20,15 @@ const serif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "LifeOS",
+  // Template so every page can name its tab ("Professional · LifeOS") — one
+  // static title for seven routes made the browser's tab strip useless.
+  title: { default: "LifeOS", template: "%s · LifeOS" },
   description: "Local personal operating system",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#121212", // Graphite — the editorial page ground
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

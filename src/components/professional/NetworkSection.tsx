@@ -2,8 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
+import { Pencil, Trash2, X } from "lucide-react";
 import { ContactForm, type ContactPayload } from "./ContactForm";
 import { Pill } from "@/components/ui/Pill";
+import { RowAction } from "@/components/ui/RowAction";
 import { Table } from "@/components/ui/Table";
 import { Tabs } from "@/components/ui/Tabs";
 import { urgencyText } from "@/components/ui/accents";
@@ -149,24 +151,17 @@ export function NetworkSection({
                 >
                   {expanded === c.id ? "close" : "log"}
                 </button>
-                <button
-                  type="button"
+                <RowAction
+                  icon={editing === c.id ? X : Pencil}
+                  label={editing === c.id ? `close editor: ${c.name}` : `edit ${c.name}`}
+                  expanded={editing === c.id}
                   onClick={() => {
                     setEditing(editing === c.id ? null : c.id);
                     setExpanded(null);
                     setAdding(false);
                   }}
-                  className="rounded px-1.5 text-xs text-muted hover:text-text"
-                >
-                  {editing === c.id ? "close" : "edit"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => remove(c)}
-                  className="rounded px-1.5 text-xs text-muted hover:text-danger"
-                >
-                  delete
-                </button>
+                />
+                <RowAction icon={Trash2} danger label={`delete ${c.name}`} onClick={() => remove(c)} />
               </td>
             </tr>
           );

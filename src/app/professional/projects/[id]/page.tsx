@@ -12,6 +12,13 @@ import { dayLabel, daysLeftLabel, dueInfo } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
+/** The tab carries the project's name — the layout template appends · LifeOS. */
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const id = Number((await params).id);
+  const project = Number.isInteger(id) ? projectById(id) : undefined;
+  return { title: project?.name ?? "Project" };
+}
+
 // Project detail (docs/03-pages/professional.md §4): its tasks and its notes.
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const id = Number((await params).id);
@@ -98,7 +105,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       </section>
 
       <p className="text-xs text-faint">
-        <Link href="/professional" className="rounded hover:text-muted">
+        <Link href="/professional" className="rounded transition-colors hover:text-muted">
           ← Professional
         </Link>
       </p>

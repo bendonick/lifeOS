@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { accentControl } from "@/components/ui/accents";
 import {
   CartesianGrid,
   Line,
@@ -241,7 +242,7 @@ function CorrelationView({ series, metrics }: { series: Series; metrics: MetricK
             type="checkbox"
             checked={lag}
             onChange={(e) => setLag(e.target.checked)}
-            className="h-3.5 w-3.5 accent-personal"
+            className={`h-3.5 w-3.5 ${accentControl.personal}`}
           />
           lag {METRICS[yKey].label} by 1 day
         </label>

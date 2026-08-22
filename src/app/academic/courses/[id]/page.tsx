@@ -12,6 +12,13 @@ import { dayLabel, zurichToday } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
+/** The tab carries the course's name — the layout template appends · LifeOS. */
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const id = Number((await params).id);
+  const course = Number.isInteger(id) ? courseById(id) : undefined;
+  return { title: course?.name ?? "Course" };
+}
+
 // Course detail (docs/03-pages/academic.md §2): metadata, this course's work,
 // and its materials folder.
 export default async function CoursePage({ params }: { params: Promise<{ id: string }> }) {
@@ -60,7 +67,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
           <Detail label="Professor">{course.professor ?? "—"}</Detail>
           <Detail label="Email">
             {course.professor_email ? (
-              <a href={`mailto:${course.professor_email}`} className="rounded hover:text-academic">
+              <a href={`mailto:${course.professor_email}`} className="rounded transition-colors hover:text-academic">
                 {course.professor_email}
               </a>
             ) : (
@@ -131,7 +138,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
       </section>
 
       <p className="text-xs text-faint">
-        <Link href="/academic" className="rounded hover:text-muted">
+        <Link href="/academic" className="rounded transition-colors hover:text-muted">
           ← Academic
         </Link>
       </p>

@@ -22,6 +22,7 @@ import { zurichToday } from "@/lib/dates";
 // Reads happen here on the server via the shared db modules; client components
 // mutate through /api/* and router.refresh() back to this page's data.
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Academic" };
 
 // Layout (decision #57): the rail + bento of /personal, on the editorial theme.
 // Same modules, same data — the rail cards and the banner sections are all

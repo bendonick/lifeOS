@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { Pencil, Trash2, X } from "lucide-react";
 import { CourseForm, type CoursePayload } from "./CourseForm";
 import { Pill } from "@/components/ui/Pill";
+import { RowAction } from "@/components/ui/RowAction";
 import { Table } from "@/components/ui/Table";
 import { scheduleDays } from "@/lib/academic/course";
 import { googleEventPlan } from "@/lib/academic/gcal";
@@ -71,7 +73,7 @@ export function CoursesSection({ courses }: { courses: Course[] }) {
         {courses.map((c) => (
           <tr key={c.id}>
             <td className="px-3 py-2">
-              <Link href={`/academic/courses/${c.id}`} className="rounded text-text hover:text-academic">
+              <Link href={`/academic/courses/${c.id}`} className="rounded text-text transition-colors hover:text-academic">
                 {c.name}
               </Link>
             </td>
@@ -83,7 +85,7 @@ export function CoursesSection({ courses }: { courses: Course[] }) {
             <td className="px-3 py-2 text-xs text-muted">{c.room ?? "—"}</td>
             <td className="px-3 py-2 text-xs text-muted">
               {c.professor_email ? (
-                <a href={`mailto:${c.professor_email}`} className="rounded hover:text-text">
+                <a href={`mailto:${c.professor_email}`} className="rounded transition-colors hover:text-text">
                   {c.professor ?? c.professor_email}
                 </a>
               ) : (
@@ -95,23 +97,16 @@ export function CoursesSection({ courses }: { courses: Course[] }) {
             </td>
             <td className="px-3 py-2 text-right whitespace-nowrap">
               <GoogleLink course={c} />
-              <button
-                type="button"
+              <RowAction
+                icon={editing === c.id ? X : Pencil}
+                label={editing === c.id ? `close editor: ${c.name}` : `edit ${c.name}`}
+                expanded={editing === c.id}
                 onClick={() => {
                   setEditing(editing === c.id ? null : c.id);
                   setAdding(false);
                 }}
-                className="rounded px-1.5 text-xs text-muted hover:text-text"
-              >
-                {editing === c.id ? "close" : "edit"}
-              </button>
-              <button
-                type="button"
-                onClick={() => remove(c)}
-                className="rounded px-1.5 text-xs text-muted hover:text-danger"
-              >
-                delete
-              </button>
+              />
+              <RowAction icon={Trash2} danger label={`delete ${c.name}`} onClick={() => remove(c)} />
             </td>
           </tr>
         ))}

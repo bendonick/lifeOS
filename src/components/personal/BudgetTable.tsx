@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronRight } from "lucide-react";
+import { accentControl } from "@/components/ui/accents";
 import type { BudgetOverview, LineStatus, VariableCategorySpend } from "@/lib/db/money";
 import { paceState } from "@/lib/money/pace";
 
@@ -71,9 +73,13 @@ export function BudgetTable({
                   className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-muted transition-colors hover:text-text"
                   aria-expanded={isOpen}
                 >
-                  <span aria-hidden="true" className="text-[11px] text-faint">
-                    {isOpen ? "▾" : "▸"}
-                  </span>
+                  {/* Same chevron grammar as Disclosure — the one surviving
+                      hand-rolled triangle pointed its own way. */}
+                  <ChevronRight
+                    size={12}
+                    aria-hidden="true"
+                    className={`shrink-0 text-faint transition-transform duration-150 ease-out ${isOpen ? "rotate-90" : ""}`}
+                  />
                   {label}
                 </button>
               ) : (
@@ -311,7 +317,7 @@ function EditForm({ line, month, onDone }: { line: LineStatus; month: string; on
           type="checkbox"
           checked={justThisMonth}
           onChange={(e) => setJustThisMonth(e.target.checked)}
-          className="h-3.5 w-3.5"
+          className={`h-3.5 w-3.5 ${accentControl.personal}`}
         />
         just this month
       </label>

@@ -46,7 +46,7 @@ export function PageShell({
           <nav aria-label="Breadcrumb" className="text-xs text-faint">
             {page ? (
               <>
-                <Link href="/" className="hover:text-muted">
+                <Link href="/" className="transition-colors hover:text-muted">
                   LifeOS
                 </Link>
                 <span className="mx-1.5" aria-hidden="true">

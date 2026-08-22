@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { Pencil, Trash2, X } from "lucide-react";
 import { Pill } from "@/components/ui/Pill";
+import { RowAction } from "@/components/ui/RowAction";
 import { Table } from "@/components/ui/Table";
 import { urgencyText } from "@/components/ui/accents";
 import { daysLeftLabel, dueInfo } from "@/lib/dates";
@@ -115,23 +117,16 @@ export function ProjectsSection({ projects }: { projects: ProjectWithWork[] }) {
                 {p.open_tasks > 0 ? p.open_tasks : <span className="text-faint">—</span>}
               </td>
               <td className="px-3 py-2 text-right whitespace-nowrap">
-                <button
-                  type="button"
+                <RowAction
+                  icon={editing === p.id ? X : Pencil}
+                  label={editing === p.id ? `close editor: ${p.name}` : `edit ${p.name}`}
+                  expanded={editing === p.id}
                   onClick={() => {
                     setEditing(editing === p.id ? null : p.id);
                     setAdding(false);
                   }}
-                  className="rounded px-1.5 text-xs text-muted hover:text-text"
-                >
-                  {editing === p.id ? "close" : "edit"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => remove(p)}
-                  className="rounded px-1.5 text-xs text-muted hover:text-danger"
-                >
-                  delete
-                </button>
+                />
+                <RowAction icon={Trash2} danger label={`delete ${p.name}`} onClick={() => remove(p)} />
               </td>
             </tr>
           );

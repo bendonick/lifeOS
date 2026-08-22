@@ -1,12 +1,13 @@
 import Link from "next/link";
+import { Briefcase, GraduationCap, Heart } from "lucide-react";
 import { accentText, type Accent } from "@/components/ui/accents";
-import { BriefcaseIcon, GraduationCapIcon, HeartIcon } from "@/components/ui/icons";
 
-// Captions per docs/03-pages/lifeos.md §5.
+// Captions per docs/03-pages/lifeos.md §5. Icons from lucide like every other
+// chrome icon in the app — the hand-drawn ui/icons.tsx trio is retired.
 const TILES: { href: string; accent: Accent; name: string; caption: string; icon: React.ReactNode }[] = [
-  { href: "/academic", accent: "academic", name: "Academic", caption: "Courses · MSc project", icon: <GraduationCapIcon /> },
-  { href: "/personal", accent: "personal", name: "Personal", caption: "health · habits · money", icon: <HeartIcon /> },
-  { href: "/professional", accent: "professional", name: "Professional", caption: "Day job · learning · network", icon: <BriefcaseIcon /> },
+  { href: "/academic", accent: "academic", name: "Academic", caption: "Courses · MSc project", icon: <GraduationCap size={20} /> },
+  { href: "/personal", accent: "personal", name: "Personal", caption: "health · habits · money", icon: <Heart size={20} /> },
+  { href: "/professional", accent: "professional", name: "Professional", caption: "Day job · learning · network", icon: <Briefcase size={20} /> },
 ];
 
 export function DomainTiles() {

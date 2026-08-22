@@ -171,7 +171,7 @@ function InFlight({ o, insights }: { o: BudgetOverview; insights: Insight[] }) {
 function UncategorisedLink({ o }: { o: BudgetOverview }) {
   if (o.uncategorisedInWindow === 0) return null;
   return (
-    <a href="#uncategorised" className="mt-2 inline-block text-xs text-muted hover:text-text">
+    <a href="#uncategorised" className="mt-2 inline-block text-xs text-muted transition-colors hover:text-text">
       {o.uncategorisedInWindow} to categorise →
     </a>
   );

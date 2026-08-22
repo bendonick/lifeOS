@@ -19,6 +19,7 @@ import { openTasksForProject } from "@/lib/db/tasks";
 // Reads happen here on the server via the shared db modules; client components
 // mutate through /api/* and router.refresh() back to this page's data.
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Professional" };
 
 // Layout (decision #59): the rail + bento of /personal and /academic, on the
 // editorial theme. Section order per docs/03-pages/professional.md is unchanged

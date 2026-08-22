@@ -35,6 +35,7 @@ import { monthOf, utcToZurichLabel, zurichToday } from "@/lib/dates";
 // Reads happen here on the server via the shared db modules; client components
 // mutate through /api/* and router.refresh() back to this page's data.
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Personal" };
 
 /*
  * Layout — the rail carries the day, the column carries the subject matter.
