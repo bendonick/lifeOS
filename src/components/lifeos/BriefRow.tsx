@@ -25,9 +25,11 @@ export function BriefRow({ briefs }: { briefs: Partial<Record<BriefKind, Brief>>
 }
 
 function BriefCard({ kind, brief }: { kind: BriefKind; brief?: Brief }) {
+  // `bare` + `.row-card`: the columns are contained, but in the subordinate
+  // grammar (#70) — full Card chrome here was a box at the tile's own weight.
   if (!brief) {
     return (
-      <Card label={BRIEF_LABEL[kind]} accent="hub">
+      <Card bare label={BRIEF_LABEL[kind]} accent="hub" className="row-card p-4">
         <p className="mt-2 text-sm text-muted">{BRIEF_PLACEHOLDER[kind]}</p>
         <p className="mt-3 text-[11px] text-faint">no brief yet · runs weekday mornings at 07:00</p>
       </Card>
@@ -36,7 +38,7 @@ function BriefCard({ kind, brief }: { kind: BriefKind; brief?: Brief }) {
 
   const { label, tone } = briefStaleness(brief.date, brief.generated_at);
   return (
-    <Card label={BRIEF_LABEL[kind]} accent="hub" className="flex flex-col">
+    <Card bare label={BRIEF_LABEL[kind]} accent="hub" className="row-card flex flex-col p-4">
       <Markdown text={brief.content_md} className="mt-2" />
       <p className={`mt-3 pt-1 text-[11px] ${briefToneText[tone]}`}>{label}</p>
     </Card>

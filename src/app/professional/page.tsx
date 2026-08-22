@@ -37,9 +37,7 @@ export default function ProfessionalPage() {
       page="Professional"
       title="Professional"
       subtitle="Day job · learning · network"
-      // widget-proto: the shell-radius half of the widget-hierarchy prototype
-      // (globals.css) — professional only while the user reviews it.
-      theme="theme-editorial widget-proto"
+      theme="theme-editorial"
     >
       {/* Rail + bento, as on /personal and /academic (decisions #50/#54/#57).
           The rail carries Olive, the main column Professional's blue.

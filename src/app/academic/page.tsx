@@ -53,7 +53,7 @@ export default function AcademicPage() {
           the credit summary, assignments, exams, the timetable, reminders, the
           course links and the four quick-add anchors. */}
       <div className="grid gap-6 lg:grid-cols-[19rem_1fr]">
-        <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-28">
+        <aside className="flex flex-col gap-6 self-start lg:sticky lg:top-28">
           <Tile id="nav" accent="hub" icon={<Compass size={16} />} title="Go to">
             <nav aria-label="Sections" className="flex flex-col gap-1.5 text-sm">
               {enrolled.length > 0 && (
@@ -90,7 +90,7 @@ export default function AcademicPage() {
           <RemindersCard reminders={notesFor("academic", "reminder")} accent="hub" />
         </aside>
 
-        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
           <Tile
             id="courses"
             accent="academic"
@@ -111,7 +111,7 @@ export default function AcademicPage() {
             caption="due dates · days left"
             span="lg:col-span-12"
           >
-            <AcademicTasks tasks={work} courses={courses} today={today} mode="work" frameless />
+            <AcademicTasks tasks={work} courses={courses} today={today} mode="work" frameless rows="cards" />
           </Tile>
 
           <Tile
@@ -122,7 +122,7 @@ export default function AcademicPage() {
             caption="dates as they are announced"
             span="lg:col-span-12"
           >
-            <AcademicTasks tasks={exams} courses={courses} today={today} mode="exams" frameless />
+            <AcademicTasks tasks={exams} courses={courses} today={today} mode="exams" frameless rows="cards" />
           </Tile>
 
         </div>

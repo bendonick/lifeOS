@@ -16,7 +16,9 @@ export function DomainTiles() {
         <Link
           key={t.href}
           href={t.href}
-          className="group rounded-xl border border-border bg-surface p-5 transition-colors hover:bg-raised"
+          // The subordinate grammar (#70) in utilities, not `.row-card` — that
+          // class is un-layered and would beat the hover ground swap.
+          className="group rounded-md border border-border bg-(--color-inset) p-5 transition-colors hover:bg-raised"
         >
           <div className={accentText[t.accent]}>{t.icon}</div>
           <div className="mt-3 text-base font-semibold">{t.name}</div>

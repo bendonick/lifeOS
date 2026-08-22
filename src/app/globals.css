@@ -373,28 +373,28 @@ body {
 .table-cards thead th {
   border-bottom: 1px solid var(--color-border);
 }
-.table-cards tbody tr:not([data-empty]) > td {
+.table-cards tbody tr:not([data-empty]):not([data-section]) > td {
   background: var(--color-inset);
   border-top: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
 }
-.table-cards tbody tr:not([data-empty]) > td:first-child {
+.table-cards tbody tr:not([data-empty]):not([data-section]) > td:first-child {
   border-left: 1px solid var(--color-border);
   border-top-left-radius: 0.375rem;
   border-bottom-left-radius: 0.375rem;
 }
-.table-cards tbody tr:not([data-empty]) > td:last-child {
+.table-cards tbody tr:not([data-empty]):not([data-section]) > td:last-child {
   border-right: 1px solid var(--color-border);
   border-top-right-radius: 0.375rem;
   border-bottom-right-radius: 0.375rem;
 }
 
-/*
- * Widget-hierarchy prototype — scoped to /professional (via PageShell's theme
- * class) while under review; rolls into Tile/NotesCard proper if approved.
- * Module shells step up to 12px so shell vs row-card also reads by shape.
- */
-.widget-proto section[aria-labelledby],
-.widget-proto aside > div[aria-busy] {
-  border-radius: 0.75rem;
+/* The non-table spelling of the same subordinate grammar, for repeated items
+   that aren't <tr>s — the hub's brief columns. Un-layered, so it beats
+   utilities: anything needing a hover ground swap uses utilities instead. */
+.row-card {
+  background: var(--color-inset);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
 }
+

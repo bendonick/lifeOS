@@ -34,7 +34,7 @@ export default function LifeOSPage() {
 
           Everything is Olive: the hub is domain-less by definition, which is
           exactly what --color-hub means. */}
-      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
         <Tile
           id="brief"
           icon={<Sunrise size={16} />}
@@ -54,7 +54,7 @@ export default function LifeOSPage() {
           accent="hub"
           span="lg:col-span-8"
         >
-          <ThisWeek tasks={tasks} today={today} frameless />
+          <ThisWeek tasks={tasks} today={today} frameless rows="cards" />
         </Tile>
 
         <Tile

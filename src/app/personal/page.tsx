@@ -76,7 +76,7 @@ export default function PersonalPage() {
   return (
     <PageShell page="Personal" title="Personal" subtitle="habits · health · money" theme="theme-editorial">
       <div className="grid gap-6 lg:grid-cols-[19rem_minmax(0,1fr)]">
-        <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-28">
+        <aside className="flex flex-col gap-6 self-start lg:sticky lg:top-28">
           {/* Anchors, not an inline menu: each target is an input inside a
               section's `Disclosure`, which opens, scrolls and focuses on being
               targeted. Same shape as /academic and /professional's rail, and it
@@ -145,7 +145,7 @@ export default function PersonalPage() {
             of the rail layout, so if the rail were ever the taller column it
             would stretch, and a stretched grid container spreads its auto rows
             to fill. `items-start` only aligns items within a row. */}
-        <div className="grid grid-cols-1 content-start items-start gap-4 lg:grid-cols-12">
+        <div className="grid grid-cols-1 content-start items-start gap-6 lg:grid-cols-12">
           <Tile
             id="tasks"
             accent="personal"
@@ -160,6 +160,7 @@ export default function PersonalPage() {
               accent="personal"
               showType={false}
               frameless
+              rows="cards"
               addInputId="new-task"
             />
           </Tile>

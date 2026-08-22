@@ -35,6 +35,7 @@ export function ThisWeek({
   accent = "hub",
   showType = true,
   frameless = false,
+  rows = "divided",
   addInputId,
 }: {
   tasks: Task[];
@@ -51,6 +52,8 @@ export function ThisWeek({
   showType?: boolean;
   /** Drop the table's own box when it already sits inside a `Tile`. */
   frameless?: boolean;
+  /** Forwarded to Table — the main pages render row-cards (#70). */
+  rows?: "divided" | "cards";
   /** Anchor id for the add form's title input, when this instance owns it. */
   addInputId?: string;
 }) {
@@ -75,7 +78,7 @@ export function ThisWeek({
 
   const columns = ["", "Task", ...(fixedDomain ? [] : ["Domain"]), ...(showType ? ["Type"] : []), whenHeader];
 
-  const rows = tasks.flatMap((t, i) => {
+  const tableRows = tasks.flatMap((t, i) => {
     const info = t.due ? dueInfo(t.due) : null;
     const done = valueFor(t, !!t.done);
     const row = (
@@ -117,7 +120,9 @@ export function ThisWeek({
     // commitment far enough out that it would otherwise have disappeared.
     if (i === firstLater) {
       return [
-        <tr key="later">
+        // data-section: a label row, not an item — the cards variant must not
+        // draw an item-card around the word "Later".
+        <tr key="later" data-section="">
           <td colSpan={columns.length} className="px-3 pt-3 pb-1 text-[11px] text-faint">
             Later
           </td>
@@ -136,8 +141,8 @@ export function ThisWeek({
           {error}
         </p>
       )}
-      <Table columns={columns} frameless={frameless} empty="nothing due this week — enjoy the quiet">
-        {rows}
+      <Table columns={columns} frameless={frameless} rows={rows} empty="nothing due this week — enjoy the quiet">
+        {tableRows}
       </Table>
 
       {/* Editing behind intent: the page's default state is reading, and this

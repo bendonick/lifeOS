@@ -61,7 +61,7 @@ export function Tile({
       // rolled app-wide, 2026-08-23): the module boundary is the page's one
       // strong border — weight AND tone — so sub-structure gets dividers and
       // hairline control chrome, never a second box at the same volume.
-      className={`flex flex-col rounded-lg border-2 border-border-strong p-4 ${surface} ${span}`}
+      className={`flex flex-col rounded-xl border-2 border-border-strong p-4 ${surface} ${span}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">

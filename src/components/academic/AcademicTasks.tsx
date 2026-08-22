@@ -41,6 +41,7 @@ export function AcademicTasks({
   mode,
   fixedCourseId,
   frameless = false,
+  rows = "divided",
 }: {
   tasks: CourseTask[];
   courses: Course[];
@@ -51,6 +52,8 @@ export function AcademicTasks({
   fixedCourseId?: number;
   /** Inside a Tile the tile is the border (#65); the course page keeps the frame. */
   frameless?: boolean;
+  /** Forwarded to Table — the main page renders row-cards (#70). */
+  rows?: "divided" | "cards";
 }) {
   const router = useRouter();
   const [isAdding, startTransition] = useTransition();
@@ -183,10 +186,11 @@ export function AcademicTasks({
         </p>
       )}
 
-      <Table columns={columns} empty={emptyHint(view, mode)} frameless={frameless}>
+      <Table columns={columns} empty={emptyHint(view, mode)} frameless={frameless} rows={rows}>
         {grouped
           ? grouped.flatMap(([course, items]) => [
-              <tr key={`group-${course}`} className="bg-raised/50">
+              // data-section: a group label, never an item-card (cards variant).
+              <tr key={`group-${course}`} data-section="" className="bg-raised/50">
                 <td colSpan={columns.length} className="px-3 py-1.5 text-[11px] text-muted">
                   {course} · {items.length}
                 </td>
