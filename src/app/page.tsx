@@ -54,7 +54,7 @@ export default function LifeOSPage() {
           accent="hub"
           span="lg:col-span-8"
         >
-          <ThisWeek tasks={tasks} today={today} />
+          <ThisWeek tasks={tasks} today={today} frameless />
         </Tile>
 
         <Tile

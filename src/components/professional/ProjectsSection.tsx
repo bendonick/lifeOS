@@ -71,6 +71,7 @@ export function ProjectsSection({ projects }: { projects: ProjectWithWork[] }) {
       <Table
         columns={["Project", "Status", "Deadline", "Left", "Open", ""]}
         empty="nothing in flight — add a project below"
+        frameless
       >
         {projects.map((p) => {
           const info = p.deadline ? dueInfo(p.deadline) : null;

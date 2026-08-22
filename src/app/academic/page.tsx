@@ -111,7 +111,7 @@ export default function AcademicPage() {
             caption="due dates · days left"
             span="lg:col-span-12"
           >
-            <AcademicTasks tasks={work} courses={courses} today={today} mode="work" />
+            <AcademicTasks tasks={work} courses={courses} today={today} mode="work" frameless />
           </Tile>
 
           <Tile
@@ -122,7 +122,7 @@ export default function AcademicPage() {
             caption="dates as they are announced"
             span="lg:col-span-12"
           >
-            <AcademicTasks tasks={exams} courses={courses} today={today} mode="exams" />
+            <AcademicTasks tasks={exams} courses={courses} today={today} mode="exams" frameless />
           </Tile>
 
         </div>

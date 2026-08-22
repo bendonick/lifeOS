@@ -78,7 +78,11 @@ A border must mean **grouping or interaction**. When every element has one, none
 
 - **One border per section.** The `Tile` is it. A `Card` inside a `Tile` is a card inside a card:
   use `<Card bare>`, which keeps the label/value/context grammar and drops the box. A `Table`
-  already inside a `Tile` takes `frameless`.
+  already inside a `Tile` takes `frameless`. Since 2026-08-23 this holds on **every** page, and
+  by weight as well as by count: the module shell (`Tile`, and `NotesCard`'s rail shell) is
+  `border-2` — the page's one strong border — while inner structure stays hairline.
+  `ThisWeek`, `ProjectTasks` and `AcademicTasks` take a `frameless` prop rather than hardcoding
+  it, because the two detail pages have no Tile and keep the table's own frame.
 - **Rows use dividers or spacing**, never individual boxes (`divide-y divide-border`).
 - **Accent colour marks meaning, not category.** `Card` defaults to an accent label; pass
   `labelTone="muted"` for anything that is a caption. Four accent labels over four empty metrics

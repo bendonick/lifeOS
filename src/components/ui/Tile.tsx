@@ -57,7 +57,11 @@ export function Tile({
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className={`flex flex-col rounded-lg border border-border p-4 ${surface} ${span}`}
+      // border-2, and inner tables render frameless (#65 rolled app-wide,
+      // 2026-08-23): the module boundary is the page's one strong border, so
+      // sub-structure gets dividers and hairline control chrome, never a
+      // second box at the same weight.
+      className={`flex flex-col rounded-lg border-2 border-border p-4 ${surface} ${span}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">

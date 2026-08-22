@@ -99,6 +99,7 @@ export function NetworkSection({
       )}
 
       <Table
+        frameless
         columns={["Name", "Company", "How met", "Last", "Follow-up", ""]}
         empty={
           view === "due"

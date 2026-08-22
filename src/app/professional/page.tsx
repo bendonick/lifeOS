@@ -101,6 +101,7 @@ export default function ProfessionalPage() {
                 tasks={dayJobTasks}
                 inputId="new-day-job-task"
                 empty="nothing open — add a task below"
+                frameless
               />
             ) : (
               <p className="rounded-lg border border-border bg-raised px-3 py-6 text-center text-xs text-faint">

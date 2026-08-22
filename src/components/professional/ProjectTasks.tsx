@@ -24,11 +24,14 @@ export function ProjectTasks({
   tasks,
   inputId,
   empty,
+  frameless = false,
 }: {
   projectId: number;
   tasks: Task[];
   inputId: string;
   empty: string;
+  /** Inside a Tile the tile is the border (#65); the detail page keeps the frame. */
+  frameless?: boolean;
 }) {
   const router = useRouter();
   const [isAdding, startTransition] = useTransition();
@@ -83,7 +86,7 @@ export function ProjectTasks({
         </p>
       )}
 
-      <Table columns={["", "Task", "Due", "Left"]} empty={empty}>
+      <Table columns={["", "Task", "Due", "Left"]} empty={empty} frameless={frameless}>
         {tasks.map((t) => {
           const done = valueFor(t, !!t.done);
           const info = t.due ? dueInfo(t.due) : null;

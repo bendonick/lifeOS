@@ -65,6 +65,7 @@ export function CoursesSection({ courses }: { courses: Course[] }) {
       <Table
         columns={["Course", "Semester", "Credits", "Schedule", "Room", "Professor", "Status", ""]}
         empty="no courses yet — add your first below"
+        frameless
       >
         {courses.map((c) => (
           <tr key={c.id}>

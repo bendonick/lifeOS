@@ -70,7 +70,7 @@ export function NotesCard({
   return (
     <div
       aria-busy={isPending || isAdding}
-      className="rounded-lg border border-border bg-surface p-4"
+      className="rounded-lg border-2 border-border bg-surface p-4"
     >
       <div className={`flex items-center gap-2 text-xs font-medium ${accentText[accent]}`}>
         {/* Theming hook — the editorial theme renders this as a serif title so

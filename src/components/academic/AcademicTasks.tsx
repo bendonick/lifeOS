@@ -40,6 +40,7 @@ export function AcademicTasks({
   today,
   mode,
   fixedCourseId,
+  frameless = false,
 }: {
   tasks: CourseTask[];
   courses: Course[];
@@ -48,6 +49,8 @@ export function AcademicTasks({
   /** On a course page the list is pre-filtered — file new items here and drop
    *  the redundant Course column and picker. */
   fixedCourseId?: number;
+  /** Inside a Tile the tile is the border (#65); the course page keeps the frame. */
+  frameless?: boolean;
 }) {
   const router = useRouter();
   const [isAdding, startTransition] = useTransition();
@@ -180,7 +183,7 @@ export function AcademicTasks({
         </p>
       )}
 
-      <Table columns={columns} empty={emptyHint(view, mode)}>
+      <Table columns={columns} empty={emptyHint(view, mode)} frameless={frameless}>
         {grouped
           ? grouped.flatMap(([course, items]) => [
               <tr key={`group-${course}`} className="bg-raised/50">
