@@ -3,6 +3,7 @@ import { Brain, Briefcase, CalendarDays, Compass, Hammer, Users, Zap } from "luc
 import { Suspense } from "react";
 import { CalendarSection, CalendarSkeleton } from "@/components/calendar/CalendarSection";
 import { NotesCard } from "@/components/notes/NotesCard";
+import { LearningPhase } from "@/components/professional/LearningPhase";
 import { LearningTable } from "@/components/professional/LearningTable";
 import { NetworkSection } from "@/components/professional/NetworkSection";
 import { ProjectTasks } from "@/components/professional/ProjectTasks";
@@ -117,6 +118,7 @@ export default function ProfessionalPage() {
             caption="concepts to work through · papers, courses, modules"
             span="lg:col-span-12"
           >
+            <LearningPhase items={learning} />
             <LearningTable items={learning} />
           </Tile>
 

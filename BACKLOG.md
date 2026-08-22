@@ -116,6 +116,11 @@ becomes a session the day its data exists.
   lines somewhere, or accepting that a trimmed line could re-ingest if its inbox row is gone.
 - Surface a failed scheduled job in the UI. A brief that fails shows as a stale card, which is
   honest but indirect; the reason is only in `data/logs/`.
+- **The world brief leaks the model's scratch-prose into the card** — seen 2026-08-23 on the hub:
+  "…That gives me a solid third international story. I have enough solid material now. Let me
+  write the brief." rendered above the bullets as if it were the brief. The shared prompt
+  contract (#38) constrains the markdown subset but evidently not *what counts as output*; a
+  wording fix in the brief scripts' shared prompt, one scripts session.
 
 ## Removed on 2026-08-17 — recoverable from commit 6625ba3
 
@@ -191,3 +196,16 @@ becomes a session the day its data exists.
   same function — but the tidy version passes it down from the page.
 - **The habit ring renders a full-size 0%** when nothing is ticked. Honest, and the brief wanted
   progress visible, but a 104px ring is a lot of rail for one zero.
+
+## Curriculum load (2026-08-22)
+
+- **Wire the Professional rail's reserved learning-roadmap link** — its target now exists:
+  `scripts/curriculum.json` (loaded via `scripts/load_curriculum.py`). This was the deliberately-unbuilt link waiting for the
+  document; small build task.
+- **Learning-table structure the curriculum wished it had** (from the roadmap's build notes;
+  none blocking — the flat table + roadmap prose carry the plan fine): a phase/area tag or
+  grouping, a type filter above the table, a "% complete" signal on the Learning tile.
+  (Still deferred after the 2026-08-23 phase-line pass, which was the banner only. Phase
+  membership + priority order now live in `src/lib/professional/curriculum.ts` — decision
+  #68 — so a promoted phase tag would supersede that module and use it as the backfill
+  source, and a % complete signal can be computed from `curriculumState()` as it stands.)

@@ -90,6 +90,18 @@ export const accentHoverText: Record<Accent, string> = {
   warn: "hover:text-warn",
 };
 
+/* Tint for `primaryButtonChrome` — the one emphasised button on a surface.
+   Rest state matches the active-tab tint; hover deepens the ground to /16, the
+   step accentBanner already validated against the page. */
+export const accentButton: Record<Accent, string> = {
+  academic: "border-academic/40 bg-academic/10 text-academic hover:bg-academic/16",
+  personal: "border-personal/40 bg-personal/10 text-personal hover:bg-personal/16",
+  professional: "border-professional/40 bg-professional/10 text-professional hover:bg-professional/16",
+  hub: "border-hub/40 bg-hub/10 text-hub hover:bg-hub/16",
+  danger: "border-danger/40 bg-danger/10 text-danger hover:bg-danger/16",
+  warn: "border-warn/40 bg-warn/10 text-warn hover:bg-warn/16",
+};
+
 /* Active view-tab tint. Lives here with the other accent maps so a fifth private
    copy of the pill-tab can't invent its own palette (src/components/ui/Tabs.tsx). */
 export const accentTab: Record<Accent, string> = {

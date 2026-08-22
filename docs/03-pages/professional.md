@@ -26,7 +26,15 @@ Job-hunt tracking was explicitly dropped — don't build pipeline/application fe
 3. **AI / RL Concepts (Learning)** — `learning_items` table: name, type pill
    (Concept / Course / Paper / Book / Module / Video — Concept listed first; it's the default
    reach), status, link, started/completed. Caption: "concepts to work through · papers,
-   courses, modules". Starts empty by design — the user fills it.
+   courses, modules". Started empty by design; since 2026-08-22 it holds the 36-item AI/RL
+   curriculum (`scripts/curriculum.json`).
+
+   Between the tile header and the table, one slim line (2026-08-23, decisions #68,
+   `LearningPhase.tsx`): the live curriculum phase — the first phase, in
+   `src/lib/professional/curriculum.ts` order, still holding an item that is neither Learned
+   nor Dropped. All matched items closed renders "Roadmap complete — N
+   learned"; rows the curriculum module doesn't name never affect the line, and a mapped
+   name with no row warns in dev (a rename in the UI is the one way to break the join).
 
 4. **Projects** — `projects` filtered domain=professional, status != done, by deadline.
    Caption: "building · portfolio evidence". Seeds: SousChef, golf-AI. Project detail view
