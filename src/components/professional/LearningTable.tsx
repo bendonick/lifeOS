@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { dayLabel } from "@/lib/dates";
+import { DisclosureTrigger } from "@/components/ui/Disclosure";
 import { Pill } from "@/components/ui/Pill";
 import { Table } from "@/components/ui/Table";
 import {
@@ -24,10 +25,20 @@ import {
  * still empty (see updateLearningItem), so the common path needs no typing.
  * No view tabs: a tab that shows the same rows is chrome pretending to be a control.
  */
+/**
+ * Rows shown while collapsed. The status sort already floats the working set —
+ * Learning first, then Not-learned in curriculum priority order — and the
+ * roadmap's own pacing rule caps Learning at three at once, so five rows carry
+ * "what I'm on plus what's next" with room to spare. The other 31 are archive
+ * until asked for (decision #63: status stays visible, detail collapses).
+ */
+const COLLAPSED_ROWS = 5;
+
 export function LearningTable({ items }: { items: LearningItem[] }) {
   const router = useRouter();
   const [isSaving, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   const [name, setName] = useState("");
   const [type, setType] = useState<LearningType>("concept");
@@ -81,6 +92,9 @@ export function LearningTable({ items }: { items: LearningItem[] }) {
     startTransition(() => router.refresh());
   }
 
+  const visible = showAll ? items : items.slice(0, COLLAPSED_ROWS);
+  const hidden = items.length - COLLAPSED_ROWS;
+
   return (
     <div aria-busy={isSaving}>
       {(error || addError) && (
@@ -93,7 +107,7 @@ export function LearningTable({ items }: { items: LearningItem[] }) {
         columns={["Topic", "Type", "Status", "Started", "Learned"]}
         empty="nothing here yet — add the first topic below"
       >
-        {items.map((item) => (
+        {visible.map((item) => (
           <tr key={item.id}>
             <td className="px-3 py-2">
               {item.link ? (
@@ -140,6 +154,18 @@ export function LearningTable({ items }: { items: LearningItem[] }) {
           </tr>
         ))}
       </Table>
+
+      {hidden > 0 && (
+        <div className="mt-2">
+          <DisclosureTrigger
+            open={showAll}
+            onToggle={() => setShowAll((v) => !v)}
+            summary="Show all topics"
+            openSummary="Show fewer"
+            detail={`${hidden} more`}
+          />
+        </div>
+      )}
 
       <form onSubmit={add} className="mt-2 flex flex-wrap items-center gap-2">
         <input

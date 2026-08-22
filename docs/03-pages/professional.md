@@ -36,6 +36,11 @@ Job-hunt tracking was explicitly dropped — don't build pipeline/application fe
    learned"; rows the curriculum module doesn't name never affect the line, and a mapped
    name with no row warns in dev (a rename in the UI is the one way to break the join).
 
+   The table itself shows five rows at rest — the status sort floats Learning then
+   Not-learned-in-priority-order, so that is the working set — with the rest behind a
+   `DisclosureTrigger` ("Show all topics · N more", 2026-08-23, #63's pattern; the count is
+   `COLLAPSED_ROWS` in `LearningTable.tsx`).
+
 4. **Projects** — `projects` filtered domain=professional, status != done, by deadline.
    Caption: "building · portfolio evidence". Seeds: SousChef, golf-AI. Project detail view
    shows its tasks and notes.
