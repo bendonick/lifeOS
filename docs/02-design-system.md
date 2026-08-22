@@ -80,10 +80,17 @@ A border must mean **grouping or interaction**. When every element has one, none
   use `<Card bare>`, which keeps the label/value/context grammar and drops the box. A `Table`
   already inside a `Tile` takes `frameless`. Since 2026-08-23 this holds on **every** page, and
   by weight **and tone**: the module shell (`Tile`, and `NotesCard`'s rail shell) is `border-2`
-  in `--color-border-strong` (2.6:1 on Midnight, 3.0:1 on Graphite) — the page's one strong
-  border — while inner structure stays hairline `--color-border` (~1.5:1). The strong tone is
-  its own token because the first attempt thickened the hairline colour and 2px of an invisible
-  line was still invisible.
+  in `--color-border-strong` (2.6:1 on Midnight, 3.0:1 on Graphite) at `rounded-xl` — the
+  page's one strong border — while inner structure stays hairline `--color-border` (~1.5:1).
+  The strong tone is its own token because the first attempt thickened the hairline colour and
+  2px of an invisible line was still invisible.
+- **Subordinate containment is allowed; same-style nesting never** (#70). Repeated items inside
+  a module may be contained — as row-cards: `--color-inset` ground, 1px hairline, `rounded-md`
+  (6px), 6px gaps — because the levels differ in radius, weight and tone, so page → module →
+  row reads at a glance. Spellings: `Table rows="cards"` for `<tr>`s (`.table-cards` in
+  `globals.css`; `data-empty` and `data-section` rows are never carded — a message or a group
+  label is not an item), `.row-card` for non-table items (hub briefs), and the utility spelling
+  `bg-(--color-inset)` where a hover ground swap must beat the un-layered class (Domains nav).
   `ThisWeek`, `ProjectTasks` and `AcademicTasks` take a `frameless` prop rather than hardcoding
   it, because the two detail pages have no Tile and keep the table's own frame.
 - **Rows use dividers or spacing**, never individual boxes (`divide-y divide-border`).
@@ -125,7 +132,14 @@ Three levels, and the rule that makes it work: **status stays visible, only deta
   a real backlog is never hidden behind a control that looks inert.
 - `anchors` opens the panel when a hash targets something inside it, then scrolls and focuses it.
   The browser cannot: while the panel is shut, the element is not in the DOM.
-- **Editing is behind intent (#64).** Default state is reading. No form is open at rest.
+  (`scroll-margin-top` covers `[id^="new-"]`, so an opened input clears the sticky header.)
+- **Editing is behind intent (#64 — app-wide since #72).** Default state is reading. No form is
+  open at rest on any page; the hub's capture box is the one standing exception (the hub's
+  primary action). Add-forms carry no `detail` count — an editor has no backlog to disclose.
+- **`variant="add"` requires an `accent`** (the section's own) — identity, never defaulted: it
+  shipped hardcoded to Personal's hue and the hub hovered Tobacco with nothing failing.
+- **Week grids are collapsed everywhere (#66/#72).** `CalendarTile` leads with what's coming
+  and holds the grid behind `Open week · N this week`, on all four main pages.
 
 ## Recurring patterns
 

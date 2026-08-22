@@ -197,6 +197,19 @@ becomes a session the day its data exists.
 - **The habit ring renders a full-size 0%** when nothing is ticked. Honest, and the brief wanted
   progress visible, but a 104px ring is a lot of rail for one zero.
 
+## UI-polish pass follow-ups (2026-08-23)
+
+- **Control-chrome strings still drift.** ~14 selects and many inputs hand-copy their classes
+  instead of importing `controls.ts` (five slightly different control sizes exist; the
+  inventory lives in this pass's audit). The select *chevron* is now an element rule so it
+  can't drift, but the size/padding consolidation onto `selectChrome`/`inputChrome` remains.
+- **Domain-fixed accent literals.** `hover:border-<domain>/40` on Add/submit buttons inside
+  single-domain components was left hardcoded (matches by construction); worth moving to
+  `accentHoverBorder` only if a component ever changes domain.
+- **`title=` tooltips carrying sole information** (8 sites: the Google hand-off contract,
+  DateCell semantics, back-dating rules…) — invisible to touch and keyboard; needs a visible
+  affordance decision, not a mechanical fix.
+
 ## Curriculum load (2026-08-22)
 
 - **Wire the Professional rail's reserved learning-roadmap link** — its target now exists:
