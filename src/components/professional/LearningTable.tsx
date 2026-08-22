@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { dayLabel } from "@/lib/dates";
-import { DisclosureTrigger } from "@/components/ui/Disclosure";
+import { Disclosure, DisclosureTrigger } from "@/components/ui/Disclosure";
 import { Pill } from "@/components/ui/Pill";
 import { Table } from "@/components/ui/Table";
 import {
@@ -169,7 +169,16 @@ export function LearningTable({ items }: { items: LearningItem[] }) {
         </div>
       )}
 
-      <form onSubmit={add} className="mt-2 flex flex-wrap items-center gap-2">
+      {/* Editing behind intent (#64/#72); the rail's `+ Topic` anchor opens it. */}
+      <Disclosure
+        variant="add"
+        accent="professional"
+        summary="Add topic"
+        openSummary="Cancel"
+        anchors={["new-learning"]}
+        className="mt-3"
+      >
+      <form onSubmit={add} className="flex flex-wrap items-center gap-2">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -177,6 +186,7 @@ export function LearningTable({ items }: { items: LearningItem[] }) {
           placeholder="Add a topic…"
           aria-label="topic"
           aria-invalid={!!addError}
+          autoFocus
           className="min-w-40 flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-sm placeholder:text-faint"
         />
         <select
@@ -225,6 +235,7 @@ export function LearningTable({ items }: { items: LearningItem[] }) {
           Add
         </button>
       </form>
+      </Disclosure>
     </div>
   );
 }

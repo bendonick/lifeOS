@@ -88,7 +88,7 @@ export function HealthSection({ today }: { today: string }) {
       </div>
 
       <div className="flex flex-wrap items-start gap-x-5 gap-y-3 border-t border-border pt-4">
-        <Disclosure variant="add" summary="Log a metric" openSummary="Cancel" anchors={["new-metric"]}>
+        <Disclosure variant="add" accent="personal" summary="Log a metric" openSummary="Cancel" anchors={["new-metric"]}>
           <MetricForm today={today} inputId="new-metric" autoFocus />
         </Disclosure>
         <Disclosure summary="Import CSV" openSummary="Import CSV">

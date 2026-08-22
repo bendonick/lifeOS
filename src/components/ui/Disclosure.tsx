@@ -2,6 +2,17 @@
 
 import { ChevronRight, Plus } from "lucide-react";
 import { useEffect, useId, useState, type ReactNode } from "react";
+import { accentHoverBorder, type Accent } from "@/components/ui/accents";
+
+/**
+ * The `add` variant opens an editor, so its hover carries the section's accent
+ * — required, never defaulted (#72): it shipped hardcoded to Personal's hue and
+ * the hub's add trigger silently hovered Tobacco. An identity the compiler
+ * can't ask about is an identity that drifts (the Tile.accent lesson, #59).
+ */
+type VariantProps =
+  | { variant?: "chevron"; accent?: undefined }
+  | { variant: "add"; accent: Accent };
 
 /**
  * The page's one progressive-disclosure control.
@@ -31,6 +42,7 @@ export function DisclosureTrigger({
   openSummary,
   detail,
   variant = "chevron",
+  accent,
   controls,
 }: {
   open: boolean;
@@ -38,10 +50,9 @@ export function DisclosureTrigger({
   summary: string;
   openSummary?: string;
   detail?: ReactNode;
-  variant?: "chevron" | "add";
   /** id of the region this controls, when there is one to point at. */
   controls?: string;
-}) {
+} & VariantProps) {
   const isAdd = variant === "add";
   return (
     <button
@@ -51,7 +62,9 @@ export function DisclosureTrigger({
       aria-controls={controls}
       className={
         isAdd
-          ? "flex items-center gap-1.5 self-start rounded-md border border-border bg-raised px-2.5 py-1 text-xs text-muted transition-colors hover:border-personal/40 hover:text-text"
+          ? `flex items-center gap-1.5 self-start rounded-md border border-border bg-raised px-2.5 py-1 text-xs text-muted transition-colors ${
+              accent ? accentHoverBorder[accent] : ""
+            } hover:text-text`
           : "group flex items-center gap-1.5 self-start rounded text-xs text-muted transition-colors hover:text-text"
       }
     >
@@ -81,6 +94,7 @@ export function Disclosure({
   defaultOpen = false,
   anchors,
   variant = "chevron",
+  accent,
   className = "",
   children,
 }: {
@@ -100,10 +114,9 @@ export function Disclosure({
    *  an editor, so it reads as an action — a bordered control with a plus that
    *  turns into a close. Same component either way: two hand-rolled toggles is
    *  how one section ends up with a triangle and its neighbour with a caret. */
-  variant?: "chevron" | "add";
   className?: string;
   children: ReactNode;
-}) {
+} & VariantProps) {
   const [open, setOpen] = useState(defaultOpen);
   const panelId = useId();
 
@@ -134,8 +147,10 @@ export function Disclosure({
         summary={summary}
         openSummary={openSummary}
         detail={detail}
-        variant={variant}
         controls={panelId}
+        {...((variant === "add"
+          ? { variant: "add", accent: accent as Accent }
+          : { variant: "chevron" }) satisfies VariantProps as VariantProps)}
       />
       {open && (
         <div id={panelId} className="mt-3">

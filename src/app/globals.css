@@ -243,8 +243,9 @@ body {
   border-radius: 4px;
 }
 
-/* Anchor targets sit below the sticky header rather than flush to the viewport. */
-:where(section[id], [id^="uncategorised"]) {
+/* Anchor targets sit below the sticky header rather than flush to the viewport.
+   `new-*` covers every rail Quick-add target — inputs and collapsed + buttons. */
+:where(section[id], [id^="uncategorised"], [id^="new-"]) {
   scroll-margin-top: 5rem;
 }
 

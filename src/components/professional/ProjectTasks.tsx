@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { Pill, TypePill } from "@/components/ui/Pill";
 import { Table } from "@/components/ui/Table";
 import { accentControl, urgencyText } from "@/components/ui/accents";
@@ -144,7 +145,16 @@ export function ProjectTasks({
         })}
       </Table>
 
-      <form onSubmit={add} className="mt-2 flex flex-wrap items-center gap-2">
+      {/* Editing behind intent (#64/#72); the rail's `+ Task` anchor opens it. */}
+      <Disclosure
+        variant="add"
+        accent="professional"
+        summary="Add task"
+        openSummary="Cancel"
+        anchors={[inputId]}
+        className="mt-3"
+      >
+      <form onSubmit={add} className="flex flex-wrap items-center gap-2">
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -152,6 +162,7 @@ export function ProjectTasks({
           placeholder="Add a task…"
           aria-label="task title"
           aria-invalid={!!addError}
+          autoFocus
           className="min-w-40 flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-sm placeholder:text-faint"
         />
         <select
@@ -177,6 +188,7 @@ export function ProjectTasks({
           Add
         </button>
       </form>
+      </Disclosure>
     </div>
   );
 }

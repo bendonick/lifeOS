@@ -150,6 +150,7 @@ export function ThisWeek({
           same `TaskForm` the Quick add menu renders — one implementation. */}
       <Disclosure
         variant="add"
+        accent={accent}
         summary="Add task or appointment"
         openSummary="Cancel"
         anchors={addInputId ? [addInputId] : undefined}

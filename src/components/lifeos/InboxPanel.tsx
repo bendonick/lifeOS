@@ -89,6 +89,8 @@ export function InboxPanel({ items, today }: { items: InboxItem[]; today: string
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
+          id="new-capture"
+          aria-label="capture text"
           placeholder="Capture anything…"
           className="min-w-0 flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-sm placeholder:text-faint focus:border-hub/50"
         />

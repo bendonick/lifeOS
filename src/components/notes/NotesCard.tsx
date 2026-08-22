@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { accentControl, accentText, type Accent } from "@/components/ui/accents";
 import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
 import type { Note } from "@/lib/db/notes";
@@ -102,22 +103,33 @@ export function NotesCard({
         </ul>
       )}
 
-      <form onSubmit={add} className="mt-3">
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          id={inputId}
-          placeholder={placeholder}
-          aria-label={`${title} text`}
-          aria-invalid={!!addError}
-          className="w-full rounded-md border border-border bg-bg px-2.5 py-1.5 text-sm placeholder:text-faint"
-        />
-        {(error || addError) && (
-          <p role="alert" className="mt-1 text-[11px] text-danger">
-            {error ?? addError}
-          </p>
-        )}
-      </form>
+      {/* Editing behind intent (#64/#72); the rail Quick-add anchors open it. */}
+      <Disclosure
+        variant="add"
+        accent={accent}
+        summary={`Add ${kind}`}
+        openSummary="Cancel"
+        anchors={[inputId]}
+        className="mt-3"
+      >
+        <form onSubmit={add}>
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            id={inputId}
+            placeholder={placeholder}
+            aria-label={`${title} text`}
+            aria-invalid={!!addError}
+            autoFocus
+            className="w-full rounded-md border border-border bg-bg px-2.5 py-1.5 text-sm placeholder:text-faint"
+          />
+          {(error || addError) && (
+            <p role="alert" className="mt-1 text-[11px] text-danger">
+              {error ?? addError}
+            </p>
+          )}
+        </form>
+      </Disclosure>
     </div>
   );
 }

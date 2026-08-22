@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { Pill, TypePill } from "@/components/ui/Pill";
 import { Table } from "@/components/ui/Table";
 import { accentControl, urgencyText } from "@/components/ui/accents";
@@ -204,7 +205,17 @@ export function AcademicTasks({
             ))}
       </Table>
 
-      <form onSubmit={add} className="mt-2 flex flex-wrap items-center gap-2">
+      {/* Editing behind intent (#64, now app-wide by #72): the resting page
+          reads; the rail Quick-add anchors reach the input through `anchors`. */}
+      <Disclosure
+        variant="add"
+        accent="academic"
+        summary={mode === "exams" ? "Add exam" : "Add assignment or task"}
+        openSummary="Cancel"
+        anchors={[mode === "exams" ? "new-exam" : "new-assignment"]}
+        className="mt-3"
+      >
+      <form onSubmit={add} className="flex flex-wrap items-center gap-2">
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -212,6 +223,7 @@ export function AcademicTasks({
           placeholder={mode === "exams" ? "Add an exam…" : "Add an assignment or task…"}
           aria-label={mode === "exams" ? "exam name" : "item title"}
           aria-invalid={!!addError}
+          autoFocus
           className="min-w-40 flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-sm placeholder:text-faint"
         />
         {mode === "work" && (
@@ -269,6 +281,7 @@ export function AcademicTasks({
           Add
         </button>
       </form>
+      </Disclosure>
     </div>
   );
 }

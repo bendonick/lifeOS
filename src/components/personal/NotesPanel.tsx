@@ -89,7 +89,7 @@ export function NotesPanel({ notes }: { notes: Note[] }) {
         </Table>
       )}
 
-      <Disclosure variant="add" summary="Add note" openSummary="Cancel" anchors={["new-note"]}>
+      <Disclosure variant="add" accent="personal" summary="Add note" openSummary="Cancel" anchors={["new-note"]}>
         <NoteForm inputId="new-note" autoFocus />
       </Disclosure>
     </div>
