@@ -30,9 +30,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       {/* suppressHydrationWarning is scoped to <body>'s own attributes only —
           children still validate. It exists for browser extensions (Grammarly
           stamps data-gr-* onto <body> before React hydrates), which the app
-          cannot prevent; <body> itself carries no authored attributes, so
-          nothing real can hide behind it. */}
-      <body suppressHydrationWarning>{children}</body>
+          cannot prevent.
+
+          theme-editorial lives here, not on a per-page wrapper (#71): every
+          route wears the theme, and only a themed <body> paints the overscroll
+          canvas Graphite — a wrapper div can't reach it. */}
+      <body suppressHydrationWarning className="theme-editorial">
+        {children}
+      </body>
     </html>
   );
 }

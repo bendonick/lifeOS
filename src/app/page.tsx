@@ -26,7 +26,7 @@ export default function LifeOSPage() {
   const briefs = latestBriefs();
 
   return (
-    <PageShell title="LifeOS" subtitle={dayLabel(today)} theme="theme-editorial">
+    <PageShell title="LifeOS" subtitle={dayLabel(today)}>
       {/* No rail here: the hub *is* the navigation, so a shortcuts column would
           be a menu pointing at the page you are on. A bento without one, in the
           order of docs/03-pages/lifeos.md — brief → this week | inbox → domains

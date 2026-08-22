@@ -37,7 +37,7 @@ export default function ProfessionalPage() {
       page="Professional"
       title="Professional"
       subtitle="Day job · learning · network"
-      theme="theme-editorial"
+     
     >
       {/* Rail + bento, as on /personal and /academic (decisions #50/#54/#57).
           The rail carries Olive, the main column Professional's blue.

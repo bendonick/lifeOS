@@ -40,7 +40,6 @@ export default function AcademicPage() {
       page="Academic"
       title="Academic"
       subtitle="courses · deadlines · timetable"
-      theme="theme-editorial"
     >
       {/* Rail + bento, matching /personal (decisions #50/#54/#57). The rail is
           the ways out of the page and the day's small state — course links,

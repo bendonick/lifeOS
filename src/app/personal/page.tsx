@@ -74,7 +74,7 @@ export default function PersonalPage() {
   const germanWord = latestGermanWord();
 
   return (
-    <PageShell page="Personal" title="Personal" subtitle="habits · health · money" theme="theme-editorial">
+    <PageShell page="Personal" title="Personal" subtitle="habits · health · money">
       <div className="grid gap-6 lg:grid-cols-[19rem_minmax(0,1fr)]">
         <aside className="flex flex-col gap-6 self-start lg:sticky lg:top-28">
           {/* Anchors, not an inline menu: each target is an input inside a

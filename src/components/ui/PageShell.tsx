@@ -13,17 +13,12 @@ export function PageShell({
   page,
   title,
   subtitle,
-  theme,
   children,
 }: {
   /** Sub-page name for the breadcrumb; omit on the hub itself. */
   page?: string;
   title: string;
   subtitle?: string;
-  /** Opt-in theme class (currently `theme-editorial`, prototyped on /personal).
-   *  Applied here rather than on <body> so two themes can coexist while one is
-   *  being judged, and so the page paints its own ground. */
-  theme?: string;
   children: ReactNode;
 }) {
   // The theme wrapper is full-bleed and the column sits inside it: painting the
@@ -34,8 +29,10 @@ export function PageShell({
   // both margins, and the sticky header read as a floating slab because it
   // stopped at the column's edge. The header now spans the viewport and centres
   // its own content, which is what a sticky bar has to do to look attached.
+  // The theme itself lives on <body> (#71) — every route wears it, and only
+  // body can paint the overscroll canvas. This wrapper just guarantees height.
   return (
-    <div className={`min-h-screen ${theme ?? ""}`}>
+    <div className="min-h-screen">
       <header
         data-page-header=""
         className="material sticky top-0 z-20 border-b border-border/80 bg-bg/70 backdrop-blur-xl"
