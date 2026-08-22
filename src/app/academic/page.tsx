@@ -11,7 +11,7 @@ import { Suspense } from "react";
 import { AcademicTasks } from "@/components/academic/AcademicTasks";
 import { CoursesSection } from "@/components/academic/CoursesSection";
 import { RemindersCard } from "@/components/academic/RemindersCard";
-import { CalendarSection, CalendarSkeleton } from "@/components/calendar/CalendarSection";
+import { CalendarTile, CalendarTileSkeleton } from "@/components/calendar/CalendarTile";
 import { PageShell } from "@/components/ui/PageShell";
 import { Tile } from "@/components/ui/Tile";
 import { allCourses, creditTotals, type CreditTotals } from "@/lib/db/courses";
@@ -137,10 +137,10 @@ export default function AcademicPage() {
         accent="academic"
         icon={<CalendarDays size={16} />}
         title="Timetable"
-        caption="blocked-off time · nothing beside it, so the week has the room"
+        caption="blocked-off time · lives in Google Calendar"
       >
-        <Suspense fallback={<CalendarSkeleton />}>
-          <CalendarSection home="academic" />
+        <Suspense fallback={<CalendarTileSkeleton />}>
+          <CalendarTile home="academic" />
         </Suspense>
       </Tile>
     </PageShell>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Brain, Briefcase, CalendarDays, Compass, Hammer, Users, Zap } from "lucide-react";
 import { Suspense } from "react";
-import { CalendarSection, CalendarSkeleton } from "@/components/calendar/CalendarSection";
+import { CalendarTile, CalendarTileSkeleton } from "@/components/calendar/CalendarTile";
 import { NotesCard } from "@/components/notes/NotesCard";
 import { LearningPhase } from "@/components/professional/LearningPhase";
 import { LearningTable } from "@/components/professional/LearningTable";
@@ -158,8 +158,8 @@ export default function ProfessionalPage() {
         title="Calendar"
         caption="blocked-off time · lives in Google Calendar"
       >
-        <Suspense fallback={<CalendarSkeleton />}>
-          <CalendarSection home="professional" />
+        <Suspense fallback={<CalendarTileSkeleton />}>
+          <CalendarTile home="professional" />
         </Suspense>
       </Tile>
     </PageShell>

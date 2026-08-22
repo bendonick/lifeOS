@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { CalendarDays, Inbox, LayoutGrid, ListChecks, Sunrise } from "lucide-react";
-import { CalendarSection, CalendarSkeleton } from "@/components/calendar/CalendarSection";
+import { CalendarTile, CalendarTileSkeleton } from "@/components/calendar/CalendarTile";
 import { BriefRow } from "@/components/lifeos/BriefRow";
 import { DomainTiles } from "@/components/lifeos/DomainTiles";
 import { InboxPanel } from "@/components/lifeos/InboxPanel";
@@ -87,8 +87,10 @@ export default function LifeOSPage() {
         caption="blocked-off time · lives in Google Calendar"
         accent="hub"
       >
-        <Suspense fallback={<CalendarSkeleton />}>
-          <CalendarSection />
+        {/* Collapsed like Personal's (#66, now #72): what's coming leads, the
+            grid opens on request. No `home` — the hub reads every calendar. */}
+        <Suspense fallback={<CalendarTileSkeleton />}>
+          <CalendarTile />
         </Suspense>
       </Tile>
     </PageShell>
