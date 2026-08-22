@@ -20,6 +20,11 @@
   --color-surface: #17171b;
   --color-raised: #212128;
   --color-border: #2e2e37;
+  /* The module boundary (Tile, rail-card shells) — deliberately its own token:
+     hairline structure and the one strong border per section are different
+     meanings, and at --color-border (~1.5:1 on its grounds) a thicker module
+     border was still invisible. Keep it below text tones; it is a line, not ink. */
+  --color-border-strong: #43434f;
 
   /* text — faint is a *text* tone and must stay legible (4.7:1 on surface);
      decorative hairlines use --color-border, not faint. */
@@ -104,6 +109,7 @@
   --color-raised: #29323f; /* derived — buttons, inputs */
   --color-track: #222a36; /* derived — the unfilled part of a progress bar */
   --color-border: #37414f; /* derived */
+  --color-border-strong: #54627a; /* module boundary — 2.6:1 on Midnight, 3.0:1 on Graphite */
 
   /* Merlot, exact. A field: 1.35:1 on Graphite so it can never carry text, but
      Bone reads 10.60:1 on it, so it hosts whole surfaces. */

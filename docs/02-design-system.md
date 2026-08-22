@@ -79,8 +79,11 @@ A border must mean **grouping or interaction**. When every element has one, none
 - **One border per section.** The `Tile` is it. A `Card` inside a `Tile` is a card inside a card:
   use `<Card bare>`, which keeps the label/value/context grammar and drops the box. A `Table`
   already inside a `Tile` takes `frameless`. Since 2026-08-23 this holds on **every** page, and
-  by weight as well as by count: the module shell (`Tile`, and `NotesCard`'s rail shell) is
-  `border-2` — the page's one strong border — while inner structure stays hairline.
+  by weight **and tone**: the module shell (`Tile`, and `NotesCard`'s rail shell) is `border-2`
+  in `--color-border-strong` (2.6:1 on Midnight, 3.0:1 on Graphite) — the page's one strong
+  border — while inner structure stays hairline `--color-border` (~1.5:1). The strong tone is
+  its own token because the first attempt thickened the hairline colour and 2px of an invisible
+  line was still invisible.
   `ThisWeek`, `ProjectTasks` and `AcademicTasks` take a `frameless` prop rather than hardcoding
   it, because the two detail pages have no Tile and keep the table's own frame.
 - **Rows use dividers or spacing**, never individual boxes (`divide-y divide-border`).
