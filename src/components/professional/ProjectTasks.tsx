@@ -25,6 +25,7 @@ export function ProjectTasks({
   inputId,
   empty,
   frameless = false,
+  rows = "divided",
 }: {
   projectId: number;
   tasks: Task[];
@@ -32,6 +33,8 @@ export function ProjectTasks({
   empty: string;
   /** Inside a Tile the tile is the border (#65); the detail page keeps the frame. */
   frameless?: boolean;
+  /** Forwarded to Table — /professional renders row-cards, the detail page dividers. */
+  rows?: "divided" | "cards";
 }) {
   const router = useRouter();
   const [isAdding, startTransition] = useTransition();
@@ -86,7 +89,7 @@ export function ProjectTasks({
         </p>
       )}
 
-      <Table columns={["", "Task", "Due", "Left"]} empty={empty} frameless={frameless}>
+      <Table columns={["", "Task", "Due", "Left"]} empty={empty} frameless={frameless} rows={rows}>
         {tasks.map((t) => {
           const done = valueFor(t, !!t.done);
           const info = t.due ? dueInfo(t.due) : null;

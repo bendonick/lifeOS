@@ -37,7 +37,9 @@ export default function ProfessionalPage() {
       page="Professional"
       title="Professional"
       subtitle="Day job · learning · network"
-      theme="theme-editorial"
+      // widget-proto: the shell-radius half of the widget-hierarchy prototype
+      // (globals.css) — professional only while the user reviews it.
+      theme="theme-editorial widget-proto"
     >
       {/* Rail + bento, as on /personal and /academic (decisions #50/#54/#57).
           The rail carries Olive, the main column Professional's blue.
@@ -46,7 +48,7 @@ export default function ProfessionalPage() {
           the column past the grid — this page has four
           tables and is where that was first hit. */}
       <div className="grid gap-6 lg:grid-cols-[19rem_minmax(0,1fr)]">
-        <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-28">
+        <aside className="flex flex-col gap-6 self-start lg:sticky lg:top-28">
           <Tile id="nav" accent="hub" icon={<Compass size={16} />} title="Go to">
             <nav aria-label="Sections" className="flex flex-col gap-1.5 text-sm">
               {professionalProjects().map((p) => (
@@ -86,7 +88,7 @@ export default function ProfessionalPage() {
           />
         </aside>
 
-        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
           <Tile
             id="day-job"
             accent="professional"
@@ -102,6 +104,7 @@ export default function ProfessionalPage() {
                 inputId="new-day-job-task"
                 empty="nothing open — add a task below"
                 frameless
+                rows="cards"
               />
             ) : (
               <p className="rounded-lg border border-border bg-raised px-3 py-6 text-center text-xs text-faint">

@@ -100,6 +100,7 @@ export function NetworkSection({
 
       <Table
         frameless
+        rows="cards"
         columns={["Name", "Company", "How met", "Last", "Follow-up", ""]}
         empty={
           view === "due"

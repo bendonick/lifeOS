@@ -72,6 +72,7 @@ export function ProjectsSection({ projects }: { projects: ProjectWithWork[] }) {
         columns={["Project", "Status", "Deadline", "Left", "Open", ""]}
         empty="nothing in flight — add a project below"
         frameless
+        rows="cards"
       >
         {projects.map((p) => {
           const info = p.deadline ? dueInfo(p.deadline) : null;

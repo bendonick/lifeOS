@@ -110,6 +110,7 @@
   --color-track: #222a36; /* derived — the unfilled part of a progress bar */
   --color-border: #37414f; /* derived */
   --color-border-strong: #54627a; /* module boundary — 2.6:1 on Midnight, 3.0:1 on Graphite */
+  --color-inset: #212a38; /* subordinate row-card ground — one quiet step off Midnight */
 
   /* Merlot, exact. A field: 1.35:1 on Graphite so it can never carry text, but
      Bone reads 10.60:1 on it, so it hosts whole surfaces. */
@@ -348,4 +349,52 @@ body {
     background-color: var(--color-surface) !important;
     backdrop-filter: none !important;
   }
+}
+
+/*
+ * Subordinate row-cards — `Table rows="cards"` (2026-08-23, prototyped on
+ * /professional). The internal-vs-external grammar from the user's reference:
+ * repeated items inside a module may be contained, but only in a visibly
+ * subordinate style — hairline outline, quiet inset ground, smaller radius —
+ * never the shell's own 2px border-strong. Plain CSS rather than utilities
+ * because rounded row-cards inside a real <table> need the separate border
+ * model, and tr borders don't render under it — the chrome lives on the cells.
+ * --color-inset is declared here, not in @theme: no utility reads it, and
+ * unused @theme vars get tree-shaken (the --color-focus lesson).
+ */
+:root {
+  --color-inset: #1c1c22; /* cool-theme step between surface and raised */
+}
+
+.table-cards {
+  border-collapse: separate;
+  border-spacing: 0 0.375rem;
+}
+.table-cards thead th {
+  border-bottom: 1px solid var(--color-border);
+}
+.table-cards tbody tr:not([data-empty]) > td {
+  background: var(--color-inset);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+.table-cards tbody tr:not([data-empty]) > td:first-child {
+  border-left: 1px solid var(--color-border);
+  border-top-left-radius: 0.375rem;
+  border-bottom-left-radius: 0.375rem;
+}
+.table-cards tbody tr:not([data-empty]) > td:last-child {
+  border-right: 1px solid var(--color-border);
+  border-top-right-radius: 0.375rem;
+  border-bottom-right-radius: 0.375rem;
+}
+
+/*
+ * Widget-hierarchy prototype — scoped to /professional (via PageShell's theme
+ * class) while under review; rolls into Tile/NotesCard proper if approved.
+ * Module shells step up to 12px so shell vs row-card also reads by shape.
+ */
+.widget-proto section[aria-labelledby],
+.widget-proto aside > div[aria-busy] {
+  border-radius: 0.75rem;
 }

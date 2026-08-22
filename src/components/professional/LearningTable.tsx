@@ -107,6 +107,7 @@ export function LearningTable({ items }: { items: LearningItem[] }) {
         columns={["Topic", "Type", "Status", "Started", "Learned"]}
         empty="nothing here yet — add the first topic below"
         frameless
+        rows="cards"
       >
         {visible.map((item) => (
           <tr key={item.id}>
