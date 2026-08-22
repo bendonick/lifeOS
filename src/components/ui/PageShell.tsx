@@ -40,7 +40,12 @@ export function PageShell({
         data-page-header=""
         className="material sticky top-0 z-20 border-b border-border/80 bg-bg/70 backdrop-blur-xl"
       >
-        <div className="mx-auto max-w-6xl px-6 py-4">
+        {/* 120rem, not 6xl: at 72rem the column read as a slab with dead
+            gutters the moment the effective viewport widened (80% browser
+            zoom ≈ 1,800px). The ceiling only exists to bound prose measure on
+            ultra-wide displays; header and main share it so the sticky bar's
+            content stays aligned with the column. */}
+        <div className="mx-auto max-w-[120rem] px-6 py-4">
           <nav aria-label="Breadcrumb" className="text-xs text-faint">
             {page ? (
               <>
@@ -62,7 +67,7 @@ export function PageShell({
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-6 pt-8 pb-16">
+      <main className="mx-auto max-w-[120rem] px-6 pt-8 pb-16">
         <div className="flex flex-col gap-10">{children}</div>
       </main>
     </div>
