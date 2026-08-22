@@ -27,7 +27,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={serif.variable}>
-      <body>{children}</body>
+      {/* suppressHydrationWarning is scoped to <body>'s own attributes only —
+          children still validate. It exists for browser extensions (Grammarly
+          stamps data-gr-* onto <body> before React hydrates), which the app
+          cannot prevent; <body> itself carries no authored attributes, so
+          nothing real can hide behind it. */}
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }
