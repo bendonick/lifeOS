@@ -233,7 +233,7 @@ function MerchantRow({
           </span>
         )}
         {m.mixed && (
-          <span className="block text-[11px] text-muted">rows disagree — assigning unifies them</span>
+          <span className="block text-xs text-muted">rows disagree</span>
         )}
       </span>
 

@@ -9,15 +9,21 @@ export function Card({
   icon,
   label,
   accent = "hub",
+  labelTone = "accent",
   value,
   context,
   children,
   surface = "bg-surface",
+  bare = false,
   className = "",
 }: {
   icon?: ReactNode;
   label: string;
   accent?: Accent;
+  /** Accent labels are for cards that lead. Four accent-coloured labels over
+   *  four empty metrics spent the page's whole colour budget on "no data yet" —
+   *  the palette rule is that colour marks meaning, and "Sleep" is a caption. */
+  labelTone?: "accent" | "muted";
   value?: ReactNode;
   context?: string;
   children?: ReactNode;
@@ -25,11 +31,21 @@ export function Card({
    *  tiles around it; passing it through className would not reliably win, as
    *  Tailwind utilities share specificity and source order decides. */
   surface?: string;
+  /** Drop the box. A `Card` inside a `Tile` is a card inside a card, and four
+   *  of them made the Health tile read as five nested rectangles saying "—".
+   *  Bare keeps the grammar — label, value, context — and lets the tile be the
+   *  only border. */
+  bare?: boolean;
   className?: string;
 }) {
+  const shell = bare ? "" : `rounded-lg border border-border p-4 ${surface}`;
   return (
-    <div className={`rounded-lg border border-border p-4 ${surface} ${className}`}>
-      <div className={`flex items-center gap-2 text-xs font-medium ${accentText[accent]}`}>
+    <div className={`${shell} ${className}`}>
+      <div
+        className={`t-eyebrow flex items-center gap-2 font-medium ${
+          labelTone === "accent" ? accentText[accent] : "text-muted"
+        }`}
+      >
         {icon}
         <span>{label}</span>
       </div>

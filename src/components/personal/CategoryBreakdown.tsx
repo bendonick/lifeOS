@@ -61,14 +61,13 @@ export function CategoryBreakdown({
   }
 
   const max = Math.max(...rows.map((r) => Math.max(r.spent, r.baseline ?? 0)), 1);
-  const nothingSpent = rows.every((r) => r.spent === 0);
 
   return (
-    <Card label="By category" accent="personal">
+    <Card label="By category" accent="personal" labelTone="muted" bare>
       <ul className="mt-3 flex flex-col gap-2.5">
         {rows.map((r) => (
           <li key={r.label} className="flex items-center gap-2.5">
-            <span className="w-20 truncate text-xs text-muted">{r.label}</span>
+            <span className="w-20 shrink-0 truncate text-xs text-muted">{r.label}</span>
             <div className="relative h-2 flex-1 rounded-full bg-track">
               <div
                 className={`absolute inset-y-0 left-0 rounded-full ${
@@ -87,7 +86,7 @@ export function CategoryBreakdown({
                 />
               )}
             </div>
-            <span className="tabular w-16 text-right text-xs">
+            <span className="tabular w-16 shrink-0 text-right text-xs">
               {r.spent > 0 ? (
                 `CHF ${chf.format(r.spent)}`
               ) : (
@@ -97,10 +96,7 @@ export function CategoryBreakdown({
           </li>
         ))}
       </ul>
-      <p className="mt-4 text-[11px] text-faint">
-        ▲ marks your historical monthly average
-        {nothingSpent && " · bars fill as the month is spent"}
-      </p>
+      <p className="mt-4 text-xs text-faint">▲ your monthly average</p>
     </Card>
   );
 }

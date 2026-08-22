@@ -35,10 +35,10 @@ export function SpendingHistory({ months, startDate }: { months: MonthSpend[]; s
   const labelLeft = markerX > W * 0.6;
 
   return (
-    <div className="rounded-lg border border-border bg-surface p-3">
-      <div className="flex items-baseline justify-between px-1">
-        <span className="text-xs font-medium text-muted">Monthly spend · full history</span>
-        <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-faint">
+    <div>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <span className="text-xs font-medium text-muted">Monthly spend</span>
+        <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-faint">
           {STACK.map((c) => (
             <span key={c} className="flex items-center gap-1">
               <span aria-hidden="true" className={`inline-block h-1.5 w-1.5 rounded-full ${FILL[c].replace("fill-", "bg-")}`} />
@@ -49,7 +49,6 @@ export function SpendingHistory({ months, startDate }: { months: MonthSpend[]; s
             <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-cat-rest" />
             other
           </span>
-          <span>· pre-budget months faded</span>
         </span>
       </div>
       <div className="overflow-x-auto">

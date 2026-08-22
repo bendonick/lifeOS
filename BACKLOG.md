@@ -154,3 +154,40 @@ becomes a session the day its data exists.
   drops a month with implausibly few transactions (July 2026 has 6, against a median of 49).
   The money map and the history chart do not apply the same test, so a sparse month still reads
   as a quiet month there.
+
+## Personal appointment flow (2026-08-18)
+
+- ~~`npm run build` type-checks four API routes into failure~~ — **closed 2026-08-22 as
+  resolved upstream.** Re-verified: the build exits 0 and `npx tsc --noEmit` is clean, with all
+  four `read*Body()` exports still in place — nothing here changed, so the Next version's
+  generated route types evidently stopped rejecting non-handler exports. For the record, the
+  failure was `TS2344 … Property 'readContactBody' is incompatible with index signature` in
+  `src/app/api/{contacts,courses,learning,projects}/route.ts`.
+- **Editing an appointment in place.** Today a wrong time or address means ticking the row off
+  and re-adding it. `PATCH /api/tasks/[id]` already accepts `due` and `notes`, so this is UI
+  only — but the row has no edit affordance and `BudgetTable`'s inline-editor idiom is the
+  obvious thing to copy.
+- **No end time.** The Google hand-off assumes one hour and says so in the tooltip. A real
+  end-time field is easy; whether it earns a fourth control in that add row is the question.
+- **Recurring personal appointments.** `googleEventUrl()` already takes a `recur` RRULE (the
+  course link uses it); nothing on Personal produces one.
+- **Nothing reconciles a LifeOS row against the Google event once it exists** — the same gap
+  decision #28 accepted on Academic when it removed the schedule check. Two places now.
+- **`input[type=date|time]` shows no `:focus-visible` ring on its host in Chromium** (it
+  highlights the focused sub-field instead). Affects `due date`, `time`, `metric date` and
+  Academic's `due time`. Pre-existing platform behaviour; a custom ring would be app-wide chrome.
+
+## Personal hierarchy pass (2026-08-18)
+
+- **Focused views instead of inline expansion.** The redesign used disclosures because a routing
+  change mid-pass would have been disruptive. `/personal/health` already proves the pattern; a
+  `/personal/money` holding the budget table, proposal and merchant queue would let the Spending
+  tile drop to a headline and a trend, and the same argument applies to a `/personal/calendar`.
+  Worth doing when the sections next need work, not before.
+- **Two pill-tab copies left.** `NotesPanel` migrated to `ui/Tabs` in this pass; `AcademicTasks`,
+  `TrendsView` and `WeekCalendar` still carry their own.
+- **`TodayBand` calls `budgetOverview()` a second time** (the page already computes it inside
+  `SpendingSection`). Sub-millisecond on local SQLite and correctness is preserved — both read the
+  same function — but the tidy version passes it down from the page.
+- **The habit ring renders a full-size 0%** when nothing is ticked. Honest, and the brief wanted
+  progress visible, but a 104px ring is a lot of rail for one zero.

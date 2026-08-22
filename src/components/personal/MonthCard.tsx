@@ -36,7 +36,15 @@ export function MonthCard({ o, insights = [] }: { o: BudgetOverview; insights?: 
   });
 
   return (
-    <Card label={monthLabel} accent="personal" className="lg:col-span-2">
+    // Bare, with a rule instead of a box: this sits inside the Spending tile,
+    // and a bordered card inside a bordered tile is the nested-rectangle problem
+    // the redesign exists to remove. The hierarchy comes from the numeral size.
+    <Card
+      label={monthLabel}
+      accent="personal"
+      bare
+      className="lg:col-span-3 lg:border-r lg:border-border lg:pr-6"
+    >
       {o.prospective ? <Prospective o={o} /> : <InFlight o={o} insights={insights} />}
     </Card>
   );
@@ -57,9 +65,7 @@ function Prospective({ o }: { o: BudgetOverview }) {
         starts {o.month}-01
         {days > 0 && ` · in ${days} ${days === 1 ? "day" : "days"}`}
       </p>
-      <div className="tabular t-display mt-3 text-3xl font-semibold">
-        CHF {chf.format(o.variable.budget)}
-      </div>
+      <div className="tabular t-metric mt-3 text-4xl">CHF {chf.format(o.variable.budget)}</div>
       <p className="mt-1 text-xs text-muted">
         planned for variable spending · all-in {chf.format(o.allIn.budget)} a month
       </p>
@@ -106,7 +112,7 @@ function InFlight({ o, insights }: { o: BudgetOverview; insights: Insight[] }) {
   return (
     <>
       <div className="mt-3 flex items-baseline justify-between gap-3">
-        <span className={`tabular t-display text-3xl font-semibold ${over ? "text-danger" : ""}`}>
+        <span className={`tabular t-metric text-4xl ${over ? "text-danger" : ""}`}>
           CHF {chf.format(Math.abs(Math.round(left)))}
         </span>
         <span className={`text-xs ${paceTone}`}>{paceWord}</span>

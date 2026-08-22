@@ -6,26 +6,66 @@ describes what exists.
 
 ## Layout
 
-**Themed `theme-editorial` (decisions #48/#55) — Graphite ground, Midnight Blue tiles, Bone text, Olive rail titles, Tobacco main titles. Rebuilt as a rail + bento, 2026-08-17 (decisions #50/#54).** A sticky 19rem left rail — Quick
-add · Go to · To review · Habits · German, all Cerulean-titled — beside a twelve-column bento of
-`Tile`s in ochre: Health 12, Spending 12, Tasks 6 · Bills 6, Notes 12, Calendar 12. The accent
-split is the point: cool for the day's small state, warm for the subject matter, so the halves
-read apart without a divider. Habits leads with a completion
-ring and Spending leads with the history chart, so both tiles open with a picture. The original
-rail-and-column description below is superseded.
+**Rebuilt as a three-level hierarchy, 2026-08-18 (decisions #63–#66).** Theme unchanged
+(`theme-editorial`, #48/#55): Graphite ground, Midnight tiles, Bone text, Olive rail, Tobacco
+main column.
 
-Breadcrumb `LifeOS / Personal`; narrow left rail (Quick Actions · Navigation ·
-Notes-to-review count · German card); wide main column of banner+caption sections:
-Habits → Health → Spending → Tasks → Bills → Notes; Calendar full-width below.
+1. **The rail** — the day, in six modules: **Quick add** (four anchors) · **Needs attention**
+   (unpaid bills, notes to review, merchants to categorise — warm only when genuinely late) ·
+   **Signals** (budget headline, whether anything was logged today) · **Habits** · **German** ·
+   **Go to**. Sticky, so it follows the whole column. `src/components/personal/RailStatus.tsx`
+   holds the first two as server components; every figure comes from the same function the
+   section below uses, so the two cannot disagree.
+
+   There is **no full-width heading band** — the page opens straight into the tiles, like
+   `/academic`. A `TodayBand` held this content for one iteration and was dissolved into the rail.
+   *Next up* did not survive the move: the Schedule tile is the first thing in the main column and
+   its first row is that same task. *Signals* carries no habits row for the same reason — the
+   Habits tile is directly beneath it with a completion ring.
+2. **Rail + stacked column** — supporting context, and structurally identical to `/academic`
+   and `/professional`. Sticky 19rem rail (Habits · German, Olive) beside a twelve-column grid
+   (Tobacco) in which everything stacks full width: **Schedule 12 · Health 12 · Spending 12**,
+   then **Bills 6 · Notes 6** as the last row. Only the week calendar sits outside the rail grid,
+   at full page width (#28/#58 — it has a 52rem floor). Navigation is a quiet footer row.
+
+   Two rules this encodes, both learned the hard way here:
+   - **Pairing at `span-6` opens holes.** Row one's height is the taller tile's, so the next row
+     starts below *it* — ~105px of nothing sat under Schedule because Health was taller. Only the
+     last row may pair, where the shorter tile leaves a ragged corner instead.
+   - **Content tiles must live inside the rail grid or the rail stops following.** With Spending
+     and Calendar outside it the grid was exactly as tall as the rail, so `lg:sticky lg:top-28`
+     had **zero travel**. It now has 782px. Keep `content-start` alongside `items-start` as a
+     guard: this div is a grid *item*, and a stretched grid container spreads its auto rows.
+
+   At 776px the full-width tiles compact their insides — Health's metrics run 4-across in one row,
+   and Spending's hero:category split is 3:2 (`lg:grid-cols-5`) so the category bars keep a usable
+   track.
+3. **Behind a `Disclosure`** — the detail: budget lines, propose-from-history, the transaction
+   tools, the CSV import, the habit matrix, the week grid. Every collapsed summary carries the one
+   fact worth knowing while shut ("120 merchants to review", "5 fixed · 3 variable · 6 annual").
+
+**Editing is behind intent (#64).** No form is open at rest — asserted, not eyeballed. `QuickAdd`
+and each section's `+` render the *same* components: `TaskForm`, `MetricForm`, `NoteForm`,
+`TxnQuickAdd`.
+
+**No tile carries a caption** (decision #67) — every one of them restated the module beneath it —
+and nothing on the page explains how the interface works. What survives is data, its units, the
+caveats that make a figure auditable, `generated_at` on anything generated, and one-clause empty
+states.
+
+Breadcrumb `LifeOS / Personal`.
 
 ## Modules (as built)
 
-1. **Habits** — `habits`/`habit_log`. One compact flat list (time-of-day group headers
+1. **Habits** (rail) — `habits`/`habit_log`. One compact flat list (time-of-day group headers
    dropped on user feedback 2026-08-16; the query still orders morning → anytime →
    evening), one-tap done for today, trailing **7-dot strip** per habit (today rightmost,
    ringed). Optimistic toggle with revert-on-failure. One query for the whole week window.
+   **Since 2026-08-18** progress leads — completion ring, then the list — and the 7-dot strips
+   sit behind a `7-day history` toggle, each row showing `n/7` instead. Ticking today is never
+   behind anything.
 
-2. **Health cards** — *Macros left*, *Sleep* (delta vs 7d avg), *HRV* (vs configured range),
+2. **Health** — *Macros left*, *Sleep* (delta vs 7d avg), *HRV* (vs configured range),
    *Steps* (% of target), each with a hand-rolled SVG sparkline (14d). Honest empty states.
    Manual quick-entry + **mapped CSV import** (`health.csv_mappings` in config; `generic`
    mapping seeded). All writes go through `ingestMetrics(rows, source)`
@@ -33,6 +73,10 @@ Habits → Health → Spending → Tasks → Bills → Notes; Calendar full-widt
    **No device integration** (decision #17) — Oura/Garmin adapters are BACKLOG and will
    write through the same ingest function. Targets in config (`health.target.*`,
    `health.range.hrv`), confirmed with the user 2026-08-16.
+   **Since 2026-08-18** the four metrics are `Card bare` — no boxes inside the tile — with muted
+   labels; `MetricForm` sits behind `Log a metric` (and in Quick add), `HealthImport` behind
+   `Import CSV`. The duplicate `trends →` at the foot of the section is gone; the tile header
+   carries it.
 
 3. **Health trends** — `/personal/health`. Linked single-series small multiples (shared
    range selector 7d/30d/90d/all, synced crosshair), a correlation **scatter** with Pearson
@@ -88,8 +132,26 @@ Habits → Health → Spending → Tasks → Bills → Notes; Calendar full-widt
    behind a `Manage transactions` disclosure that auto-opens when `#uncategorised` is targeted.
    The money map was cut as "cool but not that insightful" — it was also trailing-12-month,
    which fought the month focus the page is for.
-5. **Tasks — due this week** — reuses the Stage 1 `ThisWeek` component with a
-   domain-filtered query (`weekTasksByDomain('personal')`).
+5. **Schedule** (was "Tasks — due this week"; renamed 2026-08-18) — reuses the Stage 1
+   `ThisWeek` component with a domain-filtered query (`weekTasksByDomain('personal')`).
+   It holds two kinds of row and tells them apart with **no tag at all** (decision #60): a
+   row whose `due` carries a time (`'2026-08-22T10:00'`) is an *appointment*, a row with
+   only a date is a task. Consequences, all from that one fact:
+   - The add row offers **date + time + Details**, the time optional; a time with no date
+     is refused rather than dropped. Details is free text stored in `tasks.notes`
+     (decision #62) and renders as a muted second line under the title.
+   - A timed row gets a **`calendar ↗`** hand-off — Google's own form, prefilled, which the
+     user presses Save on, so Google still creates and owns the event (#27/#61). One hour is
+     assumed and the tooltip says so; Details goes over as the event's `location`.
+   - The query keeps **every open appointment regardless of the 7-day horizon**
+     (`OR length(due) > 10`), under a `Later` divider. Plain dated tasks keep the week
+     filter. Booking something a month out used to mean typing it in and watching it vanish.
+   - The **Type column is gone here** (`showType={false}`): Personal only ever writes
+     `type='task'`, so the pill was one word repeated down the page. The hub keeps it, where
+     the type actually varies. The header reads `When` whenever a timed row is present.
+
+   The loop closes on this page: the event handed to Google comes back into the Calendar
+   tile below within the ICS cache TTL (10 min).
 
 6. **Bills** — `bills`/`bill_payments`, paid checkbox per month. Unpaid past `due_day` →
    warn; unpaid at month rollover (only when the previous month was tracked) → danger.
@@ -101,7 +163,10 @@ Habits → Health → Spending → Tasks → Bills → Notes; Calendar full-widt
 8. **German** — rail card reading `briefs` kind=`german_word`; honest empty state until
    Stage 5.
 
-9. **Calendar** — Stage 1 `CalendarStub`, personal accent; real ICS lands in Stage 3.
+9. **Calendar** — `CalendarTile`: a compact list of what is coming on this page's own calendar,
+   with the full `WeekCalendar` grid behind `Open week` (decision #66). Full page width, outside
+   the rail grid. The collapsed summary names its scope, because a filtered list above an
+   unfiltered count reads as a contradiction.
 
 ## Data touched
 

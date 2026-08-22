@@ -71,6 +71,55 @@ the green against the warm yellow-brown.
    main column beside a 19rem rail is narrower than that (#58).
    Full-width sections below where a module needs the room (calendar, big tables).
 
+## Surfaces (decision #65)
+
+A border must mean **grouping or interaction**. When every element has one, none of them does —
+`/personal` reached fourteen outlined rectangles at equal weight before this was written down.
+
+- **One border per section.** The `Tile` is it. A `Card` inside a `Tile` is a card inside a card:
+  use `<Card bare>`, which keeps the label/value/context grammar and drops the box. A `Table`
+  already inside a `Tile` takes `frameless`.
+- **Rows use dividers or spacing**, never individual boxes (`divide-y divide-border`).
+- **Accent colour marks meaning, not category.** `Card` defaults to an accent label; pass
+  `labelTone="muted"` for anything that is a caption. Four accent labels over four empty metrics
+  is the page's whole colour budget spent on "no data yet".
+- **Control chrome lives in `src/components/ui/controls.ts`** — `inputChrome`, `fieldChrome`,
+  `selectChrome`, `buttonChrome`. Copying the strings is fine for the second form and stops
+  scaling at the fifth.
+
+## Text (decision #67)
+
+**Every line has to earn its place.** The page reached seven tile captions and a dozen
+explanatory footnotes, and none of them told the user anything the module beneath them wasn't
+already showing.
+
+- **Tiles carry no caption on `/personal`.** "today's metrics" over four metrics, "this month"
+  over a column of due dates, "resets at midnight" over a list of checkboxes — a caption that
+  restates the content is noise wearing the costume of guidance. `Tile`'s `caption` prop remains
+  for a caption that carries a *fact* the tile cannot show.
+- **Never explain how the interface works.** No "bars fill as you spend", no "the line marks where
+  spending should be by day 12", no "assigning unifies them". The user built this; a control that
+  needs a sentence underneath it is a control to fix, not to annotate.
+- **Do keep**: data and its units, *caveats about trustworthiness* (which months a median skipped,
+  that a total mixes smoothed annual figures, `generated_at` on anything generated), and empty
+  states — but at one clause, not two ("All caught up.", not "Nothing to review — all caught up.").
+- **Two numbers on one surface must share a scope, not explain it.** The Calendar tile counted
+  every feed above a list filtered to one, and the fix was to count the same set — not to append
+  "all calendars".
+
+## Progressive disclosure (decision #63)
+
+Three levels, and the rule that makes it work: **status stays visible, only detail collapses.**
+
+- `src/components/ui/Disclosure.tsx` is the one control (`variant="chevron"` reveals detail,
+  `variant="add"` opens an editor). `DisclosureTrigger` is the same button for the controlled
+  case, where the detail is spread across rows rather than in one block.
+- **A collapsed disclosure must say what is behind it** — `detail` carries the count or total, so
+  a real backlog is never hidden behind a control that looks inert.
+- `anchors` opens the panel when a hash targets something inside it, then scrolls and focuses it.
+  The browser cannot: while the panel is shut, the element is not in the DOM.
+- **Editing is behind intent (#64).** Default state is reading. No form is open at rest.
+
 ## Recurring patterns
 
 - **Command center**: read-only calendar (time) and an interactive task list (work) on the same
@@ -108,6 +157,10 @@ the green against the warm yellow-brown.
   functional sans is the strongest "authored rather than generated" signal available, and it is
   what the user's own reference is built on.
 - No more than two font weights per view. Numbers in stat cards may be larger/tabular.
+- **The scale is five steps and nothing between them** (`globals.css`): page title (2rem serif) >
+  section title (1.125rem serif, `Tile`'s h2) > metric (`.t-metric`, 1.5–2rem, tabular) > body
+  (0.875rem) > metadata (0.75rem). **0.75rem is the floor** for anything a reader has to parse;
+  11px survives only inside dense tabular chrome. `.t-eyebrow` is the small label above a metric.
 
 ## Craft standards (added 2026-08-16 — decision #24)
 

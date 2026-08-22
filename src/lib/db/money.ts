@@ -63,6 +63,29 @@ export function uncategorisedCountInWindow(): number {
   return row.n;
 }
 
+/**
+ * How many merchants still need a category — the Today band's attention line.
+ *
+ * Counted rather than derived from `merchantGroups()`, which reads and shapes
+ * every merchant in the table to answer one integer. The `HAVING` clause is
+ * that function's own definition of uncategorised (`MIN(COALESCE(category,''))`
+ * empty = at least one row unfiled), restated so the two can never disagree
+ * about the number the page shows in two places.
+ */
+export function uncategorisedMerchantCount(): number {
+  const row = db
+    .prepare(
+      `SELECT COUNT(*) AS n FROM (
+         SELECT t.merchant FROM transactions t
+         WHERE t.merchant IS NOT NULL AND TRIM(t.merchant) <> ''
+         GROUP BY t.merchant
+         HAVING MIN(COALESCE(t.category, '')) = ''
+       )`
+    )
+    .get() as { n: number };
+  return row.n;
+}
+
 /** Categories the queue can assign: everything mapped to a budget line, plus
  *  'transfer' and 'income', which deliberately map to no line (never spend). */
 export function assignableCategories(): string[] {

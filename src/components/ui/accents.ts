@@ -66,6 +66,30 @@ export const urgencyText: Record<"overdue" | "today" | "soon" | "none", string> 
   none: "text-muted",
 };
 
+/* Hover border for a neutral button that belongs to an accented section. Same
+   reason as the map below it: Tailwind cannot see `hover:border-${accent}/40`. */
+export const accentHoverBorder: Record<Accent, string> = {
+  academic: "hover:border-academic/40",
+  personal: "hover:border-personal/40",
+  professional: "hover:border-professional/40",
+  hub: "hover:border-hub/40",
+  danger: "hover:border-danger/40",
+  warn: "hover:border-warn/40",
+};
+
+/* Hover tint for a trailing link that is neutral at rest — the `calendar ↗`
+   hand-off on a task row, and the shape CoursesSection's GoogleLink already
+   uses. A map rather than a template string, because Tailwind cannot see
+   `hover:text-${accent}`. */
+export const accentHoverText: Record<Accent, string> = {
+  academic: "hover:text-academic",
+  personal: "hover:text-personal",
+  professional: "hover:text-professional",
+  hub: "hover:text-hub",
+  danger: "hover:text-danger",
+  warn: "hover:text-warn",
+};
+
 /* Active view-tab tint. Lives here with the other accent maps so a fifth private
    copy of the pill-tab can't invent its own palette (src/components/ui/Tabs.tsx). */
 export const accentTab: Record<Accent, string> = {

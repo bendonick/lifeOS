@@ -7,15 +7,20 @@ import { Children, type ReactNode } from "react";
 export function Table({
   columns,
   empty,
+  frameless = false,
   children,
 }: {
   columns: string[];
   empty: string;
+  /** Drop the table's own border and ground. Use when the table is already
+   *  inside a `Tile` — otherwise the section paints a box, and the table paints
+   *  an identical box 16px inside it, and neither border means anything. */
+  frameless?: boolean;
   children?: ReactNode;
 }) {
   const rowCount = Children.count(children);
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+    <div className={`overflow-x-auto ${frameless ? "" : "rounded-lg border border-border bg-surface"}`}>
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border text-left text-xs text-muted">

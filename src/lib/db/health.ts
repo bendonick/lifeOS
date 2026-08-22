@@ -39,6 +39,12 @@ export function latestValue(metric: MetricKey): DayValue | null {
   return dailySeries(metric, last.date, last.date)[0] ?? null;
 }
 
+/** Did anything land on this date? The Today band needs the fact, not the
+ *  figures, and `healthCardData` is eight queries to answer one boolean. */
+export function hasMetricsOn(date: string): boolean {
+  return !!db.prepare("SELECT 1 AS hit FROM health_metrics WHERE date = ? LIMIT 1").get(date);
+}
+
 export interface HealthTargets {
   kcal: number;
   protein: number;

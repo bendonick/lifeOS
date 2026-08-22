@@ -246,6 +246,41 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * Type scale (docs/02-design-system.md → typography). Five steps and nothing
+ * between them, so a value, a label and a caption can never be mistaken for
+ * each other:
+ *
+ *   page title     2rem      serif    .t-serif text-3xl
+ *   section title  1.125rem  serif    .t-serif text-lg      (Tile's h2)
+ *   metric         1.5–2rem  sans     .t-metric text-2xl/3xl
+ *   body           0.875rem  sans     text-sm
+ *   metadata       0.75rem   sans     text-xs  ← the floor for anything a
+ *                                                reader has to parse
+ *
+ * 11px survives only inside dense tabular chrome (a budget row's /mo figure).
+ * It was carrying real prose in a dozen places, which is what made the page
+ * feel like an internal tool rather than something finished.
+ */
+
+/* A number that is the answer to the section's question: CHF left, kcal left,
+   habits done. Tabular so columns of them align, weighted so it beats the
+   label above it without needing a colour. */
+.t-metric {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.022em;
+  line-height: 1.05;
+  font-weight: 600;
+}
+
+/* The small label above a metric or beside a control. 12px with a touch of
+   tracking reads as deliberate at a size where 11px reads as cramped. */
+.t-eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  line-height: 1.25;
+}
+
 /* Large text reads too loose at its default tracking, so display numerals get
    negative tracking and tight leading; small text gets a touch of positive
    tracking. Size, weight, leading and tracking are chosen as a set. */

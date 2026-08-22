@@ -135,11 +135,6 @@ export function BudgetTable({
         </span>
       </div>
 
-      {!o.prospective && (
-        <p className="border-t border-border px-3 py-1.5 text-[11px] text-faint">
-          The line on each variable bar marks where spending should be by day {o.dayOfMonth}.
-        </p>
-      )}
     </div>
   );
 }

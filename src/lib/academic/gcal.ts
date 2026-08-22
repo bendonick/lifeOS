@@ -1,11 +1,13 @@
 import { scheduleDays } from "./course";
+import { googleEventUrl, hhmm } from "@/lib/calendar/gcal";
 import { addDays, zurichToUtc } from "@/lib/dates";
 import type { Course, Weekday } from "@/lib/types";
 
 /**
- * Prefilled Google Calendar event links (decision #27). The app never writes to
- * Google — it hands Google a filled-in form and you press Save, so Google
- * creates and owns the event exactly as decision #1 requires.
+ * The course half of the prefilled-Google-link story (decision #27): it knows
+ * how to describe a weekly class series, and hands the URL assembly to the
+ * shared builder in `src/lib/calendar/gcal.ts`, which Personal's one-off
+ * appointments use as well. One builder, one set of DST rules.
  *
  * Pure: no env, no db, no network. Client components import it directly.
  */
@@ -28,14 +30,6 @@ export function firstOccurrence(from: string, days: Weekday[]): string | null {
     if (wanted.has(isoDow(date))) return date;
   }
   return null;
-}
-
-/** 8.5 → '083000'. */
-function clockStamp(hour: number): string {
-  const capped = Math.min(hour, 23 + 59 / 60);
-  const h = Math.floor(capped);
-  const m = Math.round((capped - h) * 60);
-  return `${String(h).padStart(2, "0")}${String(m).padStart(2, "0")}00`;
 }
 
 /** A Date as UTC basic format, which is the only form RRULE's UNTIL accepts. */
@@ -65,11 +59,6 @@ export function googleEventPlan(course: Course): GoogleEventPlan | null {
   const startHour = course.start_hour;
   const endHour =
     course.end_hour != null && course.end_hour > startHour ? course.end_hour : startHour + 1;
-  const day = firstDate.replace(/-/g, "");
-
-  // Local wall-clock plus ctz, never UTC stamps: a class pinned to an absolute
-  // instant would slide an hour when Zurich leaves summer time mid-term.
-  const dates = `${day}T${clockStamp(startHour)}/${day}T${clockStamp(endHour)}`;
 
   const rrule = [
     "RRULE:FREQ=WEEKLY",
@@ -89,26 +78,20 @@ export function googleEventPlan(course: Course): GoogleEventPlan | null {
     .filter(Boolean)
     .join("\n");
 
-  const params = new URLSearchParams({
-    action: "TEMPLATE",
-    text: course.name,
-    dates,
-    ctz: "Europe/Zurich",
-    recur: rrule,
-    details,
-  });
-  if (course.room) params.set("location", course.room);
-
   return {
-    url: `https://calendar.google.com/calendar/render?${params.toString()}`,
+    // Local wall-clock, never UTC stamps — a term crossing the October switch
+    // would otherwise slide an hour. The shared builder enforces it.
+    url: googleEventUrl({
+      title: course.name,
+      start: `${firstDate}T${hhmm(startHour)}`,
+      end: `${firstDate}T${hhmm(endHour)}`,
+      recur: rrule,
+      details,
+      location: course.room ?? undefined,
+    }),
     summary: `${days.join(" ")} ${hhmm(startHour)}–${hhmm(endHour)}, weekly from ${firstDate}${
       course.term_end ? ` until ${course.term_end}` : ""
     }`,
     openEnded: !course.term_end,
   };
-}
-
-function hhmm(hour: number): string {
-  const h = Math.floor(hour);
-  return `${String(h).padStart(2, "0")}:${String(Math.round((hour - h) * 60)).padStart(2, "0")}`;
 }

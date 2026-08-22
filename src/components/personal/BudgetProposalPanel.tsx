@@ -10,9 +10,10 @@ import type { BudgetProposal } from "@/lib/money/propose";
 // caveats are not optional decoration. A proposal the user can't audit is worse
 // than the guess it replaces.
 //
-// Collapsed to a single button until asked. The budget lines were set once and
-// are right most of the time; a permanently-open panel restating them would be
-// the "Up next" mistake decision #28 removed.
+// Collapsed until asked — the shared `Disclosure` in `SpendingSection` owns that
+// now, rather than this component hand-rolling its own open/close pair. The
+// budget lines were set once and are right most of the time; a permanently-open
+// panel restating them would be the "Up next" mistake decision #28 removed.
 
 const chf = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
 
@@ -27,7 +28,6 @@ function monthLabel(month: string): string {
 export function BudgetProposalPanel({ proposal }: { proposal: BudgetProposal }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,18 +52,6 @@ export function BudgetProposalPanel({ proposal }: { proposal: BudgetProposal }) 
     startTransition(() => router.refresh());
   }
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="self-start text-xs text-muted transition-colors hover:text-text"
-      >
-        Propose from history →
-      </button>
-    );
-  }
-
   const { months, skippedMonths, uncategorised } = proposal;
   const range = months.length > 0 ? `${monthLabel(months[0])}–${monthLabel(months[months.length - 1])}` : "";
 
@@ -80,20 +68,11 @@ export function BudgetProposalPanel({ proposal }: { proposal: BudgetProposal }) 
         <span className="text-xs font-medium text-muted">
           Proposed from history · {months.length} complete months ({range})
         </span>
-        <div className="flex items-center gap-3">
-          {error && (
-            <span role="alert" className="text-xs text-danger">
-              {error}
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="text-xs text-faint transition-colors hover:text-muted"
-          >
-            hide
-          </button>
-        </div>
+        {error && (
+          <span role="alert" className="text-xs text-danger">
+            {error}
+          </span>
+        )}
       </div>
 
       <ul className="divide-y divide-border">
@@ -103,7 +82,7 @@ export function BudgetProposalPanel({ proposal }: { proposal: BudgetProposal }) 
             <li key={p.lineId} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2">
               <span className="min-w-0 flex-1 basis-56">
                 <span className="block text-sm">{p.line}</span>
-                <span className="block text-[11px] text-faint">
+                <span className="block text-xs text-faint">
                   median of {p.months} months · range CHF {chf.format(p.min)}–{chf.format(p.max)}
                   {p.breakdown.length > 0 &&
                     ` · ${p.breakdown.map((b) => `${b.category} ${chf.format(b.median)}`).join(" · ")}`}
@@ -129,9 +108,12 @@ export function BudgetProposalPanel({ proposal }: { proposal: BudgetProposal }) 
         })}
       </ul>
 
-      <p className="px-3 py-2 text-[11px] text-faint">
-        Variable lines only — fixed amounts are contracts you already know, and annual lines are
-        stated per year. History predates the budget, so these are a starting point, not a verdict.
+      <p className="px-3 py-2 text-xs text-faint">
+        {/* What survives is what makes the numbers auditable — which months are
+            in, which are out, and what is missing. The paragraph that used to
+            open this explained why fixed and annual lines are absent, which the
+            list itself says by not containing any. */}
+        History predates the budget, so these are a starting point, not a verdict.
         {skippedMonths.length > 0 &&
           ` ${skippedMonths.map(monthLabel).join(", ")} skipped — too few transactions to be a real month.`}
         {uncategorised > 0 &&

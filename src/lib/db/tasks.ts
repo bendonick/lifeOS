@@ -17,14 +17,24 @@ export function weekTasks(): Task[] {
     .all(horizon) as Task[];
 }
 
-/** One domain's slice of the week view (the payoff of decision #9: pages are
- *  filtered views over the single tasks store). */
+/**
+ * One domain's slice of the week view (the payoff of decision #9: pages are
+ * filtered views over the single tasks store) — plus every open *appointment*,
+ * however far out it sits.
+ *
+ * `length(due) > 10` is "this row carries a time", which is the whole of how an
+ * appointment is distinguished from a task: no tag, no enum value, just the
+ * shape of the value. A haircut booked three weeks out used to be typed in and
+ * then vanish until the week it happened, which is not somewhere you can keep a
+ * commitment.
+ */
 export function weekTasksByDomain(domain: Domain): Task[] {
   const horizon = addDays(zurichToday(), 7);
   return db
     .prepare(
       `SELECT * FROM tasks
-       WHERE done = 0 AND domain = ? AND due IS NOT NULL AND substr(due, 1, 10) <= ?
+       WHERE done = 0 AND domain = ? AND due IS NOT NULL
+         AND (substr(due, 1, 10) <= ? OR length(due) > 10)
        ORDER BY due, id`
     )
     .all(domain, horizon) as Task[];
