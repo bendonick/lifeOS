@@ -84,3 +84,17 @@ lifeos/briefs.py   brief upsert + archive + the shared script body
 capture_ingest.py  synced file → inbox → parse proposal
 brief_*.py         one per brief kind: a system prompt, a prompt, one call
 ```
+
+## One-off utilities
+
+`load_curriculum.py` bulk-loads `curriculum.json` — the flat list behind the AI/RL learning
+roadmap — into the Learning table **through the app's API**, not
+the db: each row is POSTed to `/api/learning` in reverse order, so the table's newest-first
+sort displays the curriculum in priority order on /professional. Its only db access is a
+read-only name check against `data/lifeos.db`, so re-running never duplicates. Needs the dev
+server up. No launchd schedule; stdlib only — plain `python3` works, no venv needed.
+
+```sh
+python3 load_curriculum.py                                # load, skipping rows already present
+python3 load_curriculum.py --base-url http://localhost:3000
+```
