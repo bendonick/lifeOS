@@ -5,6 +5,7 @@ import { Disclosure } from "@/components/ui/Disclosure";
 import { Pill, TypePill } from "@/components/ui/Pill";
 import { Table } from "@/components/ui/Table";
 import { accentControl, accentHoverText, urgencyText, type Accent } from "@/components/ui/accents";
+import { courseCode } from "@/lib/academic/semester";
 import { googleEventUrl } from "@/lib/calendar/gcal";
 import { addDays, dueInfo } from "@/lib/dates";
 import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
@@ -28,6 +29,9 @@ function isAppointment(task: Task): task is Task & { due: string } {
   return !!task.due && task.due.length > 10;
 }
 
+/** The course a row is filed against, when the caller's query joined it (the hub's does). */
+type WithCourse = { course_name?: string | null; course_short_name?: string | null };
+
 export function ThisWeek({
   tasks,
   today,
@@ -38,7 +42,7 @@ export function ThisWeek({
   rows = "divided",
   addInputId,
 }: {
-  tasks: Task[];
+  tasks: (Task & WithCourse)[];
   today: string;
   /** On a domain page the list is pre-filtered — fix the domain, and the
    *  redundant Domain column + select disappear. */
@@ -94,6 +98,14 @@ export function ThisWeek({
         </td>
         <td className="px-3 py-2">
           <span className={done ? "text-muted line-through" : ""}>{t.title}</span>
+          {/* The course's short code (decision #77), so "Stage 1" on a page that
+              lists every domain says which course it is a stage of. Secondary
+              text, not a pill: the Domain pill beside it already carries colour. */}
+          {t.course_name && (
+            <span className="ml-2 text-xs text-muted" title={t.course_name}>
+              {courseCode({ name: t.course_name, short_name: t.course_short_name ?? null })}
+            </span>
+          )}
           {/* Where it is, or whatever else was worth typing. Never struck
               through — the appointment being over doesn't make the address
               wrong, and a struck-through second line reads as noise. */}

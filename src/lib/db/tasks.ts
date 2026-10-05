@@ -3,19 +3,29 @@ import type { Deadline } from "@/lib/calendar/deadlines";
 import { addDays, zurichToday } from "@/lib/dates";
 import { DOMAINS, TASK_TYPES, type Domain, type Task, type TaskType } from "@/lib/types";
 
+/** A task with the course it is filed against, for the code the hub shows beside it. */
+export interface WeekTask extends Task {
+  course_name: string | null;
+  course_short_name: string | null;
+}
+
 /**
  * The LifeOS "This week" rollup: open tasks due within the next 7 days OR overdue,
- * across all domains (the payoff of the single tasks store), soonest first.
+ * across all domains (the payoff of the single tasks store), soonest first. Each
+ * row carries its course's name and short name so the hub can say "Stage 1 ·
+ * ATAI" without a second query — on a page that shows every domain, the title
+ * alone does not say which course a stage belongs to.
  */
-export function weekTasks(): Task[] {
+export function weekTasks(): WeekTask[] {
   const horizon = addDays(zurichToday(), 7);
   return db
     .prepare(
-      `SELECT * FROM tasks
-       WHERE done = 0 AND due IS NOT NULL AND substr(due, 1, 10) <= ?
-       ORDER BY due, id`
+      `SELECT tasks.*, courses.name AS course_name, courses.short_name AS course_short_name
+       FROM tasks LEFT JOIN courses ON courses.id = tasks.course_id
+       WHERE tasks.done = 0 AND tasks.due IS NOT NULL AND substr(tasks.due, 1, 10) <= ?
+       ORDER BY tasks.due, tasks.id`
     )
-    .all(horizon) as Task[];
+    .all(horizon) as WeekTask[];
 }
 
 /**

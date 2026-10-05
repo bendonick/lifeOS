@@ -19,7 +19,10 @@ Neutral-toned home. Everything here is a rollup or a doorway; nothing is owned b
    Each renders `briefs` content for today (markdown), with generated_at; a stale/missing state
    when a script hasn't run. Stage 1: stubbed cards with placeholder copy. Stage 5: wired.
 
-2. **This week** — cross-domain task table from `tasks`: due within the next 7 days OR overdue,
+2. **This week** — cross-domain task table from `tasks` (joined to `courses`, so an academic
+   row shows its course's short code as muted text beside the title — "Stage 1 · ATAI" — because
+   on a page that lists every domain the title alone does not say which course, #77): due within
+   the next 7 days OR overdue,
    not done. Columns: name, domain pill (colored), type pill, due, done checkbox. Inline add.
    This is the payoff of the single tasks store.
 
