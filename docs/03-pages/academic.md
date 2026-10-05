@@ -1,42 +1,57 @@
-# Page — Academic (`/academic`, green)
+# Page — Academic (`/academic`, Merlot)
 
-**Themed and re-laid-out 2026-08-17 (decisions #57/#58).** On `theme-editorial` — Graphite
-ground, Midnight Blue tiles, Bone text — with a sticky 19rem left rail (Go to · Quick add ·
-Reminders, Olive-titled) beside a twelve-column bento of `Tile`s in Academic's own lifted Merlot:
-Courses, Assignments & tasks, Exams. The timetable sits outside the rail grid at full page width,
-because the week grid's 52rem floor does not fit the main column. Every module, form, view tab and
-anchor from the banner layout is unchanged — only the containers moved.
-
+**Redesigned for glance reading 2026-10-05 (decisions #74–#77).** On `theme-editorial` with the
+sticky 19rem Olive rail beside a twelve-column bento in Academic's lifted Merlot. The rail now
+opens with **Now** and **Exams**; the main column has a subject — the **semester map** — followed
+by course cards and the horizon-grouped list; the timetable keeps its full-width place outside
+the rail grid (#28/#58/#73). No tile carries a caption (#67). Every capability of the table
+layout is preserved: add/edit/delete courses per slot, the view tabs, optimistic done boxes,
+the quick-add anchors, the Google and OLAT links.
 
 The MSc command center: courses, deadlines, timetable, and (later) course-content RAG.
 
 ## Modules
 
-1. **Left rail cards**: Quick Actions (New Course / New Assignment / New Exam / New Task —
-   forms defaulting domain=academic and, where relevant, a course picker), Navigation
-   (links to course pages / materials), Reminders (lightweight checklist).
+1. **Left rail** (Olive, in this order): **Now** (`AcademicNow` — the next dated item with its
+   day count, the overdue item as a link into the list, "N due this week · M next week", the
+   next week heavier than the user's median and the term's peak, and "F26 · week N of M" over a
+   thin bar); **Exams** (#75 — `AcademicTasks layout="rail"`: one line per open exam, a 24px done
+   box, the course code linking to the course, date and time; a day count only inside
+   `EXAM_COUNTDOWN_DAYS` = 30, "first in Nd" in the tile header meanwhile; `+ Add exam` behind a
+   Disclosure, anchor `#new-exam`); **Go to** (one link per enrolled course by its short code,
+   then the other pages); **Quick add** (Course / Assignment / Exam / Reminder anchors);
+   **Reminders** (`NotesCard`).
 
-2. **Courses** — gallery or table over `courses`: name, professor, credits, room, schedule-day
-   pills, time label, semester (F26/S27), status. A **credits counter** sums credits by status
-   (enrolled / completed) — the user tracks credits, not grades (grading system was explicitly
-   removed in the Notion design; do not add GPA features). It lives on the section banner's
-   `meta` slot, not in stat cards: two cards above a short table cost more room than the table.
-   Each course opens a detail view: metadata, its assignments/exams (tasks filtered by
-   course_id), and its materials folder listing (`data/academic/courses/<slug>/lectures`).
-   An enrolled course with days, a start time and a term start also links out to a **prefilled
-   Google Calendar form** (decision #27) — the app fills the series, Google creates and owns
-   the event.
+2. **Semester** — the hero (#74). `SemesterMap` renders the model from `semesterMap()` in
+   `src/lib/academic/semester.ts`: one row per course (grouped by name, #77) plus a "no course"
+   row for unfiled items, one column per week from the earliest `term_start` to the last dated
+   item, one mark per item (ring open · filled-quiet done · filled red overdue · filled amber
+   today/tomorrow · diamond exam). The current week is a `.map-now` column. A cell with marks is
+   a `Link` to the course page with an accessible name listing its items. The right column reads
+   "5 left" until a course has a completion, then "2 of 7"; the bottom row counts open items per
+   week, exams included, bold when at or above `heavyThreshold()` (median non-empty week + 1)
+   and rose on the peak. Courses with nothing dated are named in a footnote. The legend lists
+   only states present. Absent entirely when no enrolled course carries a term start.
 
-3. **Assignments & Tasks** — `tasks` filtered domain=academic, type in (task, assignment).
-   View tabs: Open / Upcoming / Overdue / By course / Completed / All. Columns: name, course,
-   type, due, days-left (computed, color-shifts as due approaches), done.
-   Due takes an **optional time** beside the date (`tasks.due` is
-   `'YYYY-MM-DD'` or `'YYYY-MM-DDTHH:MM'` — a 23:59 hand-in and a whole-day
-   deadline are different things). Same on exams.
+3. **Courses** — cards, one per course (`CoursesSection`, `groupCourses()`): code and name, a
+   Mo–Fr day strip (two-letter days; the T's were ambiguous), each slot's `time_label` with its
+   own calendar ↗ / edit / delete and the OLAT link once, a status pill only when not enrolled.
+   The whole card opens the course page. The tile header carries "6 courses · 33 credits ·
+   17.25 h/week" — credits summed once per course. Credits are the only score; no grades, no GPA
+   (decision #10). `+ New course` opens `CourseForm`, which gained **Short name** (placeholder =
+   the derived code). Each course opens the detail view: metadata (now including the short name,
+   marked "derived" until set), its assignments/exams, and its materials folder. Enrolled
+   courses with days, a start time and a term start link to a prefilled Google Calendar form
+   (#27); `courses.url` renders as "OLAT page ↗" (`courseLinkLabel()`).
 
-4. **Exams** — `tasks` filtered type=exam. **No midterm/final split and no view tabs**
-   (decision #25 — the ledger's OPEN C, closed against this line). Red accent per design
-   system, carried by the exam type pill.
+4. **Assignments & tasks** — `tasks` filtered domain=academic, type in (task, assignment).
+   View tabs: Open · N / Overdue · N / Completed / All. **Open is grouped by horizon** —
+   Overdue · Today · This week (to Sunday) · Next week · Later (collapsed, "16 · next Wed 21 Oct")
+   · No date — via `horizonOf()`; a group renders only when it has rows. Columns: a 24px done
+   box, Item (with a neutral type pill only when the type is not `assignment`), Course as its
+   short code, Due (date and time, urgency-coloured, no "overdue" word — the Left pill says it),
+   Left (days-left pill). Due takes an optional time (`'YYYY-MM-DD'` or `'YYYY-MM-DDTHH:MM'`).
+   `+ Add assignment or task` behind a Disclosure, anchor `#new-assignment`.
 
 5. **Timetable** — read-only week view of the **Academic** ICS calendar (toggle: all
    calendars), full width with nothing beside it (decision #28). Built in Stage 3 on the shared
@@ -47,6 +62,17 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
    above* it on the same page; a companion column only restated them. An "Up next" list and a
    "Schedule check" drift panel both shipped here on 2026-08-16 and were removed on 2026-08-17
    — see BACKLOG if either is wanted back.
+
+   **Deadlines on the grid (2026-10-05, decision #73).** The open, dated rows of the two
+   tables above — assignments, tasks, exams — also draw on the timetable: as Olive chips in a
+   **due strip** between the day headers and the hours (title and course only, one colour, the
+   full line as a tooltip), and as a **bulleted list under the grid**, overdue first, where the
+   date and days-left figure appear in the tables' urgency colours. Both follow the week being
+   paged. The grid renders **open by default on this page** — the one exception to #66 — and
+   the "next four classes" summary list is not shown here. Nothing is written to Google: the
+   strip is a date lane this system owns, the hour grid stays the calendar's. Wiring:
+   `openDeadlines("academic")` → `CalendarTile deadlines expanded` → `WeekCalendar deadlines`
+   → `DeadlineList`; the hub can adopt it by passing `openDeadlines()` with no domain.
 
 6. **Materials & RAG (Stage 6)** — per-course lecture PDF listing from the folder tree; a chat
    box ("ask your courses") hitting the local RAG pipeline, answers with file+page citations.
@@ -59,5 +85,5 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
 
 ## Carry-overs from the Notion design
 
-Green everywhere; banner+caption pairs ("Exams" / "midterms · finals", "Calendar" /
-"blocked-off time · lives in Google Calendar"); no grading/GPA; credits matter.
+No grading/GPA; credits matter. (The green identity became lifted Merlot with the editorial
+theme, #57, and the banner+caption pairs went with the captions, #67/#74.)

@@ -14,6 +14,16 @@ export function readCourseBody(body: unknown): CourseInput | string {
   const number = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
   const text = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
 
+  // The link is rendered as an <a href>, so only web schemes get stored — a
+  // `javascript:` value typed by mistake must not become a clickable control.
+  const url = text(b.url);
+  if (url !== null && !isWebUrl(url)) return "course page must be an http(s) link";
+
+  // The short name is read at a glance in a 6rem map label and a pill, so it
+  // is capped where it would stop being short.
+  const short_name = text(b.short_name);
+  if (short_name !== null && short_name.length > 12) return "short name must be 12 characters or fewer";
+
   return {
     name,
     professor: text(b.professor),
@@ -27,7 +37,18 @@ export function readCourseBody(body: unknown): CourseInput | string {
     term_start: text(b.term_start),
     term_end: text(b.term_end),
     semester: text(b.semester),
+    url,
+    short_name,
   };
+}
+
+function isWebUrl(value: string): boolean {
+  try {
+    const { protocol } = new URL(value);
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 export async function GET() {

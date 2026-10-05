@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { DeadlineList } from "./DeadlineList";
 import { accentEvent, accentText } from "@/components/ui/accents";
+import { dueOn, type Deadline } from "@/lib/calendar/deadlines";
 import { allDayOn, hourRange, placeTimed, type PlacedEvent } from "@/lib/calendar/layout";
 import {
   calendarAccent,
@@ -20,6 +22,14 @@ import { addDays, dayLabel, hourOf, mondayOf, weekLabel, zurichLocal } from "@/l
  *
  * Data arrives from the server already expanded; this component only navigates
  * weeks and filters calendars, both through /api/calendar.
+ *
+ * `deadlines` (decision #73) is the one thing on the grid Google does not own:
+ * the page's open, dated work, drawn as chips in a due strip above the hours
+ * and listed beneath the grid. They arrive once as a prop — every open row,
+ * not a week's worth — and the visible week is filtered here as you page, so
+ * navigation costs no second fetch. The strip is a *date* lane, never a time
+ * slot: a deadline has no duration to draw. One chip colour, by the user's
+ * call, with urgency carried by the list below and not by the chips.
  */
 
 const HOUR_PX = 44;
@@ -30,11 +40,14 @@ export function WeekCalendar({
   today,
   /** When set, the default view is this calendar alone with an "All calendars" tab. */
   home,
+  /** Open, dated work to draw in the due strip and list under the grid. */
+  deadlines,
 }: {
   initial: CalendarWindow;
   monday: string;
   today: string;
   home?: CalendarKey;
+  deadlines?: Deadline[];
 }) {
   const [monday, setMonday] = useState(initialMonday);
   const [data, setData] = useState(initial);
@@ -70,6 +83,10 @@ export function WeekCalendar({
 
   const placed = useMemo(() => days.map((d) => placeTimed(visible, d)), [days, visible]);
   const allDay = useMemo(() => days.map((d) => allDayOn(visible, d)), [days, visible]);
+  const due = useMemo(
+    () => (deadlines ? days.map((d) => dueOn(deadlines, d)) : null),
+    [days, deadlines]
+  );
   const [fromHour, toHour] = useMemo(() => hourRange(placed), [placed]);
   const hours = Array.from({ length: toHour - fromHour }, (_, i) => fromHour + i);
   const shown = new Set(visible.map((e) => e.calendar));
@@ -132,6 +149,24 @@ export function WeekCalendar({
             </div>
           ))}
 
+          {/* The due strip renders whenever deadlines are wired, empty week or
+              not: it is the one fixed place to look for the week's work, and a
+              lane that appears only on busy weeks would move under the eye. */}
+          {due && (
+            <>
+              <div className="flex items-end justify-end border-b border-border px-2 py-1.5 text-[11px] text-faint">
+                due
+              </div>
+              {days.map((d, i) => (
+                <div key={d} className="min-h-10 space-y-1 border-b border-l border-border p-1">
+                  {due[i].map((item) => (
+                    <DeadlineChip key={item.id} item={item} />
+                  ))}
+                </div>
+              ))}
+            </>
+          )}
+
           {allDay.some((list) => list.length > 0) && (
             <>
               <div className="border-b border-border px-2 py-1.5 text-right text-[11px] text-faint">
@@ -183,10 +218,33 @@ export function WeekCalendar({
         feeds={data.feeds}
         shown={shown}
         showAll={showAll || !home}
+        hasDeadlines={Boolean(deadlines)}
         busy={busy}
         failed={failed}
         onRefresh={() => load(monday, true)}
       />
+
+      {deadlines && <DeadlineList items={deadlines} monday={monday} today={today} />}
+    </div>
+  );
+}
+
+/**
+ * A deadline in the due strip: title and what it is filed against, nothing
+ * more. Olive is the palette's green — the one the user asked for — reached
+ * through the existing `hub` accent rather than a new token. The full line,
+ * date included, is the tooltip; the figures live in the list under the grid.
+ */
+function DeadlineChip({ item }: { item: Deadline }) {
+  const time = item.due.length > 10 ? item.due.slice(11, 16) : null;
+  const detail = [time, item.context].filter(Boolean).join(" · ");
+  return (
+    <div
+      title={`${item.title}${item.context ? ` · ${item.context}` : ""} · due ${item.due.slice(0, 10)}${time ? ` ${time}` : ""}`}
+      className={`rounded-md border px-1.5 py-1 text-[11px] leading-tight ${accentEvent.hub}`}
+    >
+      <div className="truncate font-medium">{item.title}</div>
+      {detail && <div className="truncate opacity-80">{detail}</div>}
     </div>
   );
 }
@@ -283,6 +341,7 @@ function FeedLine({
   feeds,
   shown,
   showAll,
+  hasDeadlines,
   busy,
   failed,
   onRefresh,
@@ -290,6 +349,9 @@ function FeedLine({
   feeds: FeedStatus[];
   shown: Set<CalendarKey>;
   showAll: boolean;
+  /** With a due strip on the grid the legend has two kinds to name, so it
+   *  renders even for a single calendar. */
+  hasDeadlines: boolean;
   busy: boolean;
   failed: string | null;
   onRefresh: () => void;
@@ -306,7 +368,7 @@ function FeedLine({
 
   return (
     <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-faint">
-      {showAll && shown.size > 1 && (
+      {((showAll && shown.size > 1) || hasDeadlines) && (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           {feeds
             .filter((f) => shown.has(f.key))
@@ -319,6 +381,15 @@ function FeedLine({
                 {f.label}
               </span>
             ))}
+          {hasDeadlines && (
+            <span className={`flex items-center gap-1.5 ${accentText.hub}`}>
+              <span
+                aria-hidden="true"
+                className="inline-block size-2 rounded-[2px] border border-current bg-current/40"
+              />
+              deadline
+            </span>
+          )}
         </div>
       )}
       {newest && <span>updated {new Date(newest).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</span>}

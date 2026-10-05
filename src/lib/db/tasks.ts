@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import type { Deadline } from "@/lib/calendar/deadlines";
 import { addDays, zurichToday } from "@/lib/dates";
 import { DOMAINS, TASK_TYPES, type Domain, type Task, type TaskType } from "@/lib/types";
 
@@ -38,6 +39,28 @@ export function weekTasksByDomain(domain: Domain): Task[] {
        ORDER BY due, id`
     )
     .all(domain, horizon) as Task[];
+}
+
+/**
+ * Open, dated work for the week grid's due strip (decision #73) — assignments,
+ * tasks and exams alike, with the course or project it is filed against as a
+ * label. One domain when asked, every domain when not: the hub can adopt the
+ * same strip later by calling this with no argument, which is the whole of
+ * the wiring it would need.
+ */
+export function openDeadlines(domain?: Domain): Deadline[] {
+  const where = domain ? "AND tasks.domain = ?" : "";
+  return db
+    .prepare(
+      `SELECT tasks.id, tasks.title, tasks.type, tasks.domain, tasks.due,
+              COALESCE(courses.name, projects.name) AS context
+       FROM tasks
+       LEFT JOIN courses  ON courses.id  = tasks.course_id
+       LEFT JOIN projects ON projects.id = tasks.project_id
+       WHERE tasks.done = 0 AND tasks.due IS NOT NULL ${where}
+       ORDER BY tasks.due, tasks.id`
+    )
+    .all(...(domain ? [domain] : [])) as Deadline[];
 }
 
 export function allTasks(): Task[] {

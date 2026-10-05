@@ -8,6 +8,10 @@ import type { LucideIcon } from "lucide-react";
  * text; this is only for actions an icon states exactly.
  *
  * `label` is required — the icon is decoration, the name is the button.
+ *
+ * 24×24 (decision #76): the glyph is 14px, the target is the smallest box a
+ * pointer hits without aiming. It was `p-1` around the glyph, 22px, and the
+ * course cards' pencil sat next to two text links at that size.
  */
 export function RowAction({
   icon: Icon,
@@ -30,7 +34,7 @@ export function RowAction({
       onClick={onClick}
       aria-label={label}
       aria-expanded={expanded}
-      className={`rounded p-1 align-middle text-muted transition-colors ${
+      className={`inline-flex h-6 w-6 items-center justify-center rounded align-middle text-muted transition-colors ${
         danger ? "hover:text-danger" : "hover:text-text"
       }`}
     >

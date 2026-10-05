@@ -64,8 +64,9 @@ the green against the warm yellow-brown.
    "1 course · 6 credits"). A single headline number belongs there rather than in its own card —
    two stat cards above a short table cost more room than the table itself.
 3. **Rail + bento** on wide screens: a sticky **19rem** left rail of the ways out of the page
-   and the day's small state (Go to, Quick add, Reminders/Ideas, and on Personal also Habits and
-   German), beside a **twelve-column** grid of tiles with `items-start`. Set spans from the
+   and the day's small state (Go to, Quick add, Reminders/Ideas, on Personal also Habits and
+   German, and on Academic **Now** and **Exams** — the rail also carries a page's *standing*
+   state, decisions #74/#75), beside a **twelve-column** grid of tiles with `items-start`. Set spans from the
    content, not from symmetry. The hub has **no rail** — it is the navigation. The week calendar
    sits **outside** the rail grid at full page width: `WeekCalendar` has a 52rem floor and the
    main column beside a 19rem rail is narrower than that (#58).
@@ -107,7 +108,7 @@ A border must mean **grouping or interaction**. When every element has one, none
 explanatory footnotes, and none of them told the user anything the module beneath them wasn't
 already showing.
 
-- **Tiles carry no caption on `/personal`.** "today's metrics" over four metrics, "this month"
+- **Tiles carry no caption on `/personal` or `/academic`.** "today's metrics" over four metrics, "this month"
   over a column of due dates, "resets at midnight" over a list of checkboxes — a caption that
   restates the content is noise wearing the costume of guidance. `Tile`'s `caption` prop remains
   for a caption that carries a *fact* the tile cannot show.
@@ -138,8 +139,47 @@ Three levels, and the rule that makes it work: **status stays visible, only deta
   primary action). Add-forms carry no `detail` count — an editor has no backlog to disclose.
 - **`variant="add"` requires an `accent`** (the section's own) — identity, never defaulted: it
   shipped hardcoded to Personal's hue and the hub hovered Tobacco with nothing failing.
-- **Week grids are collapsed everywhere (#66/#72).** `CalendarTile` leads with what's coming
-  and holds the grid behind `Open week · N this week`, on all four main pages.
+- **Week grids are collapsed everywhere (#66/#72) — except on `/academic` (#73).** `CalendarTile`
+  leads with what's coming and holds the grid behind `Open week · N this week` on the hub,
+  Personal and Professional. On Academic the grid carries the page's deadlines — a *due strip*
+  of Olive chips above the hours and a bulleted list beneath, overdue first — so it is the
+  week's work rather than empty rows, and it renders open with no summary list. The chips name
+  the item and its course only; urgency (days left, overdue) appears once, in the list.
+
+## Glance widgets (decisions #74–#76)
+
+The Academic redesign is the reference for a page that is read rather than scanned. Three
+forms, each for one kind of question; the rules under them hold on every page.
+
+- **A map for distribution** — entities down, time across, one mark per dated item
+  (`SemesterMap`). Position on a shared axis is the encoding people read most accurately, so
+  "when does it get heavy" and "who owns the load" are answered without reading a row. The
+  axis comes from the data's spread, not from a pattern library: a 21-day strip would have
+  shown five of 21 items. Marks: ring open · filled-quiet done · filled red overdue · filled
+  amber today/tomorrow · diamond exam. The cell, not the mark, is the link; the current period
+  is a tinted, edged column; a count row underneath counts the same set the marks draw.
+- **A list grouped by horizon for "what next"** — Overdue · Today · This week · Next week ·
+  Later (collapsed, saying its count and next date) · No date. Resolution decays with
+  distance. A group renders only when it has rows. The table is never deleted — it is one
+  chip away — because tables win for lookup, comparison and editing.
+- **Cards for few, heterogeneous entities** (≤ ~6), **four facts each at most**: an identity,
+  a shape (the Mo–Fr day strip), a figure, the ways out. The whole card is the link; controls
+  sit above it. Everything else goes to a header total or the detail page.
+- **The rail carries standing state** as well as the day's: what is next with a big day count,
+  the overdue item as a link, a relative "heavier than usual" week, where in the term we are,
+  and the fixed points (exams) with a countdown only once it can change behaviour (≤ 30 d).
+
+Rules that travel with these (binding; measured, not eyeballed):
+
+| Rule | Measured on Academic |
+|---|---|
+| Non-text marks clear **3:1** on their ground. | Done mark at 45% opacity was 2.26:1; 70% is 3.55:1. |
+| Pointer targets **≥ 24×24** — a label box around a checkbox, `RowAction`, the grid cell. | 14px checkboxes and a 12px pencil had passed four mock reviews. |
+| A colour-driving threshold is **relative to the user's data** and lives in one helper. | "Heavy ≥ 3" hardcoded → `heavyThreshold()` = median non-empty week + 1. |
+| Legend = states drawn; count row = set drawn. | The "due" row counted coursework under exam diamonds. |
+| Progress reads remaining-first until the first completion. | "0 of 5" ×3 in week 4 read as failure; "5 left" does not. |
+| Shape carries type/state; colour carries urgency only; filled states differ by lightness. | Rose ring vs red fill, ΔE 17.8, kept apart by shape. |
+| Nothing lives only in a tooltip. | 10px marks with `title` → named 49×30 link cells. |
 
 ## Recurring patterns
 
@@ -156,8 +196,8 @@ Three levels, and the rule that makes it work: **status stays visible, only deta
 - **Tags/pills** for enum values (domain, type, status, schedule day) using the palette rules.
 - **Tables**: minimal chrome, sortable where it matters, empty states with a one-line hint
   rather than blank space.
-- **View tabs** on data sections (e.g. Open / Upcoming / Overdue / By course / Completed / All
-  on assignments; own-domain / All domains on calendars) — small pill tabs above the table, one
+- **View tabs** on data sections (e.g. Open / Overdue / Completed / All on assignments — Open is
+  grouped by horizon inside, #74; own-domain / All domains on calendars) — small pill tabs above the table, one
   active. A tab names a **state**, never a noun that could read as the name of a list: the
   Academic page once had a "To do" tab beside a "To do" card and showed "nothing open" next to
   "1 open". Lists beside a filtered table say what they carry.

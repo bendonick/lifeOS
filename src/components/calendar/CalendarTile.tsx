@@ -1,5 +1,6 @@
 import { WeekCalendar } from "./WeekCalendar";
 import { Disclosure } from "@/components/ui/Disclosure";
+import type { Deadline } from "@/lib/calendar/deadlines";
 import { calendarWeek } from "@/lib/calendar/ics";
 import {
   calendarAccent,
@@ -21,10 +22,25 @@ import { dayLabel, mondayOf, zurichToday } from "@/lib/dates";
  *
  * The feed is fetched either way — the grid is a client component and the ICS
  * cache is shared — so collapsing costs nothing and the summary is free.
+ *
+ * `expanded` is the exception (decision #73, Academic): once the grid carries
+ * the page's deadlines it is no longer empty rows, it is the week's work, and
+ * the page leads with it — no summary list, no disclosure. The other three
+ * pages are unchanged; adopting the same view there is two props, not a fork.
  */
 const UPCOMING = 4;
 
-export async function CalendarTile({ home }: { home?: CalendarKey }) {
+export async function CalendarTile({
+  home,
+  deadlines,
+  expanded = false,
+}: {
+  home?: CalendarKey;
+  /** Open, dated work to draw in the grid's due strip and list beneath it. */
+  deadlines?: Deadline[];
+  /** Render the grid open, in place of the summary list and its disclosure. */
+  expanded?: boolean;
+}) {
   const today = zurichToday();
   const monday = mondayOf(today);
   const data = await calendarWeek(monday);
@@ -34,6 +50,12 @@ export async function CalendarTile({ home }: { home?: CalendarKey }) {
       <p className="text-sm text-muted">
         No calendar feeds configured — add the secret ICS URLs to <code className="text-xs">.env</code>.
       </p>
+    );
+  }
+
+  if (expanded) {
+    return (
+      <WeekCalendar initial={data} monday={monday} today={today} home={home} deadlines={deadlines} />
     );
   }
 
@@ -67,7 +89,7 @@ export async function CalendarTile({ home }: { home?: CalendarKey }) {
         openSummary="Hide week"
         detail={`${mine.length} this week`}
       >
-        <WeekCalendar initial={data} monday={monday} today={today} home={home} />
+        <WeekCalendar initial={data} monday={monday} today={today} home={home} deadlines={deadlines} />
       </Disclosure>
     </div>
   );

@@ -50,6 +50,20 @@ export function scheduleLabel(
 }
 
 /**
+ * What to call the course-page link. The user's LMS is OLAT, so its host gets
+ * the name they use for it; any other host is named by its domain, which is
+ * honest for a link whose destination the app does not otherwise know.
+ */
+export function courseLinkLabel(url: string): string {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    return host === "lms.example.edu" ? "OLAT page" : host;
+  } catch {
+    return "course page";
+  }
+}
+
+/**
  * Folder name under data/academic/courses/. Derived from the name rather than
  * stored, so renaming a course is a one-line rename on disk — Stage 6's RAG
  * corpus reads the same path.

@@ -129,10 +129,16 @@ becomes a session the day its data exists.
   absent. Removed as chrome: it had something to say only when a class had drifted. If it comes
   back, render it *only* in that case rather than always. `src/lib/academic/drift.ts` held the
   pure logic and was verified against all four states.
-- **"Up next" work list** beside the timetable — open assignments, tasks and exams, soonest
-  first, with optimistic checkboxes. Removed because it restated the two tables directly above
-  it. The version worth building instead is the one tied to the calendar's visible week
-  (option 3 of the 2026-08-17 plan), which needs `WeekCalendar`'s week state hoisted.
+- ~~**"Up next" work list** beside the timetable~~ — **built 2026-10-05 as the due strip + deadline
+  list on the Academic timetable (decision #73).** Tied to the visible week without hoisting the
+  week state: every open deadline is a prop and `WeekCalendar` filters the week itself. Not
+  built: the optimistic checkboxes (chips are tooltip-only; ticking stays in the tables).
+- **Deadline strip on the hub.** The Academic timetable's due strip and list are wired as props;
+  the hub would pass `openDeadlines()` (every domain) and `expanded` to its `CalendarTile`. Not
+  done — the user asked for the hub to stay as it is for now. Open question for then: the chips
+  are one colour (Olive) by design, and the Class calendar's blocks are also Olive on the
+  *All calendars* tab — fine on Academic's default tab, worth a second look on the hub, which
+  shows every calendar by default.
 
 ## Stage 6 (2026-08-17)
 
@@ -222,3 +228,29 @@ becomes a session the day its data exists.
   membership + priority order now live in `src/lib/professional/curriculum.ts` — decision
   #68 — so a promoted phase tag would supersede that module and use it as the backfill
   source, and a % complete signal can be computed from `curriculumState()` as it stands.)
+
+## Academic redesign (2026-10-05)
+
+- **A `course_slots` table.** A `courses` row still holds one weekly slot, so a twice-weekly
+  course is two rows; decision #77 groups them by name in the UI. The table would make the
+  grouping structural (one course, N slots), let tasks file against the course rather than
+  one of its rows, and retire the name fold in `groupCourses()`.
+- **Map cell → filtered list.** A cell links to the course page today; the audit's ask was a
+  click that filters Assignments & tasks to that course and week. Needs the list to take a
+  filter from the URL or a shared store.
+- **The overdue item is named three times** — rail Now, the list, and the timetable's deadline
+  list (#73) — and the deadline list's Overdue/This week rows repeat the horizon list's groups
+  exactly. One of the two lists should go once the horizon grouping has been lived with.
+- **Edge states exercised only in the brief.** Before term start (the current-week column is off
+  the axis — `now` is −1 and no tint renders), after the last exam (every mark done or past), a
+  cell with more than three marks (the row grows; no count fallback), the Today group and the
+  amber "today · tomorrow" mark (nothing was due that soon at build time).
+- **`term_end` doubles as the exam date on FoC II**, which stretches "week N of 17" past the
+  teaching term. Either a convention (term_end = last lecture) or a separate field.
+- **Start-by dates** worked back from due dates by a per-type lead time, drawn as ghost marks on
+  the map and a "start X by Thu" line in Now. Needs the lead-time config and a type richer than
+  task/assignment. **Free-day / lightest-day insight** from the slots, same place.
+- **Hub adoption.** `semesterMap()`, `AcademicNow`'s shape and the horizon grouping are pure
+  and domain-agnostic in their inputs; the hub's deadline strip item above is the first client.
+- `AcademicTasks` still owns a private `ViewTab` (the `ui/Tabs` migration item under
+  UI-polish follow-ups stands).

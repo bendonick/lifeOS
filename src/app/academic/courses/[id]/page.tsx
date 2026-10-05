@@ -5,7 +5,8 @@ import { MaterialsList } from "@/components/academic/MaterialsList";
 import { Pill } from "@/components/ui/Pill";
 import { PageShell } from "@/components/ui/PageShell";
 import { SectionBanner } from "@/components/ui/SectionBanner";
-import { courseSlug, scheduleDays } from "@/lib/academic/course";
+import { courseLinkLabel, courseSlug, scheduleDays } from "@/lib/academic/course";
+import { courseCode } from "@/lib/academic/semester";
 import { courseById } from "@/lib/db/courses";
 import { tasksForCourse } from "@/lib/db/tasks";
 import { dayLabel, zurichToday } from "@/lib/dates";
@@ -49,6 +50,12 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
           <Detail label="Credits">
             <span className="tabular">{course.credits ?? "—"}</span>
           </Detail>
+          {/* What the Academic page calls this course — set in the editor, or
+              derived from the name until it is. */}
+          <Detail label="Short name">
+            <span className="font-semibold">{courseCode(course)}</span>
+            {!course.short_name && <span className="ml-1.5 text-xs text-faint">derived</span>}
+          </Detail>
           <Detail label="Schedule">
             {days.length || course.time_label ? (
               <span className="flex flex-wrap items-center gap-1">
@@ -86,6 +93,21 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
               data/academic/courses/{courseSlug(course.name)}
             </span>
           </Detail>
+          {/* The way out to the course itself — the university LMS. Set in the course
+              editor on the Academic page; absent until it is, rather than a
+              dash that would read as a missing fact about the course. */}
+          {course.url && (
+            <Detail label="Course page">
+              <a
+                href={course.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded text-academic transition-colors hover:underline"
+              >
+                {courseLinkLabel(course.url)} ↗
+              </a>
+            </Detail>
+          )}
         </dl>
       </section>
 

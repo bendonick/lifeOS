@@ -22,7 +22,8 @@ startup; these fields are the contract:
   notes, created_at. One store for everything; pages filter by domain — this is what makes the
   LifeOS "This week" rollup trivial.
 - **courses** — name, professor, professor_email, credits, room, status, schedule_days (subset
-  Mon–Fri), time_label, start_hour, end_hour (24h numbers), term_start, term_end, semester
+  Mon–Fri), time_label, start_hour, end_hour (24h numbers), term_start, term_end, semester,
+  url (the course's LMS page — the university LMS; http(s) only, validated at the API)
   (`F26|S27`). Enough metadata to *generate or validate* class sessions — the thing Notion
   couldn't do.
 - **contacts** — name, company, role, how_met, linkedin, last_contacted,

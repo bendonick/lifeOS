@@ -32,6 +32,25 @@ function open(): Database.Database {
 // Guarded column adds for databases created before Stage 2 — ALTER TABLE is not
 // idempotent in SQLite, so check PRAGMA table_info first. Fresh databases get
 // these columns from schema.sql and skip straight to the index.
+/**
+ * Check-then-ALTER is not atomic across processes: `next build` collects page
+ * data on a dozen workers at once, every one of them opens the database and
+ * runs `migrate()`, and two of them both saw "no such column" before either had
+ * added it. SQLite's own error is the only reliable arbiter, so a duplicate is
+ * treated as "already done", which is exactly what it means.
+ */
+function addColumn(db: Database.Database, table: string, column: string, ddl: string) {
+  const columns = new Set(
+    (db.pragma(`table_info(${table})`) as Array<{ name: string }>).map((c) => c.name)
+  );
+  if (columns.has(column)) return;
+  try {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+  } catch (err) {
+    if (!(err instanceof Error && /duplicate column name/i.test(err.message))) throw err;
+  }
+}
+
 function migrate(db: Database.Database) {
   const txnColumns = new Set(
     (db.pragma("table_info(transactions)") as Array<{ name: string }>).map((c) => c.name)
@@ -59,6 +78,12 @@ function migrate(db: Database.Database) {
   db.exec(
     "CREATE UNIQUE INDEX IF NOT EXISTS idx_inbox_external ON inbox (external_id) WHERE external_id IS NOT NULL"
   );
+
+  // 2026-10-05: the course's page on the LMS, linked from the course detail page.
+  addColumn(db, "courses", "url", "TEXT");
+  // 2026-10-05 (decision #77): the short code every Academic surface names a
+  // course by. NULL means "derive it" — `courseCode()` in lib/academic/semester.ts.
+  addColumn(db, "courses", "short_name", "TEXT");
 
   foldFoodCategories(db);
 }

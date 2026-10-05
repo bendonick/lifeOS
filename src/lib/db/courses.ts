@@ -49,6 +49,8 @@ export interface CourseInput {
   term_start?: string | null;
   term_end?: string | null;
   semester?: string | null;
+  url?: string | null;
+  short_name?: string | null;
 }
 
 /** time_label is always derived here, never accepted from the caller. */
@@ -61,8 +63,8 @@ export function createCourse(input: CourseInput): Course {
     .prepare(
       `INSERT INTO courses
         (name, professor, professor_email, credits, room, status, schedule_days,
-         time_label, start_hour, end_hour, term_start, term_end, semester)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         time_label, start_hour, end_hour, term_start, term_end, semester, url, short_name)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       input.name,
@@ -77,7 +79,9 @@ export function createCourse(input: CourseInput): Course {
       input.end_hour ?? null,
       input.term_start ?? null,
       input.term_end ?? null,
-      input.semester ?? null
+      input.semester ?? null,
+      input.url ?? null,
+      input.short_name ?? null
     );
   return courseById(Number(lastInsertRowid))!;
 }
@@ -88,7 +92,7 @@ export function updateCourse(id: number, input: CourseInput): Course | undefined
     `UPDATE courses SET
        name = ?, professor = ?, professor_email = ?, credits = ?, room = ?, status = ?,
        schedule_days = ?, time_label = ?, start_hour = ?, end_hour = ?,
-       term_start = ?, term_end = ?, semester = ?
+       term_start = ?, term_end = ?, semester = ?, url = ?, short_name = ?
      WHERE id = ?`
   ).run(
     input.name,
@@ -104,6 +108,8 @@ export function updateCourse(id: number, input: CourseInput): Course | undefined
     input.term_start ?? null,
     input.term_end ?? null,
     input.semester ?? null,
+    input.url ?? null,
+    input.short_name ?? null,
     id
   );
   return courseById(id);

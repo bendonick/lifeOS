@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { hourLabel, parseHour, scheduleDays } from "@/lib/academic/course";
+import { courseCode } from "@/lib/academic/semester";
 import { COURSE_STATUSES, WEEKDAYS, type Course, type CourseStatus, type Weekday } from "@/lib/types";
 
 /**
@@ -23,6 +24,8 @@ export interface CoursePayload {
   end_hour: number | null;
   term_start: string | null;
   term_end: string | null;
+  url: string | null;
+  short_name: string | null;
 }
 
 const field =
@@ -55,6 +58,8 @@ export function CourseForm({
   const [end, setEnd] = useState(course?.end_hour != null ? hourLabel(course.end_hour) : "");
   const [termStart, setTermStart] = useState(course?.term_start ?? "");
   const [termEnd, setTermEnd] = useState(course?.term_end ?? "");
+  const [url, setUrl] = useState(course?.url ?? "");
+  const [shortName, setShortName] = useState(course?.short_name ?? "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -82,6 +87,14 @@ export function CourseForm({
       setError("times must look like 08:00");
       return;
     }
+    if (url.trim() && !/^https?:\/\//i.test(url.trim())) {
+      setError("the course page must start with https://");
+      return;
+    }
+    if (shortName.trim().length > 12) {
+      setError("the short name must be 12 characters or fewer");
+      return;
+    }
     setError(null);
     setBusy(true);
     const failure = await onSubmit({
@@ -97,6 +110,8 @@ export function CourseForm({
       end_hour: end ? parseHour(end) : null,
       term_start: termStart || null,
       term_end: termEnd || null,
+      url: url.trim() || null,
+      short_name: shortName.trim() || null,
     });
     setBusy(false);
     if (failure) setError(failure);
@@ -116,6 +131,18 @@ export function CourseForm({
             onChange={(e) => setName(e.target.value)}
             placeholder="Advanced Topics in AI"
             aria-invalid={!!error && !name.trim()}
+            className={field}
+          />
+        </Labelled>
+        <Labelled label="Short name">
+          <input
+            value={shortName}
+            onChange={(e) => setShortName(e.target.value)}
+            maxLength={12}
+            // The placeholder is what the page will show if this is left blank,
+            // so the user sees the fallback before deciding to override it.
+            placeholder={courseCode({ name: name || "Advanced Topics in AI", short_name: null })}
+            aria-invalid={!!error && shortName.trim().length > 12}
             className={field}
           />
         </Labelled>
@@ -152,6 +179,17 @@ export function CourseForm({
             value={room}
             onChange={(e) => setRoom(e.target.value)}
             placeholder="HG E 1.1"
+            className={field}
+          />
+        </Labelled>
+        <Labelled label="Course page" className="sm:col-span-2 lg:col-span-3">
+          <input
+            type="url"
+            inputMode="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://lms.example.edu/auth/RepositoryEntry/…"
+            aria-invalid={!!error && !!url.trim() && !/^https?:\/\//i.test(url.trim())}
             className={field}
           />
         </Labelled>

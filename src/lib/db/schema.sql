@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS courses (
   term_start      TEXT,
   term_end        TEXT,
   semester        TEXT,             -- 'F26', 'S27', … (open — new semesters arrive)
+  url             TEXT,             -- the course's page on the LMS (the university LMS); http(s) only
+  short_name      TEXT,             -- the code the page shows ('ATAI'); derived from the name when NULL
   created_at      TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

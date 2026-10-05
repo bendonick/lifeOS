@@ -399,6 +399,18 @@ body {
   border-radius: 0.375rem;
 }
 
+/* The current week's column on the Academic semester map (decision #74): the
+   raised ground plus a rose hairline on both edges. The ground step alone
+   measured 1.11:1 against the tile and was invisible; the edges are what make
+   it a column. One rule rather than a utility string so the header cell, the
+   data cells and the legend swatch cannot drift apart. */
+.map-now {
+  background: var(--color-raised);
+  box-shadow:
+    inset 1px 0 0 color-mix(in oklab, var(--color-academic) 45%, transparent),
+    inset -1px 0 0 color-mix(in oklab, var(--color-academic) 45%, transparent);
+}
+
 
 /* Native select chrome replaced app-wide: an element rule, not a class, so a
    new select cannot forget it. Un-layered, so the padding-right wins over the

@@ -85,6 +85,10 @@ export interface Course {
   term_start: string | null;
   term_end: string | null;
   semester: string | null;
+  /** The course's page on the LMS (the university LMS). http(s) only — validated at the API. */
+  url: string | null;
+  /** The code the page names the course by ('ATAI'). NULL → derived by `courseCode()`. */
+  short_name: string | null;
   created_at: string;
 }
 
