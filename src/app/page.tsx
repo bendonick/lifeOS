@@ -16,9 +16,10 @@ import { dayLabel, zurichToday } from "@/lib/dates";
 // mutate through /api/* and router.refresh() back to this page's data.
 export const dynamic = "force-dynamic";
 
-// Layout (decision #59): a bento on the editorial theme, keeping the order of
-// docs/03-pages/lifeos.md — brief row → This week | Inbox → domains — with the
-// calendar full width below. No left rail: the hub is the navigation.
+// Layout (decision #59): a bento on the editorial theme in the order of
+// docs/03-pages/lifeos.md — domains → brief row → This week | Inbox — with the
+// calendar full width below. No left rail: the hub is the navigation, and since
+// 2026-10-05 the three doorways lead the page rather than close it.
 export default function LifeOSPage() {
   const today = zurichToday();
   const tasks = weekTasks();
@@ -29,12 +30,25 @@ export default function LifeOSPage() {
     <PageShell title="LifeOS" subtitle={dayLabel(today)}>
       {/* No rail here: the hub *is* the navigation, so a shortcuts column would
           be a menu pointing at the page you are on. A bento without one, in the
-          order of docs/03-pages/lifeos.md — brief → this week | inbox → domains
-          — with the calendar full width below (decisions #28/#58).
+          order of docs/03-pages/lifeos.md — domains → brief → this week | inbox
+          — with the calendar full width below (decisions #28/#58). Domains lead
+          (the user's call, 2026-10-05): the hub's job is to send you to a page,
+          so the doorways come before the rollups.
 
           Everything is Olive: the hub is domain-less by definition, which is
           exactly what --color-hub means. */}
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+        <Tile
+          id="domains"
+          icon={<LayoutGrid size={16} />}
+          title="Domains"
+          caption="three pages, one system"
+          accent="hub"
+          span="lg:col-span-12"
+        >
+          <DomainTiles />
+        </Tile>
+
         <Tile
           id="brief"
           icon={<Sunrise size={16} />}
@@ -66,17 +80,6 @@ export default function LifeOSPage() {
           span="lg:col-span-4"
         >
           <InboxPanel items={captures} today={today} />
-        </Tile>
-
-        <Tile
-          id="domains"
-          icon={<LayoutGrid size={16} />}
-          title="Domains"
-          caption="three pages, one system"
-          accent="hub"
-          span="lg:col-span-12"
-        >
-          <DomainTiles />
         </Tile>
       </div>
 

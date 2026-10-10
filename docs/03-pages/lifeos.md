@@ -1,8 +1,9 @@
 # Page — LifeOS (hub, `/`)
 
 **Themed and re-laid-out 2026-08-17 (decision #59).** On `theme-editorial` as a twelve-column
-bento of `Tile`s — brief row 12, This week 8 + Inbox 4, Domains 12 — with the calendar full width
-below. **No left rail**, deliberately: the hub is the navigation, so a shortcuts column here would
+bento of `Tile`s — Domains 12, brief row 12, This week 8 + Inbox 4 — with the calendar full width
+below. (Domains moved from the bottom to the top on 2026-10-05 at the user's ask: the hub's job is
+to send you to a page, so the doorways lead and the rollups follow.) **No left rail**, deliberately: the hub is the navigation, so a shortcuts column here would
 point at the page you are already on. Everything takes the `hub` accent (Olive), the hub being
 domain-less by definition. Order and content follow the sections below unchanged.
 
@@ -40,8 +41,8 @@ Neutral-toned home. Everything here is a rollup or a doorway; nothing is owned b
 
 ## Layout sketch
 
-Top: Morning brief row (4 cards). Middle: two columns — This week (left, wide) | Inbox (right,
-narrow). Below: Calendar full-width. Bottom: domain tiles row.
+Top: domain tiles row. Then: Morning brief row (4 cards). Middle: two columns — This week (left,
+wide) | Inbox (right, narrow). Below: Calendar full-width.
 
 ## Data touched
 
