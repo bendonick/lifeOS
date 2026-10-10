@@ -254,3 +254,21 @@ becomes a session the day its data exists.
   and domain-agnostic in their inputs; the hub's deadline strip item above is the first client.
 - `AcademicTasks` still owns a private `ViewTab` (the `ui/Tabs` migration item under
   UI-polish follow-ups stands).
+
+## Academic v3 (2026-10-10)
+
+- **Task detail and editing.** The list's chevron opens the course page because a task has no
+  detail view of its own and the API has no task DELETE; editing a title or date still means
+  the database. A task detail sheet (or overflow menu) with edit/delete would close the loop the
+  design's "detail flow" assumes.
+- **The three other pages still carry a rail of modules** (#57/#63) while Academic has a
+  navigation rail (#78). Decide whether the hub, Personal and Professional follow; `NavRail`'s
+  section list is the only Academic-specific part.
+- **The timetable's deadline list repeats Upcoming work's Overdue/This week rows** (#73 vs #80)
+  — still two lists of the same items on one page.
+- **Mark overflow ("+N") is untested on real data** — no cell has more than two marks this term.
+- **Exam-only course rows** show a single diamond and an em dash; a course row that is exams
+  only could instead sit in the "without deadlines" disclosure with its exam noted.
+- **`AcademicTasks` still owns a private `ViewTab`**; the `ui/Tabs` migration item stands.
+- **Reminders landed as a NotesCard at the page's foot** so the rail link has a target; a
+  compact reminders surface nearer the top (or a popover from the rail badge) may read better.

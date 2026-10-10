@@ -28,6 +28,7 @@ export function Tile({
   meta,
   span = "",
   surface = "bg-surface",
+  frame = "strong",
   bodyClassName = "",
   children,
 }: {
@@ -50,6 +51,11 @@ export function Tile({
    *  rather than through className because Tailwind utilities share
    *  specificity, so source order, not class order, would decide the winner. */
   surface?: string;
+  /** `strong` is the page's one 2px border (#65/#70). `quiet` is a hairline at
+   *  20px padding for a page whose modules sit beside a navigation rail rather
+   *  than a rail of other modules (decision #78): with only four modules on the
+   *  page, a 2px outline on each read as the outline rather than the content. */
+  frame?: "strong" | "quiet";
   bodyClassName?: string;
   children: ReactNode;
 }) {
@@ -61,7 +67,9 @@ export function Tile({
       // rolled app-wide, 2026-08-23): the module boundary is the page's one
       // strong border — weight AND tone — so sub-structure gets dividers and
       // hairline control chrome, never a second box at the same volume.
-      className={`flex flex-col rounded-xl border-2 border-border-strong p-4 ${surface} ${span}`}
+      className={`flex flex-col rounded-xl ${
+        frame === "quiet" ? "border border-border p-5" : "border-2 border-border-strong p-4"
+      } ${surface} ${span}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">

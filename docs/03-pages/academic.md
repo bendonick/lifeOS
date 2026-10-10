@@ -1,59 +1,75 @@
 # Page — Academic (`/academic`, Merlot)
 
-**Redesigned for glance reading 2026-10-05 (decisions #74–#77).** On `theme-editorial` with the
-sticky 19rem Olive rail beside a twelve-column bento in Academic's lifted Merlot. The rail now
-opens with **Now** and **Exams**; the main column has a subject — the **semester map** — followed
-by course cards and the horizon-grouped list; the timetable keeps its full-width place outside
-the rail grid (#28/#58/#73). No tile carries a caption (#67). Every capability of the table
-layout is preserved: add/edit/delete courses per slot, the view tabs, optimistic done boxes,
-the quick-add anchors, the Google and OLAT links.
+**Laid out to the approved v3 design 2026-10-10 (decisions #78–#80).** A 13rem navigation rail
+(`NavRail`) beside the page; a header of serif title, semester subtitle and one `+ Add` menu;
+then four modules on `Tile frame="quiet"` in need order — **Semester** (full width) · **Upcoming
+work** beside **Exams** (8 + 4, stacked below `xl`) · **Courses** (full width) — followed by the
+timetable at full width (#28/#58/#73 unchanged) and the Reminders list the rail links to. No
+captions (#67). Everything the earlier layouts could do is still reachable: creation through
+`+ Add`, course edit/delete and links inside an expanded course row, exam done boxes inside the
+expanded exams list, overdue work as a conditional group, the course page for details.
 
 The MSc command center: courses, deadlines, timetable, and (later) course-content RAG.
 
 ## Modules
 
-1. **Left rail** (Olive, in this order): **Now** (`AcademicNow` — the next dated item with its
-   day count, the overdue item as a link into the list, "N due this week · M next week", the
-   next week heavier than the user's median and the term's peak, and "F26 · week N of M" over a
-   thin bar); **Exams** (#75 — `AcademicTasks layout="rail"`: one line per open exam, a 24px done
-   box, the course code linking to the course, date and time; a day count only inside
-   `EXAM_COUNTDOWN_DAYS` = 30, "first in Nd" in the tile header meanwhile; `+ Add exam` behind a
-   Disclosure, anchor `#new-exam`); **Go to** (one link per enrolled course by its short code,
-   then the other pages); **Quick add** (Course / Assignment / Exam / Reminder anchors);
-   **Reminders** (`NotesCard`).
+1. **Navigation rail** (`NavRail`, client): LifeOS wordmark → `/`; **Academic** (current page)
+   with Overview `#semester` · Courses `#courses` · Assignments `#assignments` · Timetable
+   `#timetable`, the active one following the scroll; a divider; Personal · Professional ·
+   Reminders `#reminders` with a pending-count badge; at the foot "Week N of M" over the olive
+   bar from `termOf()` / `weekOfTerm()`, with the term end as its tooltip. Below `lg`: a bar
+   with a toggle, the same links beneath it.
 
-2. **Semester** — the hero (#74). `SemesterMap` renders the model from `semesterMap()` in
-   `src/lib/academic/semester.ts`: one row per course (grouped by name, #77) plus a "no course"
-   row for unfiled items, one column per week from the earliest `term_start` to the last dated
-   item, one mark per item (ring open · filled-quiet done · filled red overdue · filled amber
-   today/tomorrow · diamond exam). The current week is a `.map-now` column. A cell with marks is
-   a `Link` to the course page with an accessible name listing its items. The right column reads
-   "5 left" until a course has a completion, then "2 of 7"; the bottom row counts open items per
-   week, exams included, bold when at or above `heavyThreshold()` (median non-empty week + 1)
-   and rose on the peak. Courses with nothing dated are named in a footnote. The legend lists
-   only states present. Absent entirely when no enrolled course carries a term start.
+   **Header**: "Academic" (serif), the semester as `semesterLabel()` of the enrolled courses'
+   code ("Autumn semester 2026"), and **`+ Add`** (`AddMenu`): Course `#new-course` ·
+   Assignment or task `#new-assignment` · Exam `#new-exam` · Reminder `#new-reminder`. Each
+   entry is the hash an existing form listens for; the three forms that lost their buttons open
+   through `ui/AnchoredForm` and clear the hash on Cancel. Reminders keeps `NotesCard`'s own
+   trigger.
 
-3. **Courses** — cards, one per course (`CoursesSection`, `groupCourses()`): code and name, a
-   Mo–Fr day strip (two-letter days; the T's were ambiguous), each slot's `time_label` with its
-   own calendar ↗ / edit / delete and the OLAT link once, a status pill only when not enrolled.
-   The whole card opens the course page. The tile header carries "6 courses · 33 credits ·
-   17.25 h/week" — credits summed once per course. Credits are the only score; no grades, no GPA
-   (decision #10). `+ New course` opens `CourseForm`, which gained **Short name** (placeholder =
-   the derived code). Each course opens the detail view: metadata (now including the short name,
-   marked "derived" until set), its assignments/exams, and its materials folder. Enrolled
-   courses with days, a start time and a term start link to a prefilled Google Calendar form
-   (#27); `courses.url` renders as "OLAT page ↗" (`courseLinkLabel()`).
+2. **Semester** — the hero (#74, semantics #79). `SemesterMap` (client) renders the model from
+   `semesterMap()` in `src/lib/academic/semester.ts`: one row per course (grouped by name, #77)
+   ranked by earliest open item, an **Unassigned** row only when unfiled items exist, one column
+   per Monday-start week from the earliest `term_start` to the last dated item. Marks, exactly
+   four: hollow rose circle = upcoming assignment (overdue included, named in its status), filled
+   grey = completed, filled amber = due today (completion wins; tomorrow is not today), hollow
+   rose diamond = exam (stays a diamond on its day). Each 12px mark is a 24px `Link` to the
+   course named "title · course · exact date/time · status"; hover or focus writes that line
+   under the grid; a cell with more than four marks folds the rest behind "+N". Header: "Week
+   of" once, month tier above, "This week" above the current Monday's numeral on a neutral
+   `.map-now` band. **Remaining**: incomplete assignment records per course — 0 when all done, —
+   when none exist. **Weekly deadlines · Includes assignments and exams**: incomplete
+   assignments plus open exams, blank at zero, tinted from `BUSY_WEEK_THRESHOLD` (3). Tile meta:
+   "N open · N completed · N exams" over every assignment record, exams separate. Footer: the
+   four-entry legend left, "N course(s) without deadlines" disclosure right (links to the course
+   pages). Absent when no enrolled course carries a term start.
 
-4. **Assignments & tasks** — `tasks` filtered domain=academic, type in (task, assignment).
-   View tabs: Open · N / Overdue · N / Completed / All. **Open is grouped by horizon** —
-   Overdue · Today · This week (to Sunday) · Next week · Later (collapsed, "16 · next Wed 21 Oct")
-   · No date — via `horizonOf()`; a group renders only when it has rows. Columns: a 24px done
-   box, Item (with a neutral type pill only when the type is not `assignment`), Course as its
-   short code, Due (date and time, urgency-coloured, no "overdue" word — the Left pill says it),
-   Left (days-left pill). Due takes an optional time (`'YYYY-MM-DD'` or `'YYYY-MM-DDTHH:MM'`).
-   `+ Add assignment or task` behind a Disclosure, anchor `#new-assignment`.
+3. **Upcoming work** (`AcademicTasks mode="work"`, #80) — `tasks` filtered domain=academic, type
+   in (task, assignment). Tile meta "N this week · M next week". Filters: Upcoming (grouped by
+   horizon — Overdue only when any · Today · This week to Sunday · Next week · Later collapsed
+   with "N tasks · next date" · No date) · All N (every incomplete row, flat) · Completed. A row:
+   24px done box · title (a neutral `task` pill when the type is not assignment) · course code
+   pill · one due label via `dueLabel()` — Today / Tomorrow in amber, the date otherwise, "·
+   overdue" in red, with the time when set — · a chevron to the course page. Hairline rows. No
+   add button: `+ Add` opens the form by hash.
 
-5. **Timetable** — read-only week view of the **Academic** ICS calendar (toggle: all
+4. **Exams** (`ExamsPanel`, #80) — the nearest open exam (course code → course page, date ·
+   time · title), tile meta `firstExamLabel()` ("First in N days", Today, Tomorrow); the rest
+   behind "N more exams" → `AcademicTasks mode="exams"` with done boxes and the hash-opened add
+   form. Beneath: **Next busy week** from the map's `nextBusy`, with peak week and term end as a
+   quiet second line; hidden when no future week qualifies. Exams carry no midterm/final split
+   (#25).
+
+5. **Courses** (`CoursesSection`, #80) — compact rows in two columns (one below `md`): code ·
+   full name · chevron, a status pill only when not enrolled. Expanding reveals each slot's
+   Mo–Fr strip, time, calendar ↗ (#27), edit and delete (per slot, `CourseForm` inline);
+   credits, semester, professor (mailto), room, term; the OLAT link (`courseLinkLabel()`); Open
+   course →. Tile meta "6 courses · 33 credits · 17.25 h/week", credits once per course. The add
+   form has no button here — `#new-course` opens it. Credits are the only score; no grades, no
+   GPA (#10). Each course opens the detail view (metadata incl. the short name, its
+   assignments/exams with their own add buttons, materials).
+
+6. **Timetable** — read-only week view of the **Academic** ICS calendar (toggle: all
    calendars), full width with nothing beside it (decision #28). Built in Stage 3 on the shared
    `WeekCalendar`, which also serves the hub and Personal. Class blocks come from Google
    recurring events the user creates once per course — from Stage 3 the course row links out to
@@ -74,7 +90,7 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
    `openDeadlines("academic")` → `CalendarTile deadlines expanded` → `WeekCalendar deadlines`
    → `DeadlineList`; the hub can adopt it by passing `openDeadlines()` with no domain.
 
-6. **Materials & RAG (Stage 6)** — per-course lecture PDF listing from the folder tree; a chat
+7. **Materials & RAG (Stage 6)** — per-course lecture PDF listing from the folder tree; a chat
    box ("ask your courses") hitting the local RAG pipeline, answers with file+page citations.
    Until Stage 6: show the folder contents read-only so the filing habit starts early.
 

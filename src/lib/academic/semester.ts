@@ -1,17 +1,18 @@
 import { scheduleDays } from "@/lib/academic/course";
-import { addDays, dayLabel, dueInfo, mondayOf } from "@/lib/dates";
+import { addDays, dayLabel, mondayOf } from "@/lib/dates";
 import type { CourseTask } from "@/lib/db/tasks";
 import { WEEKDAYS, type Course, type CourseStatus, type Weekday } from "@/lib/types";
 
 /*
- * Pure helpers behind the Academic page's glance surfaces (decision #74): the
- * course code, the grouped course, the term, the semester map and the horizon
- * buckets. No SQLite — client components import from here too.
+ * Pure helpers behind the Academic page's glance surfaces (decisions #74, #78–#80):
+ * the course code, the grouped course, the term, the semester map model, the
+ * horizon buckets and the due labels. No SQLite — client components import
+ * from here too.
  *
- * Every threshold that drives a colour or a label on the page lives in this
- * file, once: the heavy-week rule, the exam countdown window, the horizon
- * edges. Three components each implementing "heavy" is how a map reads one
- * thing while the rail beside it says another (the `pace.ts` lesson).
+ * Every threshold that drives a colour, a label or a count on the page lives in
+ * this file, once, and takes `today` as an argument rather than reading the
+ * clock, so a test can move the calendar. Three components each implementing
+ * "busy" is how a map reads one thing while the panel beside it says another.
  */
 
 /* ---------------------------------------------------------------------------
@@ -24,9 +25,9 @@ const STOPWORDS = new Set(["of", "the", "and", "in", "on", "for", "to", "a", "an
  * The short name every Academic surface calls a course by — 'ATAI', not
  * 'Advanced Topics in AI' repeated down five rows. The stored `short_name`
  * wins; the fallback keeps all-caps tokens whole (AI, ML, II) and takes the
- * initials of the rest, capped where it stops being short. The fallback is a
- * default, not an opinion: the course editor shows it as the placeholder so
- * the user can see what they would get before overriding it.
+ * initials of the rest, capped where it stops being short. The course editor
+ * shows the fallback as the field's placeholder, so it is seen before it is
+ * overridden.
  */
 export function courseCode(course: Pick<Course, "name" | "short_name">): string {
   const set = course.short_name?.trim();
@@ -38,13 +39,21 @@ export function courseCode(course: Pick<Course, "name" | "short_name">): string 
   return code.slice(0, 6) || course.name.slice(0, 6);
 }
 
+/** 'F26' → 'Autumn semester 2026', 'S27' → 'Spring semester 2027'; anything else as typed. */
+export function semesterLabel(code: string | null | undefined): string {
+  if (!code) return "";
+  const m = code.trim().match(/^([FSfs])(\d{2})$/);
+  if (!m) return code;
+  return `${m[1].toUpperCase() === "F" ? "Autumn" : "Spring"} semester 20${m[2]}`;
+}
+
 /* ---------------------------------------------------------------------------
  * Courses grouped by name
  *
  * A `courses` row holds one weekly slot, so a course that meets twice is two
- * rows (decision #77). The page shows one card and one map row per course and
- * keeps every slot editable underneath it. Grouping is by name, which is the
- * only identity the rows share until a slots table exists (BACKLOG).
+ * rows (decision #77). The page shows one row per course and keeps every slot
+ * editable underneath it. Grouping is by name, which is the only identity the
+ * rows share until a slots table exists (BACKLOG).
  * ------------------------------------------------------------------------- */
 
 export interface CourseGroup {
@@ -149,21 +158,65 @@ export function weekOfTerm(term: Term, today: string): number {
   return Math.min(Math.max(n, 1), term.weeks);
 }
 
-function daysBetween(from: string, to: string): number {
+export function daysBetween(from: string, to: string): number {
   return Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000);
+}
+
+/* ---------------------------------------------------------------------------
+ * Due labels and the busy-week threshold
+ * ------------------------------------------------------------------------- */
+
+/**
+ * A week carrying this many open deadlines or more is busy — tinted on the
+ * map, named in the Exams panel. A fixed number, the user's call (decision
+ * #79): the earlier median-relative rule meant "more than usual for you", which
+ * nobody could predict from the page; three is a count you can see.
+ */
+export const BUSY_WEEK_THRESHOLD = 3;
+
+export function isBusyWeek(count: number): boolean {
+  return count >= BUSY_WEEK_THRESHOLD;
+}
+
+/** 'Today' / 'Tomorrow' / 'Wed 14 Oct' / 'Thu 1 Oct · overdue', with the time
+ *  when the row carries one. One label per row — the countdown column is gone. */
+export function dueLabel(due: string, today: string): string {
+  const date = due.slice(0, 10);
+  const time = due.length > 10 ? ` · ${due.slice(11, 16)}` : "";
+  if (date < today) return `${dayLabel(date)}${time} · overdue`;
+  if (date === today) return `Today${time}`;
+  if (date === addDays(today, 1)) return `Tomorrow${time}`;
+  return `${dayLabel(date)}${time}`;
+}
+
+/** 'Today' / 'Tomorrow' / 'First in 90 days' for the Exams header. */
+export function firstExamLabel(due: string, today: string): string {
+  const n = daysBetween(today, due.slice(0, 10));
+  if (n < 0) return "Past";
+  if (n === 0) return "Today";
+  if (n === 1) return "Tomorrow";
+  return `First in ${n} days`;
 }
 
 /* ---------------------------------------------------------------------------
  * The semester map — courses down, weeks across, one mark per dated item
  * ------------------------------------------------------------------------- */
 
-export type MarkState = "open" | "done" | "overdue" | "soon" | "exam";
-const MARK_ORDER: MarkState[] = ["open", "done", "overdue", "soon", "exam"];
+/** Exactly the four legend states (decision #79). Overdue is a status word on an
+ *  open mark, not a fifth glyph. */
+export type MarkState = "open" | "done" | "today" | "exam";
 
 export interface MapMark {
+  id: number;
   state: MarkState;
-  /** Tooltip and accessible-name text: title, date, state. */
-  label: string;
+  title: string;
+  course: string | null;
+  /** The exact deadline — 'Wed 14 Oct' or 'Fri 8 Jan 2027 · 16:15'. */
+  when: string;
+  /** 'upcoming' · 'overdue' · 'due today' · 'completed' · 'exam' · 'exam today'. */
+  status: string;
+  /** Where a click goes — the course page, or the list for unfiled items. */
+  href: string;
 }
 
 export interface MapWeek {
@@ -172,59 +225,52 @@ export interface MapWeek {
   day: number;
   month: string;
   isNow: boolean;
+  /** First column of a month, drawn with a slightly stronger guide. */
+  monthStart: boolean;
 }
 
 export interface MapRow {
   key: string;
   code: string;
   name: string;
-  /** Where a cell leads — the course page, or the list for unfiled items. */
   href: string;
   cells: MapMark[][];
-  /** '5 left' until something is done, then '2 of 7'; null when the row is exams only. */
-  left: string | null;
+  /** Incomplete assignment/task records on the axis; null when the row has no
+   *  assignment records at all (exams only), which renders as an em dash. */
+  remaining: number | null;
 }
 
 export interface SemesterMapModel {
   weeks: MapWeek[];
   months: { label: string; span: number }[];
   rows: MapRow[];
-  /** Codes of courses with nothing dated — named in a footnote, not drawn as empty rows. */
-  empty: string[];
-  /** Open items due per week, exams included — the same set the marks draw. */
+  /** Courses with no dated assignment or exam on the axis. */
+  emptyCourses: { code: string; name: string; href: string }[];
+  /** Open deadlines per week — incomplete assignments plus open exams, the set
+   *  the marks draw. */
   counts: number[];
-  /** A week at or above this count is heavy. */
-  threshold: number;
-  /** Index of the heaviest week, or -1. */
-  peak: number;
-  /** Index of the current week, or -1 when today is off the axis. */
   now: number;
-  /** The mark states actually present, for a legend that lists only what is drawn. */
-  states: MarkState[];
+  /** Assignment/task records: open and completed, every record in the domain. */
+  open: number;
+  completed: number;
+  /** Open exams. */
+  exams: number;
+  nextBusy: { monday: string; count: number } | null;
+  peak: { monday: string; count: number } | null;
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-/**
- * Heavy = above the user's own median non-empty week. An absolute "three or
- * more" would call every week heavy for one student and none for another;
- * relative to the term's own rhythm, the flag means "more than usual for you".
- */
-export function heavyThreshold(counts: number[]): number {
-  const nonEmpty = counts.filter((n) => n > 0).sort((a, b) => a - b);
-  if (nonEmpty.length === 0) return Infinity;
-  return nonEmpty[Math.floor(nonEmpty.length / 2)] + 1;
-}
-
-function markOf(t: CourseTask): MapMark {
+export function markOf(t: CourseTask, today: string, course: string | null, href: string): MapMark {
   const date = t.due!.slice(0, 10);
-  const when = t.due!.length > 10 ? `${dayLabel(date)} ${t.due!.slice(11, 16)}` : dayLabel(date);
-  if (t.done) return { state: "done", label: `${t.title} · ${when} · done` };
-  if (t.type === "exam") return { state: "exam", label: `${t.title} · ${when}` };
-  // `dueInfo` owns the urgency thresholds; the map only maps them to a glyph.
-  const urgency = dueInfo(t.due!).urgency;
-  const state: MarkState = urgency === "overdue" ? "overdue" : urgency === "none" ? "open" : "soon";
-  return { state, label: `${t.title} · ${when}${state === "overdue" ? " · overdue" : ""}` };
+  const when = t.due!.length > 10 ? `${dayLabel(date)} · ${t.due!.slice(11, 16)}` : dayLabel(date);
+  const base = { id: t.id, title: t.title, course, when, href };
+  // Completion wins over everything, and an exam stays a diamond even on its
+  // day — the status text carries "today" instead of the glyph changing.
+  if (t.done) return { ...base, state: "done", status: "completed" };
+  if (t.type === "exam") return { ...base, state: "exam", status: date === today ? "exam today" : "exam" };
+  if (date === today) return { ...base, state: "today", status: "due today" };
+  return { ...base, state: "open", status: date < today ? "overdue" : "upcoming" };
 }
 
 export function semesterMap(
@@ -244,81 +290,89 @@ export function semesterMap(
   const weeks: MapWeek[] = Array.from({ length: weekCount }, (_, i) => {
     const monday = addDays(start, i * 7);
     const d = new Date(`${monday}T12:00:00Z`);
-    return { monday, day: d.getUTCDate(), month: MONTHS[d.getUTCMonth()], isNow: mondayOf(today) === monday };
+    return { monday, day: d.getUTCDate(), month: MONTHS[d.getUTCMonth()], isNow: mondayOf(today) === monday, monthStart: false };
   });
   const months: { label: string; span: number }[] = [];
-  for (const w of weeks) {
+  weeks.forEach((w, i) => {
     const last = months[months.length - 1];
     if (last && last.label === w.month) last.span++;
-    else months.push({ label: w.month, span: 1 });
-  }
+    else {
+      months.push({ label: w.month, span: 1 });
+      weeks[i].monthStart = i > 0;
+    }
+  });
 
   const weekIndex = (due: string) => Math.floor(daysBetween(start, due.slice(0, 10)) / 7);
   const onAxis = (t: CourseTask): t is CourseTask & { due: string } =>
     !!t.due && weekIndex(t.due) >= 0 && weekIndex(t.due) < weekCount;
 
+  const ownerOf = new Map<number, CourseGroup>();
+  for (const g of groups) for (const id of g.ids) ownerOf.set(id, g);
+
   const buildRow = (key: string, code: string, name: string, href: string, items: CourseTask[]): MapRow => {
     const cells: MapMark[][] = weeks.map(() => []);
     const ordered = [...items].sort((a, b) => a.done - b.done || a.due!.localeCompare(b.due!));
-    for (const t of ordered) cells[weekIndex(t.due!)].push(markOf(t));
+    for (const t of ordered) cells[weekIndex(t.due!)].push(markOf(t, today, key === "none" ? null : code, href));
     const coursework = items.filter((t) => t.type !== "exam");
-    const done = coursework.filter((t) => t.done).length;
-    const left =
-      coursework.length === 0 ? null : done === 0 ? `${coursework.length} left` : `${done} of ${coursework.length}`;
-    return { key, code, name, href, cells, left };
+    const remaining = coursework.length === 0 ? null : coursework.filter((t) => !t.done).length;
+    return { key, code, name, href, cells, remaining };
   };
 
   // Rows rank by their earliest open item, overdue included: the course that is
-  // already behind leads, which is where its red mark should be.
-  const nextDue = (items: CourseTask[]) =>
+  // behind leads, which is where its mark should be.
+  const earliestOpen = (items: CourseTask[]) =>
     items
       .filter((t) => !t.done && t.due)
       .map((t) => t.due!)
       .sort()[0] ?? "9999";
 
-  const ownerOf = new Map<number, CourseGroup>();
-  for (const g of groups) for (const id of g.ids) ownerOf.set(id, g);
-
   const candidates: { next: string; row: MapRow }[] = [];
-  const empty: string[] = [];
+  const emptyCourses: SemesterMapModel["emptyCourses"] = [];
   for (const g of groups) {
     const items = [...work, ...exams].filter((t) => t.course_id != null && ownerOf.get(t.course_id) === g && onAxis(t));
+    const href = `/academic/courses/${g.ids[0]}`;
     if (items.length === 0) {
-      empty.push(g.code);
+      emptyCourses.push({ code: g.code, name: g.name, href });
       continue;
     }
-    candidates.push({
-      next: nextDue(items),
-      row: buildRow(g.key, g.code, g.name, `/academic/courses/${g.ids[0]}`, items),
-    });
+    candidates.push({ next: earliestOpen(items), row: buildRow(g.key, g.code, g.name, href, items) });
   }
-  // Unfiled items get a row of their own — a nudge to file them, and the only
-  // place on the map they could honestly appear.
+  // Unfiled items get a row of their own, shown only when there are any.
   const loose = [...work, ...exams].filter((t) => (t.course_id == null || !ownerOf.has(t.course_id)) && onAxis(t));
   if (loose.length > 0) {
-    candidates.push({ next: nextDue(loose), row: buildRow("none", "no course", "No course set", "#assignments", loose) });
+    candidates.push({ next: earliestOpen(loose), row: buildRow("none", "Unassigned", "No course set", "#assignments", loose) });
   }
   candidates.sort((a, b) => a.next.localeCompare(b.next));
   const rows = candidates.map((c) => c.row);
 
+  // Weekly deadlines: incomplete assignments plus open exams — the same set the
+  // marks draw, so the row can never disagree with the column over it.
   const counts = weeks.map(() => 0);
   for (const t of [...work, ...exams]) if (!t.done && onAxis(t)) counts[weekIndex(t.due)]++;
-  const threshold = heavyThreshold(counts);
-  const peakCount = Math.max(0, ...counts);
-  const peak = peakCount > 0 ? counts.indexOf(peakCount) : -1;
-
-  const present = new Set(rows.flatMap((r) => r.cells.flat().map((m) => m.state)));
-  const states = MARK_ORDER.filter((s) => present.has(s));
-
-  return { weeks, months, rows, empty, counts, threshold, peak, now: weeks.findIndex((w) => w.isNow), states };
-}
-
-/** The first heavy week after the current one, for the rail. */
-export function nextHeavyWeek(model: SemesterMapModel): { monday: string; count: number } | null {
-  for (let i = model.now + 1; i < model.counts.length; i++) {
-    if (model.counts[i] >= model.threshold) return { monday: model.weeks[i].monday, count: model.counts[i] };
+  const now = weeks.findIndex((w) => w.isNow);
+  let nextBusy: SemesterMapModel["nextBusy"] = null;
+  for (let i = now + 1; i < counts.length; i++) {
+    if (isBusyWeek(counts[i])) {
+      nextBusy = { monday: weeks[i].monday, count: counts[i] };
+      break;
+    }
   }
-  return null;
+  const peakCount = Math.max(0, ...counts);
+  const peak = peakCount > 0 ? { monday: weeks[counts.indexOf(peakCount)].monday, count: peakCount } : null;
+
+  return {
+    weeks,
+    months,
+    rows,
+    emptyCourses,
+    counts,
+    now,
+    open: work.filter((t) => !t.done).length,
+    completed: work.filter((t) => t.done).length,
+    exams: exams.filter((e) => !e.done).length,
+    nextBusy,
+    peak,
+  };
 }
 
 /** '19–25 Oct', or '28 Sep – 4 Oct' when the week straddles a month. */
@@ -333,7 +387,7 @@ export function weekRangeLabel(monday: string): string {
 }
 
 /* ---------------------------------------------------------------------------
- * Horizon buckets for the assignments list
+ * Horizon buckets for the Upcoming work list
  * ------------------------------------------------------------------------- */
 
 export type Horizon = "overdue" | "today" | "week" | "next" | "later" | "undated";
@@ -363,10 +417,3 @@ export function horizonOf(due: string | null, today: string): Horizon {
   if (date <= addDays(sunday, 7)) return "next";
   return "later";
 }
-
-/**
- * How close an exam must be before its day count is shown. Day-metric framing
- * makes a deadline feel connected to now inside about a month; "100d" on four
- * rows all autumn is a number nobody reads.
- */
-export const EXAM_COUNTDOWN_DAYS = 30;

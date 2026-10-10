@@ -1,58 +1,69 @@
+"use client";
+
 import Link from "next/link";
-import { Fragment } from "react";
-import type { MarkState, SemesterMapModel } from "@/lib/academic/semester";
+import { Fragment, useState } from "react";
+import { Disclosure } from "@/components/ui/Disclosure";
+import { isBusyWeek, type MapMark, type MarkState, type SemesterMapModel } from "@/lib/academic/semester";
 import { dayLabel } from "@/lib/dates";
 
 /**
- * The Academic page's hero (decision #74): courses down, the term's weeks
- * across, one mark per dated item. It answers the three questions the old
- * 21-row table made you read for — when does the term get heavy, which course
- * owns the load, how far through each course's work am I — with position on a
- * shared time axis, the encoding people read most accurately.
+ * The Academic page's hero (decisions #74, #79): courses down, the term's weeks
+ * across, one mark per dated item. Position on a shared time axis answers
+ * "when does the term get heavy" and "which course owns the load" without
+ * reading a row.
  *
- * Vocabulary (decision #76): shape carries type and state, colour carries
- * urgency only. Ring = open, filled quiet = done, filled red = overdue, filled
- * amber = due today or tomorrow, diamond = exam. Overdue and done are both
- * filled, so they also differ by lightness and never by hue alone.
+ * Exactly four glyphs: hollow rose circle = upcoming assignment, filled grey =
+ * completed, filled amber = due today, hollow rose diamond = exam. Overdue is a
+ * status word on an open mark, not a fifth glyph. Every mark is a 24px link to
+ * the course page with its full description as its name; hovering or focusing
+ * one writes that description into the line under the grid, so keyboard and
+ * touch see what a mouse sees.
  *
- * A cell with marks is a link to the course page — the whole 49×30 cell, not
- * the 10px mark, is the target — with an accessible name that reads the cell
- * out. Nothing here is colour-coded without a shape or a word beside it, and
- * the done mark sits at 70% opacity because 45% measured 2.26:1 on the tile.
- *
- * Server component: the model is pure data from `semesterMap()`.
+ * The grid is quiet and the marks are loud: weekly guides at a third of the
+ * hairline tone, month boundaries a little stronger, the current week a
+ * neutral band. "Remaining" is incomplete assignment records per course — an
+ * em dash for a course with none, 0 when everything is done. "Weekly deadlines"
+ * counts incomplete assignments plus open exams, blank when zero, tinted from
+ * `BUSY_WEEK_THRESHOLD` up.
  */
 
-const MARK: Record<MarkState, string> = {
-  open: "rounded-full border-[1.5px] border-academic",
-  done: "rounded-full bg-faint/70",
-  overdue: "rounded-full bg-danger",
-  soon: "rounded-full bg-warn",
-  exam: "h-[9px] w-[9px] rotate-45 rounded-[1px] border-[1.5px] border-academic",
+const GLYPH: Record<MarkState, string> = {
+  open: "h-3 w-3 rounded-full border-[1.5px] border-academic",
+  done: "h-3 w-3 rounded-full bg-faint/70",
+  today: "h-3 w-3 rounded-full bg-warn",
+  exam: "h-[11px] w-[11px] rotate-45 rounded-[1px] border-[1.5px] border-academic",
 };
 
-const LEGEND: Record<MarkState, string> = {
-  open: "open",
-  done: "done",
-  overdue: "overdue",
-  soon: "today · tomorrow",
-  exam: "exam",
-};
+const LEGEND: { state: MarkState; label: string }[] = [
+  { state: "open", label: "Upcoming assignment" },
+  { state: "done", label: "Completed assignment" },
+  { state: "today", label: "Today" },
+  { state: "exam", label: "Exam" },
+];
+
+/** A cell shows this many marks before folding the rest behind a "+N" link. */
+const MAX_MARKS = 4;
+
+const describe = (m: MapMark) => [m.title, m.course, m.when, m.status].filter(Boolean).join(" · ");
 
 export function SemesterMap({ model }: { model: SemesterMapModel }) {
-  const columns = `6rem repeat(${model.weeks.length}, minmax(0, 1fr)) 3.5rem`;
-  const heavy = Number.isFinite(model.threshold);
+  const [detail, setDetail] = useState<MapMark | null>(null);
+  const columns = `9rem repeat(${model.weeks.length}, minmax(2.5rem, 1fr)) 5rem`;
+  const guide = (i: number) =>
+    `border-l ${model.weeks[i].monthStart ? "border-border/80" : "border-border/35"}`;
+  const band = (i: number) => (i === model.now ? " map-now" : "");
+  const empty = model.emptyCourses.length;
 
   return (
     <div>
       <div className="overflow-x-auto">
-        <div className="grid min-w-[40rem] items-stretch" style={{ gridTemplateColumns: columns }}>
+        <div className="grid min-w-[46rem] items-stretch" style={{ gridTemplateColumns: columns }}>
           {/* Months, spanning their weeks. */}
           <div />
           {model.months.map((m, i) => (
             <div
               key={`${m.label}-${i}`}
-              className="border-l border-border pb-1 pl-1.5 text-[11px] text-muted"
+              className={`pb-1 pl-1.5 text-xs text-muted ${i === 0 ? "" : "border-l border-border/80"}`}
               style={{ gridColumn: `span ${m.span}` }}
             >
               {m.label}
@@ -60,113 +71,131 @@ export function SemesterMap({ model }: { model: SemesterMapModel }) {
           ))}
           <div />
 
-          {/* Week starts. The current week keeps its date — "now" is said by
-              the column, not by replacing the number. */}
-          <div className="t-eyebrow self-end pb-1 text-faint">course</div>
-          {model.weeks.map((w) => (
+          {/* Week starts; "This week" sits above its own numeral. */}
+          <div className="flex items-end pb-1.5 text-xs text-muted">Week of</div>
+          {model.weeks.map((w, i) => (
             <div
               key={w.monday}
               title={`week of ${dayLabel(w.monday)}`}
-              className={`tabular border-l border-border py-1 text-center text-[11px] ${
-                w.isNow ? "map-now font-semibold text-academic" : "text-faint"
-              }`}
+              className={`flex h-11 flex-col items-center justify-end gap-0.5 pb-1.5 ${guide(i)}${band(i)}`}
             >
-              {w.day}
+              {w.isNow && <span className="text-[11px] leading-none whitespace-nowrap text-muted">This week</span>}
+              <span className={`tabular text-xs leading-none ${w.isNow ? "text-text" : "text-faint"}`}>{w.day}</span>
             </div>
           ))}
-          <div className="t-eyebrow self-end pb-1 text-right text-faint">left</div>
+          <div className="flex items-end justify-end pb-1.5 pr-1 text-xs text-muted">Remaining</div>
 
           {model.rows.map((row) => (
             <Fragment key={row.key}>
               <div
                 title={row.name}
-                className={`flex items-center truncate border-t border-border pr-1.5 text-xs ${
+                className={`flex items-center truncate border-t border-border/40 pr-2 text-sm ${
                   row.key === "none" ? "text-muted" : "font-semibold text-text"
                 }`}
               >
                 {row.code}
               </div>
               {row.cells.map((marks, i) => {
-                const now = i === model.now ? " map-now" : "";
-                if (marks.length === 0) {
-                  return <div key={i} className={`min-h-[30px] border-t border-l border-border${now}`} />;
-                }
-                const text = marks.map((m) => m.label).join("; ");
+                const shown = marks.length > MAX_MARKS ? marks.slice(0, MAX_MARKS - 1) : marks;
+                const folded = marks.length - shown.length;
                 return (
-                  <Link
+                  <div
                     key={i}
-                    href={row.href}
-                    aria-label={`${row.code}: ${text}`}
-                    title={marks.map((m) => m.label).join("\n")}
-                    className={`flex min-h-[30px] flex-col items-center justify-center gap-[3px] border-t border-l border-border py-1 transition-colors hover:bg-academic/10${now}`}
+                    className={`flex min-h-11 flex-wrap items-center justify-center gap-0.5 border-t border-border/40 px-0.5 py-1 ${guide(i)}${band(i)}`}
                   >
-                    {marks.map((m, j) => (
-                      <span key={j} aria-hidden="true" className={`block h-2.5 w-2.5 shrink-0 ${MARK[m.state]}`} />
+                    {shown.map((m) => (
+                      <Link
+                        key={m.id}
+                        href={m.href}
+                        aria-label={describe(m)}
+                        title={describe(m)}
+                        onFocus={() => setDetail(m)}
+                        onBlur={() => setDetail(null)}
+                        onMouseEnter={() => setDetail(m)}
+                        onMouseLeave={() => setDetail(null)}
+                        className="inline-flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-academic/10"
+                      >
+                        <span aria-hidden="true" className={`block shrink-0 ${GLYPH[m.state]}`} />
+                      </Link>
                     ))}
-                  </Link>
+                    {folded > 0 && (
+                      <Link
+                        href={row.href}
+                        aria-label={`${folded} more in the week of ${dayLabel(model.weeks[i].monday)}`}
+                        className="tabular inline-flex h-6 min-w-6 items-center justify-center rounded px-1 text-[11px] text-muted hover:bg-academic/10 hover:text-text"
+                      >
+                        +{folded}
+                      </Link>
+                    )}
+                  </div>
                 );
               })}
-              <div className="tabular flex items-center justify-end border-t border-l border-border pr-0.5 text-[11px] text-muted">
-                {row.left ?? "—"}
+              <div className="tabular flex items-center justify-end border-t border-border/40 pr-1 text-sm text-text">
+                {row.remaining ?? "—"}
               </div>
             </Fragment>
           ))}
 
-          {/* Items due per week — the same set as the marks above, exams
-              included, so the row can never disagree with the column over it.
-              Heavy weeks are bold; the peak takes the page accent. */}
-          <div className="flex items-center border-t border-border text-[11px] text-muted">due</div>
+          {/* Weekly deadlines: incomplete assignments plus open exams, the same
+              set the marks draw. Blank when zero; tinted when busy. */}
+          <div className="flex flex-col justify-center border-t border-border/60 py-2 pr-2">
+            <span className="text-xs text-muted">Weekly deadlines</span>
+            <span className="text-[11px] leading-tight text-faint">Includes assignments and exams</span>
+          </div>
           {model.counts.map((n, i) => {
-            const isHeavy = heavy && n >= model.threshold;
-            const tone =
-              i === model.peak && n > 0
-                ? "font-semibold text-academic"
-                : isHeavy
-                  ? "font-semibold text-text"
-                  : n === 0
-                    ? "text-border-strong"
-                    : "text-muted";
+            const busy = isBusyWeek(n);
             return (
               <div
                 key={i}
-                title={`${n} due in the week of ${dayLabel(model.weeks[i].monday)}`}
-                className={`tabular border-t border-l border-border py-1.5 text-center text-[11px] ${tone}${
-                  i === model.now ? " map-now" : ""
-                }`}
+                title={n ? `${n} due in the week of ${dayLabel(model.weeks[i].monday)}` : undefined}
+                className={`flex items-center justify-center border-t border-border/60 py-2 ${guide(i)}${band(i)}`}
               >
-                {n || "·"}
+                {n > 0 && (
+                  <span
+                    className={`tabular inline-flex h-7 min-w-7 items-center justify-center rounded px-1.5 text-sm ${
+                      busy ? "bg-academic/20 font-medium text-text" : "text-muted"
+                    }`}
+                  >
+                    {n}
+                  </span>
+                )}
               </div>
             );
           })}
-          <div className="border-t border-border" />
+          <div className="border-t border-border/60" />
         </div>
       </div>
 
-      {/* The legend lists only the states that are drawn — a key to a glyph
-          that is not on screen is a sentence about the interface. */}
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted">
-        {model.states.map((s) => (
-          <span key={s} className="inline-flex items-center gap-1.5">
-            <span aria-hidden="true" className={`block h-2.5 w-2.5 ${MARK[s]}`} />
-            {LEGEND[s]}
-          </span>
-        ))}
-        {model.now >= 0 && (
-          <span className="inline-flex items-center gap-1.5">
-            <span aria-hidden="true" className="map-now block h-3 w-3.5 rounded-sm" />
-            this week
-          </span>
-        )}
-        {heavy && (
-          <span className="inline-flex items-center gap-1.5">
-            <span className="tabular font-semibold text-text">{model.threshold}+</span>
-            heavy · above your median week
-          </span>
+      {/* What the pointer or the focus ring is on. */}
+      <p aria-live="polite" className="tabular mt-2 min-h-5 text-xs text-muted">
+        {detail ? describe(detail) : ""}
+      </p>
+
+      <div className="mt-2 flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
+        <ul className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-muted">
+          {LEGEND.map((l) => (
+            <li key={l.state} className="inline-flex items-center gap-2">
+              <span aria-hidden="true" className={`inline-flex h-4 w-4 items-center justify-center`}>
+                <span className={`block ${GLYPH[l.state]}`} />
+              </span>
+              {l.label}
+            </li>
+          ))}
+        </ul>
+        {empty > 0 && (
+          <Disclosure summary={`${empty} ${empty === 1 ? "course" : "courses"} without deadlines`} className="ml-auto items-end">
+            <ul className="flex flex-col items-end gap-1 text-xs">
+              {model.emptyCourses.map((c) => (
+                <li key={c.href}>
+                  <Link href={c.href} className="rounded text-muted transition-colors hover:text-text">
+                    <span className="font-semibold text-text">{c.code}</span> · {c.name} →
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Disclosure>
         )}
       </div>
-      {model.empty.length > 0 && (
-        <p className="mt-2 text-xs text-muted">no deadlines entered · {model.empty.join(" · ")}</p>
-      )}
     </div>
   );
 }

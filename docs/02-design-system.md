@@ -65,8 +65,10 @@ the green against the warm yellow-brown.
    two stat cards above a short table cost more room than the table itself.
 3. **Rail + bento** on wide screens: a sticky **19rem** left rail of the ways out of the page
    and the day's small state (Go to, Quick add, Reminders/Ideas, on Personal also Habits and
-   German, and on Academic **Now** and **Exams** — the rail also carries a page's *standing*
-   state, decisions #74/#75), beside a **twelve-column** grid of tiles with `items-start`. Set spans from the
+   German), beside a **twelve-column** grid of tiles with `items-start`. **Academic is the
+   exception (#78):** a 13rem *navigation* rail — wordmark, the page's sections as scroll-spied
+   anchors, the other pages, Reminders with a badge, week-of-term at the foot — beside modules on
+   `Tile frame="quiet"`, with one `+ Add` menu in the header instead of per-module add buttons. Set spans from the
    content, not from symmetry. The hub has **no rail** — it is the navigation. The week calendar
    sits **outside** the rail grid at full page width: `WeekCalendar` has a 52rem floor and the
    main column beside a 19rem rail is narrower than that (#58).
@@ -77,7 +79,9 @@ the green against the warm yellow-brown.
 A border must mean **grouping or interaction**. When every element has one, none of them does —
 `/personal` reached fourteen outlined rectangles at equal weight before this was written down.
 
-- **One border per section.** The `Tile` is it. A `Card` inside a `Tile` is a card inside a card:
+- **One border per section.** The `Tile` is it — `border-2` in `--color-border-strong` on the
+  pages with a rail of modules; `frame="quiet"` (a hairline at 20px padding) on Academic, where
+  the modules sit beside a navigation rail and four 2px outlines read as the outline (#78). A `Card` inside a `Tile` is a card inside a card:
   use `<Card bare>`, which keeps the label/value/context grammar and drops the box. A `Table`
   already inside a `Tile` takes `frameless`. Since 2026-08-23 this holds on **every** page, and
   by weight **and tone**: the module shell (`Tile`, and `NotesCard`'s rail shell) is `border-2`
@@ -155,9 +159,12 @@ forms, each for one kind of question; the rules under them hold on every page.
   (`SemesterMap`). Position on a shared axis is the encoding people read most accurately, so
   "when does it get heavy" and "who owns the load" are answered without reading a row. The
   axis comes from the data's spread, not from a pattern library: a 21-day strip would have
-  shown five of 21 items. Marks: ring open · filled-quiet done · filled red overdue · filled
-  amber today/tomorrow · diamond exam. The cell, not the mark, is the link; the current period
-  is a tinted, edged column; a count row underneath counts the same set the marks draw.
+  shown five of 21 items. Exactly four marks (#79): hollow rose circle = upcoming assignment,
+  filled grey = completed, filled amber = due today, hollow rose diamond = exam; overdue is a
+  status word, not a glyph. Each 12px mark sits in a 24px link whose name is the full
+  description, echoed in a live line on hover or focus. The current week is a neutral band;
+  a "Weekly deadlines" row counts the same set the marks draw, blank at zero, tinted from a
+  fixed threshold; "Remaining" is one integer per row, with an em dash for no records.
 - **A list grouped by horizon for "what next"** — Overdue · Today · This week · Next week ·
   Later (collapsed, saying its count and next date) · No date. Resolution decays with
   distance. A group renders only when it has rows. The table is never deleted — it is one
@@ -175,11 +182,12 @@ Rules that travel with these (binding; measured, not eyeballed):
 |---|---|
 | Non-text marks clear **3:1** on their ground. | Done mark at 45% opacity was 2.26:1; 70% is 3.55:1. |
 | Pointer targets **≥ 24×24** — a label box around a checkbox, `RowAction`, the grid cell. | 14px checkboxes and a 12px pencil had passed four mock reviews. |
-| A colour-driving threshold is **relative to the user's data** and lives in one helper. | "Heavy ≥ 3" hardcoded → `heavyThreshold()` = median non-empty week + 1. |
-| Legend = states drawn; count row = set drawn. | The "due" row counted coursework under exam diamonds. |
-| Progress reads remaining-first until the first completion. | "0 of 5" ×3 in week 4 read as failure; "5 left" does not. |
+| A colour-driving threshold lives in one helper — relative to the user's data unless the user fixes it. | The semester map's busy week is a fixed `BUSY_WEEK_THRESHOLD` = 3 at the user's ask (#79); the median rule it replaced could not be predicted from the page. |
+| A legend is the fixed vocabulary, nothing more; a count row counts the set the marks draw. | Four entries on the semester map (#79); the "due" row once counted coursework under exam diamonds. |
+| A progress figure is one integer with one definition; absent data is an em dash, not a zero. | "Remaining" (#79): incomplete records, 0 when all done, — when the row has none. The earlier "5 left / 2 of 7" mixed two framings. |
 | Shape carries type/state; colour carries urgency only; filled states differ by lightness. | Rose ring vs red fill, ΔE 17.8, kept apart by shape. |
-| Nothing lives only in a tooltip. | 10px marks with `title` → named 49×30 link cells. |
+| Nothing lives only in a tooltip. | 10px marks with `title` → named 24px links plus a live detail line on hover/focus (#79). |
+| One due label per row — never a date and a countdown side by side. | "Tomorrow" and "1d" in one row say one thing twice (#80). |
 
 ## Recurring patterns
 

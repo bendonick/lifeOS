@@ -31,8 +31,11 @@ export function Table({
       <table className={`w-full text-sm ${rows === "cards" ? "table-cards" : ""}`}>
         <thead>
           <tr className="border-b border-border text-left text-xs text-muted">
-            {columns.map((c) => (
-              <th key={c} className="px-3 py-2 font-medium">
+            {columns.map((c, i) => (
+              // Keyed by position: a table may carry two unlabelled columns (a
+              // done box on the left, a chevron on the right), and two "" keys
+              // are a duplicate-key warning on every render.
+              <th key={`${i}:${c}`} className="px-3 py-2 font-medium">
                 {c}
               </th>
             ))}
