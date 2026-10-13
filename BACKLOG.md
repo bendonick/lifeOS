@@ -257,10 +257,9 @@ becomes a session the day its data exists.
 
 ## Academic v3 (2026-10-10)
 
-- **Task detail and editing.** The list's chevron opens the course page because a task has no
-  detail view of its own and the API has no task DELETE; editing a title or date still means
-  the database. A task detail sheet (or overflow menu) with edit/delete would close the loop the
-  design's "detail flow" assumes.
+- **Task deletion.** Editing landed 2026-10-13 (an inline editor behind a pencil on every row;
+  `PATCH` accepts `course_id`). The API still has no task DELETE, so removing a task means the
+  database; a delete action with a confirm, mirroring courses, would close the loop.
 - **The three other pages still carry a rail of modules** (#57/#63) while Academic has a
   navigation rail (#78). Decide whether the hub, Personal and Professional follow; `NavRail`'s
   section list is the only Academic-specific part.

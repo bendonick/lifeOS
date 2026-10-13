@@ -50,8 +50,12 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
    with "N tasks · next date" · No date) · All N (every incomplete row, flat) · Completed. A row:
    24px done box · title (a neutral `task` pill when the type is not assignment) · course code
    pill · one due label via `dueLabel()` — Today / Tomorrow in amber, the date otherwise, "·
-   overdue" in red, with the time when set — · a chevron to the course page. Hairline rows. No
-   add button: `+ Add` opens the form by hash.
+   overdue" in red, with the time when set — · a pencil · a chevron to the course page. Hairline
+   rows. No add button: `+ Add` opens the form by hash. **Editing (2026-10-13):** the pencil opens
+   an inline editor under the row — title, type, course, date, time, details — saved through one
+   `PATCH /api/tasks/:id` (which now accepts `course_id`, validated like POST), so the map, the
+   groups and the counts move together. One editor at a time; the course page gets the same
+   editor without the course picker.
 
 4. **Exams** (`ExamsPanel`, #80) — the nearest open exam (course code → course page, date ·
    time · title), tile meta `firstExamLabel()` ("First in N days", Today, Tomorrow); the rest

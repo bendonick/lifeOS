@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { courseById } from "@/lib/db/courses";
 import { isDomain, isTaskType, updateTask } from "@/lib/db/tasks";
 import { isDueValue } from "@/lib/dates";
 import type { Task } from "@/lib/types";
@@ -10,7 +11,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "invalid body" }, { status: 400 });
 
-  const patch: Partial<Pick<Task, "title" | "domain" | "type" | "due" | "done" | "notes">> = {};
+  const patch: Partial<Pick<Task, "title" | "domain" | "type" | "due" | "done" | "notes" | "course_id">> = {};
   if (body.done !== undefined) patch.done = body.done ? 1 : 0;
   if (typeof body.title === "string" && body.title.trim()) patch.title = body.title.trim();
   if (body.domain !== undefined) {
@@ -27,6 +28,15 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     patch.due = body.due || null;
   }
   if (body.notes !== undefined) patch.notes = body.notes || null;
+  // Re-filing: null unfiles, an integer must name a course — foreign_keys is
+  // ON, so an unknown id would otherwise surface as a 500.
+  if (body.course_id !== undefined) {
+    if (body.course_id !== null && !Number.isInteger(body.course_id))
+      return NextResponse.json({ error: "course_id must be an integer or null" }, { status: 400 });
+    if (body.course_id !== null && !courseById(body.course_id))
+      return NextResponse.json({ error: "unknown course" }, { status: 400 });
+    patch.course_id = body.course_id;
+  }
 
   const task = updateTask(id, patch);
   if (!task) return NextResponse.json({ error: "not found" }, { status: 404 });

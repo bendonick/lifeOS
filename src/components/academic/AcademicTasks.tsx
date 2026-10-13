@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Pencil, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { AnchoredForm } from "@/components/ui/AnchoredForm";
 import { Disclosure, DisclosureTrigger } from "@/components/ui/Disclosure";
 import { Pill } from "@/components/ui/Pill";
+import { RowAction } from "@/components/ui/RowAction";
 import { Table } from "@/components/ui/Table";
 import { accentControl, urgencyText } from "@/components/ui/accents";
-import { buttonChrome } from "@/components/ui/controls";
+import { buttonChrome, fieldChrome, inputChrome, selectChrome } from "@/components/ui/controls";
 import { HORIZONS, HORIZON_LABEL, courseCode, dueLabel, horizonOf, type Horizon } from "@/lib/academic/semester";
 import { dayLabel, dueInfo } from "@/lib/dates";
 import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
@@ -32,6 +33,11 @@ import type { Course, TaskType } from "@/lib/types";
  * Filters: Upcoming (grouped), All N (every incomplete row, flat), Completed.
  * The add form opens from the page's `+ Add` menu by hash (`addTrigger`
  * false) or from its own button on a detail page.
+ *
+ * Editing (2026-10-13): the pencil on a row opens an inline editor beneath it
+ * — title, type, course, date, time, details — which saves through one PATCH
+ * and refreshes, so the map, the groups and the counts move together. One
+ * editor at a time; opening another closes the first.
  */
 
 type View = "upcoming" | "all" | "completed";
@@ -65,6 +71,16 @@ export function AcademicTasks({
   const [isAdding, startTransition] = useTransition();
   const [view, setView] = useState<View>(mode === "exams" ? "all" : "upcoming");
   const [laterOpen, setLaterOpen] = useState(false);
+
+  const [editing, setEditing] = useState<number | null>(null);
+  const [eTitle, setETitle] = useState("");
+  const [eType, setEType] = useState<TaskType>("assignment");
+  const [eCourseId, setECourseId] = useState("");
+  const [eDue, setEDue] = useState("");
+  const [eDueTime, setEDueTime] = useState("");
+  const [eNotes, setENotes] = useState("");
+  const [editError, setEditError] = useState<string | null>(null);
+  const [isSaving, startSave] = useTransition();
 
   const [title, setTitle] = useState("");
   const [type, setType] = useState<TaskType>(mode === "exams" ? "exam" : "assignment");
@@ -141,7 +157,55 @@ export function AcademicTasks({
     startTransition(() => router.refresh());
   }
 
-  const busy = isPending || isAdding;
+  function startEdit(t: CourseTask) {
+    if (editing === t.id) {
+      setEditing(null);
+      return;
+    }
+    setEditing(t.id);
+    setEditError(null);
+    setETitle(t.title);
+    setEType(t.type);
+    setECourseId(t.course_id != null ? String(t.course_id) : "");
+    setEDue(t.due ? t.due.slice(0, 10) : "");
+    setEDueTime(t.due && t.due.length > 10 ? t.due.slice(11, 16) : "");
+    setENotes(t.notes ?? "");
+  }
+
+  async function saveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (editing === null) return;
+    if (!eTitle.trim()) {
+      setEditError("enter a title");
+      return;
+    }
+    if (eDueTime && !eDue) {
+      setEditError("pick a date for that time");
+      return;
+    }
+    setEditError(null);
+    const res = await fetch(`/api/tasks/${editing}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: eTitle.trim(),
+        type: mode === "exams" ? "exam" : eType,
+        due: eDue ? (eDueTime ? `${eDue}T${eDueTime}` : eDue) : null,
+        notes: eNotes.trim() || null,
+        // A course page keeps the task where it is; the main list can re-file.
+        ...(fixedCourseId ? {} : { course_id: eCourseId ? Number(eCourseId) : null }),
+      }),
+    }).catch(() => null);
+    if (!res?.ok) {
+      const message = await res?.json().then((j) => j?.error).catch(() => null);
+      setEditError(message ?? "could not save — try again");
+      return;
+    }
+    setEditing(null);
+    startSave(() => router.refresh());
+  }
+
+  const busy = isPending || isAdding || isSaving;
   const anchor = mode === "exams" ? "new-exam" : "new-assignment";
 
   const form = (close?: () => void) => (
@@ -232,7 +296,73 @@ export function AcademicTasks({
 
   const columns = ["", mode === "exams" ? "Exam" : "Task", ...(fixedCourseId ? [] : ["Course"]), "Due", ""];
 
-  const row = (t: CourseTask) => (
+  const editor = (t: CourseTask) => (
+    <tr key={`edit-${t.id}`} data-section="">
+      <td colSpan={columns.length} className="px-2 pb-3">
+        <form
+          onSubmit={saveEdit}
+          aria-label={`edit ${t.title}`}
+          className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-(--color-inset) p-3"
+        >
+          <input
+            value={eTitle}
+            onChange={(e) => setETitle(e.target.value)}
+            aria-label="title"
+            aria-invalid={!!editError && !eTitle.trim()}
+            autoFocus
+            className={`min-w-40 flex-1 ${inputChrome}`}
+          />
+          {mode === "work" && (
+            <select value={eType} onChange={(e) => setEType(e.target.value as TaskType)} aria-label="type" className={`w-28 ${selectChrome}`}>
+              <option value="assignment">assignment</option>
+              <option value="task">task</option>
+            </select>
+          )}
+          {!fixedCourseId && (
+            <select value={eCourseId} onChange={(e) => setECourseId(e.target.value)} aria-label="course" className={`w-36 ${selectChrome}`}>
+              <option value="">no course</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.time_label ? `${c.name} · ${c.time_label}` : c.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <div className="flex items-center gap-1.5">
+            <input type="date" value={eDue} onChange={(e) => setEDue(e.target.value)} aria-label="due date" className={fieldChrome} />
+            <input
+              type="time"
+              value={eDueTime}
+              onChange={(e) => setEDueTime(e.target.value)}
+              aria-label="due time (optional)"
+              className={`w-28 ${fieldChrome}`}
+            />
+          </div>
+          <input
+            value={eNotes}
+            onChange={(e) => setENotes(e.target.value)}
+            placeholder="Details…"
+            aria-label="details"
+            className={`min-w-40 flex-1 ${inputChrome}`}
+          />
+          <button type="submit" className={`${buttonChrome} hover:border-academic/40`}>
+            Save
+          </button>
+          <button type="button" onClick={() => setEditing(null)} className={`${buttonChrome} text-muted hover:text-text`}>
+            Cancel
+          </button>
+          {editError && (
+            <span role="alert" className="text-xs text-danger">
+              {editError}
+            </span>
+          )}
+        </form>
+      </td>
+    </tr>
+  );
+
+  // A row, and its editor beneath it while it is open.
+  const row = (t: CourseTask) => [
     <Row
       key={t.id}
       task={t}
@@ -242,8 +372,11 @@ export function AcademicTasks({
       showCourse={!fixedCourseId}
       done={valueFor(t, !!t.done)}
       onToggle={toggle}
-    />
-  );
+      editing={editing === t.id}
+      onEdit={() => startEdit(t)}
+    />,
+    ...(editing === t.id ? [editor(t)] : []),
+  ];
 
   return (
     <div aria-busy={busy}>
@@ -292,9 +425,9 @@ export function AcademicTasks({
                   </td>
                 </tr>
               );
-              return collapsed ? [header] : [header, ...items.map(row)];
+              return collapsed ? [header] : [header, ...items.flatMap(row)];
             })
-          : shown.map(row)}
+          : shown.flatMap(row)}
       </Table>
 
       {adder}
@@ -310,6 +443,8 @@ function Row({
   showCourse,
   done,
   onToggle,
+  editing,
+  onEdit,
 }: {
   task: CourseTask;
   mode: "work" | "exams";
@@ -318,6 +453,8 @@ function Row({
   showCourse: boolean;
   done: boolean;
   onToggle: (task: CourseTask, current: boolean) => void;
+  editing: boolean;
+  onEdit: () => void;
 }) {
   const urgency = task.due ? dueInfo(task.due).urgency : null;
   return (
@@ -355,16 +492,24 @@ function Row({
       >
         {task.due ? dueLabel(task.due, today) : "—"}
       </td>
-      <td className="w-10 px-2 py-3 text-right">
-        {task.course_id != null && (
-          <Link
-            href={`/academic/courses/${task.course_id}`}
-            aria-label={`Open ${code ?? task.course_name ?? "course"}`}
-            className="inline-flex h-6 w-6 items-center justify-center rounded text-faint transition-colors hover:text-text"
-          >
-            <ChevronRight size={14} aria-hidden="true" />
-          </Link>
-        )}
+      <td className="w-16 px-2 py-3">
+        <span className="flex items-center justify-end gap-0.5">
+          <RowAction
+            icon={editing ? X : Pencil}
+            label={editing ? `close editor: ${task.title}` : `edit ${task.title}`}
+            expanded={editing}
+            onClick={onEdit}
+          />
+          {task.course_id != null && (
+            <Link
+              href={`/academic/courses/${task.course_id}`}
+              aria-label={`Open ${code ?? task.course_name ?? "course"}`}
+              className="inline-flex h-6 w-6 items-center justify-center rounded text-faint transition-colors hover:text-text"
+            >
+              <ChevronRight size={14} aria-hidden="true" />
+            </Link>
+          )}
+        </span>
       </td>
     </tr>
   );
