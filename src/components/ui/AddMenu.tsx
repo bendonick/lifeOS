@@ -2,23 +2,22 @@
 
 import { ChevronDown, Plus } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
+import { accentHoverBorder, type Accent } from "@/components/ui/accents";
 import { buttonChrome } from "@/components/ui/controls";
 
 /**
- * The page's one creation control (decision #78): four entries, each the
- * anchor an existing form already listens for. Picking an entry sets the hash;
- * `Disclosure`/`AnchoredForm` open, scroll and focus the input. If the hash is
- * already that anchor (the form was opened and cancelled), the same pick
- * re-dispatches `hashchange` so the form opens again.
+ * A page's one creation control (decision #78): each entry is the anchor an
+ * existing form already listens for. Picking one sets the hash; `Disclosure`
+ * and `AnchoredForm` open, scroll and focus the input. If the hash is already
+ * that anchor (the form was opened and cancelled), the same pick re-dispatches
+ * `hashchange` so the form opens again.
  */
-const ITEMS = [
-  { label: "Course", hash: "new-course" },
-  { label: "Assignment or task", hash: "new-assignment" },
-  { label: "Exam", hash: "new-exam" },
-  { label: "Reminder", hash: "new-reminder" },
-];
+export interface AddItem {
+  label: string;
+  hash: string;
+}
 
-export function AddMenu() {
+export function AddMenu({ items, accent }: { items: AddItem[]; accent: Accent }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const menuId = useId();
@@ -50,7 +49,7 @@ export function AddMenu() {
         aria-expanded={open}
         aria-controls={menuId}
         onClick={() => setOpen((v) => !v)}
-        className={`${buttonChrome} inline-flex items-center gap-1.5 hover:border-academic/40`}
+        className={`${buttonChrome} inline-flex items-center gap-1.5 ${accentHoverBorder[accent]}`}
       >
         <Plus size={14} aria-hidden="true" />
         Add
@@ -63,7 +62,7 @@ export function AddMenu() {
           aria-label="Add"
           className="absolute right-0 z-30 mt-1.5 min-w-48 rounded-lg border border-border bg-surface p-1"
         >
-          {ITEMS.map((item) => (
+          {items.map((item) => (
             <li key={item.hash} role="none">
               <a
                 role="menuitem"

@@ -1,23 +1,17 @@
-import { Card } from "@/components/ui/Card";
 import type { BudgetOverview } from "@/lib/db/money";
 import type { Insight, InsightTone } from "@/lib/money/insights";
 
-// The one hero for the Spending section, absorbing what used to be two cards.
-//
-// `SpendingCard` said "CHF X / Y" and `SpendGauge` said "Z CHF left"
-// beside it — the same fact twice, across two thirds of the top row. A spending
-// screen has to answer three questions at a glance (how much is left, how much
-// has gone, what needs my attention); saying the first one twice left no room
-// for the third, which was the fourth line of a paragraph.
+// The one hero for the Spending section (decisions #46/#47, relabelled in #81).
 //
 // Month-scoped only, at the user's ask: no per-day allowance, no "day 12 of 30".
 // The pace tick carries "am I ahead or behind" without a number that swings
 // wildly in the first days of a month.
 //
 // The progress bar is deliberately the SAME glyph the budget rows below use —
-// filled track, pace tick (decision #21). The radial ring it replaces was a
-// second visual grammar for the same idea, and a tick is legible on a bar in a
-// way it never was on a 132px circumference.
+// filled track, pace tick (decision #21). Nothing here redefines a figure: the
+// headline is the variable tier's budget minus its window-clamped spend, and
+// the overall budget is the all-in monthly total the overview already carries
+// (monthly lines plus annual/12).
 
 const chf = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
 
@@ -30,29 +24,12 @@ const insightTone: Record<InsightTone, string> = {
 const SHOWN_INSIGHTS = 2;
 
 export function MonthCard({ o, insights = [] }: { o: BudgetOverview; insights?: Insight[] }) {
-  const monthLabel = new Date(`${o.month}-15T12:00:00Z`).toLocaleString("en-GB", {
-    month: "long",
-    timeZone: "UTC",
-  });
-
-  return (
-    // Bare, with a rule instead of a box: this sits inside the Spending tile,
-    // and a bordered card inside a bordered tile is the nested-rectangle problem
-    // the redesign exists to remove. The hierarchy comes from the numeral size.
-    <Card
-      label={monthLabel}
-      accent="personal"
-      bare
-      className="lg:col-span-3 lg:border-r lg:border-border lg:pr-6"
-    >
-      {o.prospective ? <Prospective o={o} /> : <InFlight o={o} insights={insights} />}
-    </Card>
-  );
+  return o.prospective ? <Prospective o={o} /> : <InFlight o={o} insights={insights} />;
 }
 
 /**
- * Before the budget's first day. Every figure is zero and will be until
- * September, so this states the plan instead of rendering a wall of zeros with
+ * Before the budget's first day. Every figure is zero and will be until the
+ * start date, so this states the plan instead of rendering a wall of zeros with
  * a full progress bar and a pace verdict about a month that hasn't happened.
  * "Never render a status that cannot yet be true."
  */
@@ -60,20 +37,14 @@ function Prospective({ o }: { o: BudgetOverview }) {
   const days = daysUntil(o.today, `${o.month}-01`);
 
   return (
-    <>
-      <p className="mt-1 text-xs text-muted">
+    <div>
+      <p className="text-xs text-muted">
         starts {o.month}-01
         {days > 0 && ` · in ${days} ${days === 1 ? "day" : "days"}`}
       </p>
-      <div className="tabular t-metric mt-3 text-4xl">CHF {chf.format(o.variable.budget)}</div>
-      <p className="mt-1 text-xs text-muted">
-        planned for variable spending · all-in {chf.format(o.allIn.budget)} a month
-      </p>
+      <div className="tabular t-metric mt-2 text-4xl">CHF {chf.format(o.variable.budget)}</div>
+      <p className="mt-1 text-sm text-muted">planned for variable spending</p>
 
-      {/* What the all-in figure is made of. Before a month starts there is no
-          progress to report, and this is the question that replaces it: not
-          "how am I doing" but "what did I commit to". It also stops the card
-          rendering as mostly empty space beside a full-height neighbour. */}
       <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-2 border-t border-border pt-3">
         {[
           ["Committed", o.tiers.fixed.budget, "a month"],
@@ -89,9 +60,8 @@ function Prospective({ o }: { o: BudgetOverview }) {
           </div>
         ))}
       </dl>
-
-      <UncategorisedLink o={o} />
-    </>
+      <p className="tabular mt-3 text-xs text-faint">Overall budget · CHF {chf.format(o.allIn.budget)} a month</p>
+    </div>
   );
 }
 
@@ -107,19 +77,17 @@ function InFlight({ o, insights }: { o: BudgetOverview; insights: Insight[] }) {
   // read orange beside a card that read "on pace".
   const paceWord = over ? "over budget" : o.variable.pace;
   const paceTone = over ? "text-danger" : o.variable.pace === "over" ? "text-warn" : "text-muted";
-  const fillClass = over ? "bg-danger" : o.variable.pace === "over" ? "bg-warn" : "bg-personal";
+  const fillClass = over ? "bg-danger" : o.variable.pace === "over" ? "bg-warn" : "bg-hub";
 
   return (
-    <>
-      <div className="mt-3 flex items-baseline justify-between gap-3">
+    <div>
+      <div className="flex items-baseline justify-between gap-3">
         <span className={`tabular t-metric text-4xl ${over ? "text-danger" : ""}`}>
           CHF {chf.format(Math.abs(Math.round(left)))}
         </span>
         <span className={`text-xs ${paceTone}`}>{paceWord}</span>
       </div>
-      <p className="mt-1 text-xs text-muted">
-        {over ? "over" : "left"} of {chf.format(budget)} variable
-      </p>
+      <p className="mt-1 text-sm text-muted">{over ? "Over the variable budget" : "Available to spend"}</p>
 
       <div className="relative mt-3 h-2 rounded-full bg-track">
         <div
@@ -138,8 +106,12 @@ function InFlight({ o, insights }: { o: BudgetOverview; insights: Insight[] }) {
         )}
       </div>
 
-      <p className="tabular mt-2 text-xs text-faint">
-        {chf.format(spent)} spent · all-in {chf.format(o.allIn.spent)} / {chf.format(o.allIn.budget)}
+      <p className="tabular mt-2.5 text-xs text-muted">
+        CHF {chf.format(spent)} spent of CHF {chf.format(budget)} variable budget
+      </p>
+      <p className="tabular mt-1 text-xs text-faint">
+        Overall budget · CHF {chf.format(o.allIn.budget)}
+        {o.allIn.spent > 0 && ` · CHF ${chf.format(o.allIn.spent)} spent all-in`}
         {o.mom && (
           <>
             {" · vs "}
@@ -148,8 +120,6 @@ function InFlight({ o, insights }: { o: BudgetOverview; insights: Insight[] }) {
           </>
         )}
       </p>
-
-      <UncategorisedLink o={o} />
 
       {/* "What needs my attention" gets its own place below a rule, rather than
           being the fourth line of the paragraph above it. Empty renders nothing
@@ -163,17 +133,7 @@ function InFlight({ o, insights }: { o: BudgetOverview; insights: Insight[] }) {
           ))}
         </ul>
       )}
-    </>
-  );
-}
-
-/** A categorising chore is housekeeping, not urgency — warm stays reserved. */
-function UncategorisedLink({ o }: { o: BudgetOverview }) {
-  if (o.uncategorisedInWindow === 0) return null;
-  return (
-    <a href="#uncategorised" className="mt-2 inline-block text-xs text-muted transition-colors hover:text-text">
-      {o.uncategorisedInWindow} to categorise →
-    </a>
+    </div>
   );
 }
 

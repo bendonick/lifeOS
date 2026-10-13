@@ -34,12 +34,18 @@ export async function CalendarTile({
   home,
   deadlines,
   expanded = false,
+  openSummary = "Open week",
+  hideEmpty = false,
 }: {
   home?: CalendarKey;
   /** Open, dated work to draw in the grid's due strip and list beneath it. */
   deadlines?: Deadline[];
   /** Render the grid open, in place of the summary list and its disclosure. */
   expanded?: boolean;
+  /** The disclosure's label — "Open calendar" where the tile is not the calendar. */
+  openSummary?: string;
+  /** Skip the "Nothing left this week" line when the caller already says so. */
+  hideEmpty?: boolean;
 }) {
   const today = zurichToday();
   const monday = mondayOf(today);
@@ -73,7 +79,7 @@ export async function CalendarTile({
   return (
     <div className="flex flex-col gap-4">
       {upcoming.length === 0 ? (
-        <p className="text-sm text-muted">Nothing left this week.</p>
+        hideEmpty ? null : <p className="text-sm text-muted">Nothing left this week.</p>
       ) : (
         // Capped: a single upcoming event across the full page width put its
         // title and its time 900px apart, which reads as two unrelated things.
@@ -85,8 +91,8 @@ export async function CalendarTile({
       )}
 
       <Disclosure
-        summary="Open week"
-        openSummary="Hide week"
+        summary={openSummary}
+        openSummary={openSummary.replace(/^Open/, "Hide")}
         detail={`${mine.length} this week`}
       >
         <WeekCalendar initial={data} monday={monday} today={today} home={home} deadlines={deadlines} />

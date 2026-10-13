@@ -65,7 +65,7 @@ export function NotesPanel({ notes }: { notes: Note[] }) {
           {showAll ? "No notes yet." : "All caught up."}
         </p>
       ) : (
-        <Table columns={["", "Note", "Added"]} empty="" frameless rows="cards">
+        <Table columns={["", "Note", "Added"]} empty="" frameless>
           {shown.map((n) => {
             const reviewed = valueFor(n, !!n.reviewed);
             return (

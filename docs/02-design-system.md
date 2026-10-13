@@ -65,10 +65,11 @@ the green against the warm yellow-brown.
    two stat cards above a short table cost more room than the table itself.
 3. **Rail + bento** on wide screens: a sticky **19rem** left rail of the ways out of the page
    and the day's small state (Go to, Quick add, Reminders/Ideas, on Personal also Habits and
-   German), beside a **twelve-column** grid of tiles with `items-start`. **Academic is the
-   exception (#78):** a 13rem *navigation* rail — wordmark, the page's sections as scroll-spied
-   anchors, the other pages, Reminders with a badge, week-of-term at the foot — beside modules on
-   `Tile frame="quiet"`, with one `+ Add` menu in the header instead of per-module add buttons. Set spans from the
+   German). **Academic and Personal (#78/#81) use the newer shell:** a 13rem *navigation* rail
+   (`ui/NavRail` — wordmark, the page's sections as scroll-spied anchors, the other pages, a badge
+   or a line of standing state at the foot) beside modules on `Tile frame="quiet"`, with one
+   `+ Add` menu (`ui/AddMenu`) in the header instead of per-module add buttons. The hub and
+   Professional still carry the rail of modules. Set spans from the
    content, not from symmetry. The hub has **no rail** — it is the navigation. The week calendar
    sits **outside** the rail grid at full page width: `WeekCalendar` has a 52rem floor and the
    main column beside a 19rem rail is narrower than that (#58).
@@ -80,8 +81,9 @@ A border must mean **grouping or interaction**. When every element has one, none
 `/personal` reached fourteen outlined rectangles at equal weight before this was written down.
 
 - **One border per section.** The `Tile` is it — `border-2` in `--color-border-strong` on the
-  pages with a rail of modules; `frame="quiet"` (a hairline at 20px padding) on Academic, where
-  the modules sit beside a navigation rail and four 2px outlines read as the outline (#78). A `Card` inside a `Tile` is a card inside a card:
+  pages with a rail of modules; `frame="quiet"` (a hairline at 20px padding) on Academic and
+  Personal, where the modules sit beside a navigation rail and a page of 2px outlines read as
+  the outline (#78/#81). A `Card` inside a `Tile` is a card inside a card:
   use `<Card bare>`, which keeps the label/value/context grammar and drops the box. A `Table`
   already inside a `Tile` takes `frameless`. Since 2026-08-23 this holds on **every** page, and
   by weight **and tone**: the module shell (`Tile`, and `NotesCard`'s rail shell) is `border-2`

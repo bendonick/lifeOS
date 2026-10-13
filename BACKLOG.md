@@ -272,3 +272,22 @@ becomes a session the day its data exists.
 - **`AcademicTasks` still owns a private `ViewTab`**; the `ui/Tabs` migration item stands.
 - **Reminders landed as a NotesCard at the page's foot** so the rail link has a target; a
   compact reminders surface nearer the top (or a popover from the rail badge) may read better.
+
+## Personal v2 (2026-10-10)
+
+- **Bill editor.** Bills are seeded rows with a monthly paid box; the design's "edit, delete,
+  recurrence" actions have nothing to open. A bills API (name, amount, due day, active) and a
+  small form inside Manage bills would close it.
+- **Habit editor.** Same shape: creation, rename, order and retirement are database edits today.
+- **Health code paths left in place** on purpose (#81): `lib/db/health.ts`, `/api/health/*`,
+  `/personal/health` + `TrendsView`, `charts/Sparkline`, the `health.*` config keys and the
+  Python scripts' `health.metric_keys` contract. Delete when the user decides the data is not
+  coming back; until then the route is unlinked, not removed.
+- **Rail shell on the hub and Professional** — Academic and Personal now share `ui/NavRail`;
+  the other two pages still carry the rail of modules (#57/#63).
+- **Spending month control.** `budgetOverview()` reads the current month only; the design's
+  month selector needs a month parameter through the overview, the category spend and the
+  insights before the header control can exist.
+- **Category averages' period.** `budget.baseline` carries no "over N months" — the label says
+  "(historical)" and nothing more honest is available without storing the window it was built
+  over.

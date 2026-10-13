@@ -1,13 +1,25 @@
-import { BookOpen, CalendarDays, ClipboardList, FileText, Map as MapIcon } from "lucide-react";
+import {
+  Bell,
+  BookOpen,
+  Briefcase,
+  CalendarDays,
+  ClipboardList,
+  FileText,
+  GraduationCap,
+  Home,
+  ListChecks,
+  Map as MapIcon,
+  User,
+} from "lucide-react";
 import { Suspense } from "react";
 import { AcademicTasks } from "@/components/academic/AcademicTasks";
-import { AddMenu } from "@/components/academic/AddMenu";
 import { CoursesSection } from "@/components/academic/CoursesSection";
 import { ExamsPanel } from "@/components/academic/ExamsPanel";
-import { NavRail } from "@/components/academic/NavRail";
 import { RemindersCard } from "@/components/academic/RemindersCard";
 import { SemesterMap } from "@/components/academic/SemesterMap";
 import { CalendarTile, CalendarTileSkeleton } from "@/components/calendar/CalendarTile";
+import { AddMenu } from "@/components/ui/AddMenu";
+import { NavRail } from "@/components/ui/NavRail";
 import { Tile } from "@/components/ui/Tile";
 import {
   firstExamLabel,
@@ -64,7 +76,41 @@ export default function AcademicPage() {
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[13rem_minmax(0,1fr)]">
-      <NavRail reminders={pending} weekNo={weekNo} weeks={term?.weeks ?? null} termEnd={term ? dayLabel(term.end) : null} />
+      <NavRail
+        page="Academic"
+        pageIcon={<GraduationCap size={16} />}
+        accent="academic"
+        sections={[
+          { id: "semester", label: "Overview", icon: <Home size={15} /> },
+          { id: "courses", label: "Courses", icon: <BookOpen size={15} /> },
+          { id: "assignments", label: "Assignments", icon: <ListChecks size={15} /> },
+          { id: "timetable", label: "Timetable", icon: <CalendarDays size={15} /> },
+        ]}
+        links={[
+          { href: "/personal", label: "Personal", icon: <User size={15} /> },
+          { href: "/professional", label: "Professional", icon: <Briefcase size={15} /> },
+          { href: "#reminders", label: "Reminders", icon: <Bell size={15} />, badge: pending },
+        ]}
+        footer={
+          term && weekNo ? (
+            <div className="px-2.5" title={`term ends ${dayLabel(term.end)}`}>
+              <div className="text-xs text-text">
+                Week {weekNo} of {term.weeks}
+              </div>
+              <div
+                role="progressbar"
+                aria-label="week of term"
+                aria-valuemin={1}
+                aria-valuemax={term.weeks}
+                aria-valuenow={weekNo}
+                className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-track"
+              >
+                <div className="h-full rounded-full bg-hub" style={{ width: `${Math.round((weekNo / term.weeks) * 100)}%` }} />
+              </div>
+            </div>
+          ) : undefined
+        }
+      />
 
       <main className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
         <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
@@ -72,7 +118,15 @@ export default function AcademicPage() {
             <h1 className="t-serif text-3xl font-semibold tracking-tight">Academic</h1>
             {semester && <p className="text-sm text-muted">{semester}</p>}
           </div>
-          <AddMenu />
+          <AddMenu
+            accent="academic"
+            items={[
+              { label: "Course", hash: "new-course" },
+              { label: "Assignment or task", hash: "new-assignment" },
+              { label: "Exam", hash: "new-exam" },
+              { label: "Reminder", hash: "new-reminder" },
+            ]}
+          />
         </header>
 
         <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-12">

@@ -18,7 +18,18 @@ const W = 720;
 const H = 132;
 const PAD = { top: 18, right: 8, bottom: 22, left: 8 };
 
-export function SpendingHistory({ months, startDate }: { months: MonthSpend[]; startDate: string }) {
+export function SpendingHistory({
+  months,
+  startDate,
+  showStartLabel = true,
+}: {
+  months: MonthSpend[];
+  startDate: string;
+  /** The marker line always draws; its text label can be said by the caller
+   *  instead (decision #81: the start date belongs in the details, not floating
+   *  over the chart). */
+  showStartLabel?: boolean;
+}) {
   if (months.length < 2) return null;
 
   const max = Math.max(...months.map((m) => m.spent), 1);
@@ -104,14 +115,16 @@ export function SpendingHistory({ months, startDate }: { months: MonthSpend[]; s
           })}
           <g>
             <line x1={markerX} y1={PAD.top - 6} x2={markerX} y2={PAD.top + innerH} className="stroke-faint" strokeWidth={1} />
-            <text
-              x={labelLeft ? markerX - 4 : markerX + 4}
-              y={PAD.top - 6}
-              textAnchor={labelLeft ? "end" : "start"}
-              className="fill-muted text-[10px]"
-            >
-              budget starts {startDate}
-            </text>
+            {showStartLabel && (
+              <text
+                x={labelLeft ? markerX - 4 : markerX + 4}
+                y={PAD.top - 6}
+                textAnchor={labelLeft ? "end" : "start"}
+                className="fill-muted text-[10px]"
+              >
+                budget starts {startDate}
+              </text>
+            )}
           </g>
         </svg>
       </div>
