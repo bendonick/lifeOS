@@ -5,7 +5,7 @@ import { BriefRow } from "@/components/lifeos/BriefRow";
 import { DomainTiles } from "@/components/lifeos/DomainTiles";
 import { DueSoon } from "@/components/lifeos/DueSoon";
 import { InboxPanel } from "@/components/lifeos/InboxPanel";
-import { PlanProgress, WeekPlan } from "@/components/lifeos/WeekPlan";
+import { WeekPlan } from "@/components/lifeos/WeekPlan";
 import { PageShell } from "@/components/ui/PageShell";
 import { Tile } from "@/components/ui/Tile";
 import { latestBriefs } from "@/lib/db/briefs";
@@ -30,7 +30,6 @@ export default function LifeOSPage() {
   const briefs = latestBriefs();
 
   const due = dueSoon(week);
-  const doneCount = plan.filter((t) => t.done === 1).length;
 
   return (
     <PageShell title="LifeOS" subtitle={dayLabel(today)}>
@@ -48,7 +47,7 @@ export default function LifeOSPage() {
           icon={<ListChecks size={16} />}
           title="Week plan"
           caption={`This week · ${weekSpanLabel(today)}`}
-          meta={<PlanProgress done={doneCount} total={plan.length} />}
+          meta={plan.length === 0 ? "Nothing planned yet" : undefined}
           accent="hub"
           span="lg:col-span-12"
         >

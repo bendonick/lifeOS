@@ -118,6 +118,9 @@ export function WeekPlan({
   });
 
   const hasPlan = plan.length > 0;
+  // Counted here, beside the optimistic boxes, not in the server-rendered tile
+  // header — a header count is a round trip behind the click.
+  const doneCount = plan.filter((t) => toggles.valueFor(t, t.done === 1)).length;
   const showCompose = !hasPlan || composeOpen || parsing || failure !== null;
 
   async function planIt() {
@@ -369,7 +372,12 @@ export function WeekPlan({
         )}
 
         {hasPlan && (
-          <PlanList plan={plan} valueFor={toggles.valueFor} onToggle={toggles.toggle} />
+          <>
+            <div className="mb-2 flex justify-end text-xs text-muted">
+              <PlanProgress done={doneCount} total={plan.length} />
+            </div>
+            <PlanList plan={plan} valueFor={toggles.valueFor} onToggle={toggles.toggle} />
+          </>
         )}
         {toggles.error && (
           <p role="alert" className="mt-2 text-xs text-danger">
@@ -404,10 +412,9 @@ export function WeekPlan({
 }
 
 /** The header's progress: "2 of 7 done" and one box per item (Goal-gradient). */
-export function PlanProgress({ done, total }: { done: number; total: number }) {
-  if (total === 0) return <>Nothing planned yet</>;
+function PlanProgress({ done, total }: { done: number; total: number }) {
   return (
-    <span className="inline-flex items-center gap-2.5">
+    <span className="tabular inline-flex items-center gap-2.5">
       <span>
         {done} of {total} done
       </span>
