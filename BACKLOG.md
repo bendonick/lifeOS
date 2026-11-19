@@ -308,3 +308,18 @@ becomes a session the day its data exists.
 - **Undo ids.** If undo ever needs to outlive a page view, give `tasks` stable ids (AUTOINCREMENT
   needs a table rebuild) rather than relying on the title check.
 
+## Overview redesign (2026-11-19)
+
+- **Sharper coast and Lake Tahoe prints.** Both are ~550px crops from the mockups; the header
+  slot wants ~1,300px at Retina. Replace the two files in `public/artwork/` with standalone 3:1
+  prints (and update `width`/`height` in `lib/overview/artwork.ts`) when they exist.
+- **Search, an account avatar and domain sub-menus** were in the reference and are not built —
+  the app has no search, no accounts and no sub-pages to list. Each is its own feature.
+- **Un-complete from the Overview.** A task ticked in Due soon or This week leaves both lists on
+  refresh (they list open work), so a mis-click is undone on the domain page. An "Undo" on the
+  status line, as the Week plan has, would close that.
+- **The other three pages are still dark.** Moving from the light Overview to a dark domain page
+  is a hard cut; decide whether they follow the Overview theme or stay as they are.
+- **`generated_images/` is untracked** (17 source PNGs, ~34 MB). Either delete it, or add it to
+  `.gitignore`; the five prints the app uses are already in `public/artwork/`.
+

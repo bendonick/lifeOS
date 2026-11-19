@@ -95,6 +95,12 @@ with the placeholder, on seeing the build — the box is bare at rest.)
   (commas, semicolons, new lines). The week still gets planned.
 - The note is never lost: it is in `plan_notes` before the parser starts.
 
+## 6b. After the Overview redesign (2026-11-19, decisions #87–#90)
+
+The module is no longer a `Tile`: it is the Overview's first section, with the page's filled
+navy control as every primary. "This week" is back on the page beside Due soon (#89) and all
+three task lists share one optimistic toggle state through `TaskTogglesProvider`.
+
 ## 7. Out of scope
 
 The rest of the hub (Inbox, briefs, calendar, the Domain tiles) keeps its content in this pass;

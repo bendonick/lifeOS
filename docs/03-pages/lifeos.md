@@ -1,4 +1,24 @@
-# Page — LifeOS (hub, `/`)
+# Page — LifeOS Overview (hub, `/`)
+
+**Overview redesign, 2026-11-19 (decisions #87–#90) — this section is current; everything below
+it is history.** The hub is now the **Overview**: an editorial day planner on a light cream/navy
+theme scoped to this page (`.theme-overview`). No tiles. Top to bottom:
+
+1. **Navigation** — serif wordmark · Overview (current) · Academic · Personal · Professional.
+2. **Masthead** — "Your day", the Zürich date as `<h1>`, the editable **Currently** strip
+   (Building · Reading); on the right a landscape print in a 3:1 slot with previous / pin / next
+   and its caption. One print per day unless pinned.
+3. **Week plan** — the first working area, full width: the planning form (~64%) and **Due soon**
+   across a thin vertical rule. All of #82–#85 holds (draft before write, split fallback, undo,
+   carry-over).
+4. **Two columns (~60/40) that flow independently.** Left: **This week** (list layout, "Add
+   task"), **Morning brief** (world + AI research as compact lists, "Read brief"), **German
+   word**. Right: **Today agenda** ("Open calendar" reveals the week grid full width below),
+   **Inbox**. Below `lg` the order is This week → Today agenda → Inbox → Morning brief → German.
+
+The Week plan, Due soon and This week share one optimistic toggle state (#89). Data touched:
+`tasks`, `plan_notes`, `briefs` (read), `inbox`, ICS feeds (read), `config`
+(`overview.currently`, `overview.artwork_pin`).
 
 **Week plan pass, 2026-11-19 (decisions #82–#85; build brief `docs/08-week-plan-brief.md`, which
 wins where it differs from this file).** The hub now opens with a full-width **Week plan**: a

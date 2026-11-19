@@ -46,6 +46,28 @@ the green against the warm yellow-brown.
   orange = assignment / due-soon. If everything is colored, nothing signals — this rule came
   directly from the Notion tag-palette work.
 
+## The Overview theme (decision #87)
+
+`/` alone wears `.theme-overview` — light, flat, editorial. Rules that differ from the rest of
+the app, and only there:
+
+- **Palette:** Cream `#EFDFBB` (page; there is no second ground), Deep navy `#232F3E` (ink and
+  the filled control), Slate `#7A888E` (rules, chip tints), Rust `#C87629` (agenda markers,
+  list bullets), Oxblood `#801818` (due dates). Slate and rust never carry text at their exact
+  values; use the tokens (`text-muted`, `text-faint`, `text-hub`), which are mixed toward navy.
+- **One filled control:** `filledButtonChrome` — the current page in the navigation, the primary
+  of each Week plan state, the Inbox Add. Disabled is a lighter ink, never an opacity.
+- **Separation by rules and space.** `.row-card` renders as a hairline under the row here; no
+  tile, no card border, no tinted panel. A dashed outline is reserved for "not saved yet" (the
+  draft, the carry-over block).
+- **Type:** Newsreader 600 for the wordmark, the date, "Week plan", the print caption and the
+  German word; system sans for everything else. Body is 15px on this page.
+- **Shared components are themed by scope, never forked:** `Disclosure` triggers carry
+  `data-variant`, which the theme styles as text actions; the select chevron and the focus ring
+  have navy overrides because their base values are literals.
+- **Add a new Overview component** with token utilities only; if a colour literal seems needed,
+  add a property to `.theme-overview` instead.
+
 ## Page anatomy (every page follows this)
 
 1. Breadcrumb (LifeOS / <Page>) + page title.
