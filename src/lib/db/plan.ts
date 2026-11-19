@@ -137,7 +137,7 @@ export const acceptNote = db.transaction(
         week,
         plan_group: group,
       });
-      undo.created.push(task.id);
+      undo.created.push({ id: task.id, title: task.title });
     }
     db.prepare("UPDATE plan_notes SET status = 'accepted', applied_json = ? WHERE id = ?").run(
       JSON.stringify(undo),
@@ -181,7 +181,8 @@ const TASK_COLUMNS = [
 
 /** Reverse one apply. Each step is guarded, so undoing twice is harmless. */
 export const undoApply = db.transaction((undo: UndoPayload): void => {
-  for (const id of undo.created) db.prepare("DELETE FROM tasks WHERE id = ?").run(id);
+  for (const { id, title } of undo.created)
+    db.prepare("DELETE FROM tasks WHERE id = ? AND title = ?").run(id, title);
   for (const { id, week } of undo.rewound) db.prepare("UPDATE tasks SET week = ? WHERE id = ?").run(week, id);
   const insert = db.prepare(
     `INSERT OR IGNORE INTO tasks (${TASK_COLUMNS.join(", ")}) VALUES (${TASK_COLUMNS.map(() => "?").join(", ")})`
@@ -194,10 +195,12 @@ export const undoApply = db.transaction((undo: UndoPayload): void => {
 export function isUndoPayload(v: unknown): v is UndoPayload {
   if (!v || typeof v !== "object") return false;
   const u = v as Record<string, unknown>;
-  const ints = (a: unknown) => Array.isArray(a) && a.every((x) => Number.isInteger(x));
   return (
     (u.note_id === null || Number.isInteger(u.note_id)) &&
-    ints(u.created) &&
+    Array.isArray(u.created) &&
+    u.created.every(
+      (c) => c && typeof c === "object" && Number.isInteger((c as { id: unknown }).id) && typeof (c as { title: unknown }).title === "string"
+    ) &&
     Array.isArray(u.restored) &&
     u.restored.every(
       (r) => r && typeof r === "object" && Number.isInteger((r as Task).id) && typeof (r as Task).title === "string" && isDomain((r as Task).domain)

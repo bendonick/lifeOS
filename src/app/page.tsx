@@ -3,41 +3,72 @@ import { CalendarDays, Inbox, LayoutGrid, ListChecks, Sunrise } from "lucide-rea
 import { CalendarTile, CalendarTileSkeleton } from "@/components/calendar/CalendarTile";
 import { BriefRow } from "@/components/lifeos/BriefRow";
 import { DomainTiles } from "@/components/lifeos/DomainTiles";
+import { DueSoon } from "@/components/lifeos/DueSoon";
 import { InboxPanel } from "@/components/lifeos/InboxPanel";
-import { ThisWeek } from "@/components/lifeos/ThisWeek";
+import { PlanProgress, WeekPlan } from "@/components/lifeos/WeekPlan";
 import { PageShell } from "@/components/ui/PageShell";
 import { Tile } from "@/components/ui/Tile";
 import { latestBriefs } from "@/lib/db/briefs";
 import { unprocessedCaptures } from "@/lib/db/inbox";
-import { weekTasks } from "@/lib/db/tasks";
+import { dueSoon, leftoverItems, planItems } from "@/lib/db/plan";
 import { dayLabel, zurichToday } from "@/lib/dates";
+import { isoWeek, leftoverSourceLabel, weekSpanLabel } from "@/lib/plan/week";
 
 // Reads happen here on the server via the shared db modules; client components
 // mutate through /api/* and router.refresh() back to this page's data.
 export const dynamic = "force-dynamic";
 
-// Layout (decision #59): a bento on the editorial theme in the order of
-// docs/03-pages/lifeos.md — domains → brief row → This week | Inbox — with the
-// calendar full width below. No left rail: the hub is the navigation, and since
-// 2026-10-05 the three doorways lead the page rather than close it.
+// Layout (decision #82, narrowing #59): a bento on the editorial theme — the Week
+// plan leads, full width, then domains → brief row → Inbox, with the calendar full
+// width below. No left rail: the hub is the navigation.
 export default function LifeOSPage() {
   const today = zurichToday();
-  const tasks = weekTasks();
+  const week = isoWeek(today);
+  const plan = planItems(week);
+  const leftovers = leftoverItems(week);
   const captures = unprocessedCaptures();
   const briefs = latestBriefs();
 
+  const due = dueSoon(week);
+  const doneCount = plan.filter((t) => t.done === 1).length;
+
   return (
     <PageShell title="LifeOS" subtitle={dayLabel(today)}>
-      {/* No rail here: the hub *is* the navigation, so a shortcuts column would
-          be a menu pointing at the page you are on. A bento without one, in the
-          order of docs/03-pages/lifeos.md — domains → brief → this week | inbox
-          — with the calendar full width below (decisions #28/#58). Domains lead
-          (the user's call, 2026-10-05): the hub's job is to send you to a page,
-          so the doorways come before the rollups.
+      {/* No rail here: the hub *is* the navigation. The Week plan leads (decision
+          #82, the user's ask 2026-11-19): what the week is for comes before the
+          doorways and the rollups. Calendar | Inbox share the last row, where
+          This week | Inbox used to sit — This week's job now lives inside the
+          plan as Due soon.
 
           Everything is Olive: the hub is domain-less by definition, which is
           exactly what --color-hub means. */}
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+        <Tile
+          id="plan"
+          icon={<ListChecks size={16} />}
+          title="Week plan"
+          caption={`This week · ${weekSpanLabel(today)}`}
+          meta={<PlanProgress done={doneCount} total={plan.length} />}
+          accent="hub"
+          span="lg:col-span-12"
+        >
+          <div className="flex flex-col gap-7 lg:flex-row">
+            <div className="min-w-0 lg:flex-[2_1_0%]">
+              <WeekPlan
+                plan={plan}
+                leftovers={leftovers}
+                leftoverLabel={leftoverSourceLabel(
+                  leftovers.map((t) => t.week ?? ""),
+                  today
+                )}
+              />
+            </div>
+            <div className="min-w-0 lg:flex-[1_1_0%]">
+              <DueSoon tasks={due} />
+            </div>
+          </div>
+        </Tile>
+
         <Tile
           id="domains"
           icon={<LayoutGrid size={16} />}
@@ -61,14 +92,18 @@ export default function LifeOSPage() {
         </Tile>
 
         <Tile
-          id="week"
-          icon={<ListChecks size={16} />}
-          title="This week"
-          caption="due in the next 7 days or overdue · all domains"
+          id="calendar"
+          icon={<CalendarDays size={16} />}
+          title="Calendar"
+          caption="blocked-off time · lives in Google Calendar"
           accent="hub"
           span="lg:col-span-8"
         >
-          <ThisWeek tasks={tasks} today={today} frameless rows="cards" />
+          {/* Collapsed like Personal's (#66, now #72): what's coming leads, the
+              grid opens on request. No `home` — the hub reads every calendar. */}
+          <Suspense fallback={<CalendarTileSkeleton />}>
+            <CalendarTile />
+          </Suspense>
         </Tile>
 
         <Tile
@@ -82,20 +117,6 @@ export default function LifeOSPage() {
           <InboxPanel items={captures} today={today} />
         </Tile>
       </div>
-
-      <Tile
-        id="calendar"
-        icon={<CalendarDays size={16} />}
-        title="Calendar"
-        caption="blocked-off time · lives in Google Calendar"
-        accent="hub"
-      >
-        {/* Collapsed like Personal's (#66, now #72): what's coming leads, the
-            grid opens on request. No `home` — the hub reads every calendar. */}
-        <Suspense fallback={<CalendarTileSkeleton />}>
-          <CalendarTile />
-        </Suspense>
-      </Tile>
     </PageShell>
   );
 }

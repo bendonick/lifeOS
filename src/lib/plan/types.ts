@@ -40,8 +40,12 @@ export interface AcceptItem {
  */
 export interface UndoPayload {
   note_id: number | null;
-  /** Tasks created by the apply: deleted on undo. */
-  created: number[];
+  /**
+   * Tasks created by the apply: deleted on undo. The title travels with the id
+   * because SQLite reuses the id of a deleted row (no AUTOINCREMENT on `tasks`):
+   * an id alone could name a different task by the time an undo arrives.
+   */
+  created: { id: number; title: string }[];
   /** Tasks deleted by the apply (Drop): re-inserted on undo with their ids. */
   restored: Task[];
   /** Tasks whose week the apply changed: set back on undo. */
