@@ -35,3 +35,16 @@ export const briefToneText: Record<BriefTone, string> = {
   recent: "text-muted",
   stale: "text-warn",
 };
+
+/**
+ * The same age in plain words, for the Overview (decision #90): "Updated today",
+ * "Updated yesterday", "Updated 65 days ago". No mention of jobs or scripts — the
+ * page reports how fresh the reading is, not how it is produced. `stale` still
+ * comes from `briefStaleness`, so the two labels can never disagree on tone.
+ */
+export function briefUpdatedLabel(date: string): string {
+  const age = briefAgeDays(date);
+  if (age <= 0) return "Updated today";
+  if (age === 1) return "Updated yesterday";
+  return `Updated ${age} days ago`;
+}

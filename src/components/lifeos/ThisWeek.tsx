@@ -1,6 +1,8 @@
 "use client";
 
+import { Calendar } from "lucide-react";
 import { TaskForm } from "@/components/lifeos/TaskForm";
+import { useTaskToggles } from "@/components/lifeos/TaskToggles";
 import { Disclosure } from "@/components/ui/Disclosure";
 import { Pill, TypePill } from "@/components/ui/Pill";
 import { Table } from "@/components/ui/Table";
@@ -8,7 +10,6 @@ import { accentControl, accentHoverText, urgencyText, type Accent } from "@/comp
 import { courseCode } from "@/lib/academic/semester";
 import { googleEventUrl } from "@/lib/calendar/gcal";
 import { addDays, dueInfo } from "@/lib/dates";
-import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
 import type { Domain, Task } from "@/lib/types";
 
 // Reads arrive as props from the server page; every mutation goes through the API
@@ -41,6 +42,7 @@ export function ThisWeek({
   frameless = false,
   rows = "divided",
   addInputId,
+  layout = "table",
 }: {
   tasks: (Task & WithCourse)[];
   today: string;
@@ -60,17 +62,14 @@ export function ThisWeek({
   rows?: "divided" | "cards";
   /** Anchor id for the add form's title input, when this instance owns it. */
   addInputId?: string;
+  /** `list` is the Overview's presentation (decision #89): ruled rows with the
+   *  title leading and quiet metadata that wraps beneath it on a narrow screen,
+   *  no column headers. `table` is what the domain pages render. */
+  layout?: "table" | "list";
 }) {
-  const { toggle, valueFor, isPending, error } = useOptimisticToggle<Task>({
-    idOf: (t) => t.id,
-    labelOf: (t) => t.title,
-    send: (t, next) =>
-      fetch(`/api/tasks/${t.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ done: next }),
-      }),
-  });
+  // The page's shared toggles where a provider exists (the Overview, #89), else
+  // this list's own — Personal renders it without one.
+  const { toggle, valueFor, isPending, error, shared } = useTaskToggles();
 
   // The same horizon the query uses, from the same helper — the divider below
   // must fall exactly where "this week" stops or it is decoration.
@@ -146,9 +145,91 @@ export function ThisWeek({
   });
 
 
+  if (layout === "list") {
+    return (
+      <div aria-busy={isPending}>
+        {tasks.length === 0 ? (
+          <p className="border-b border-border pb-3 text-sm text-muted">Nothing due this week.</p>
+        ) : (
+          <ul className="flex flex-col">
+            {tasks.map((t, i) => {
+              const info = t.due ? dueInfo(t.due) : null;
+              const done = valueFor(t, !!t.done);
+              return (
+                <li key={t.id} className="border-b border-border">
+                  {i === firstLater && <p className="pt-3 text-xs font-semibold uppercase tracking-wider text-muted">Later</p>}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
+                    {/* Title first and widest; the label makes the whole title a
+                        target for the 24px box (decision #76). */}
+                    <label className="flex min-w-[min(100%,14rem)] flex-1 cursor-pointer items-start gap-2.5">
+                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center">
+                        <input
+                          type="checkbox"
+                          checked={done}
+                          onChange={() => toggle(t, done)}
+                          className="h-4.5 w-4.5 cursor-pointer"
+                          aria-label={`done: ${t.title}`}
+                        />
+                      </span>
+                      <span className="min-w-0">
+                        <span className={done ? "text-muted line-through" : "text-text"}>
+                          {t.title}
+                          {t.course_name && (
+                            <span title={t.course_name}>
+                              {" — "}
+                              {courseCode({ name: t.course_name, short_name: t.course_short_name ?? null })}
+                            </span>
+                          )}
+                        </span>
+                        {t.notes && <span className="block text-sm text-faint">{t.notes}</span>}
+                      </span>
+                    </label>
+                    {/* Muted on purpose: the title and the date are the row. */}
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-1 pl-8.5 sm:pl-0">
+                      {!fixedDomain && <QuietChip>{t.domain}</QuietChip>}
+                      {showType && <QuietChip>{t.type}</QuietChip>}
+                      {info ? (
+                        <span
+                          className={`tabular inline-flex items-center gap-1.5 whitespace-nowrap text-sm text-danger ${
+                            info.urgency === "overdue" ? "font-semibold" : ""
+                          }`}
+                        >
+                          <Calendar size={15} aria-hidden="true" />
+                          {info.label}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-faint">no date</span>
+                      )}
+                      {isAppointment(t) && <GoogleLink task={t} label={info!.label} accent={accent} inline />}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <Disclosure
+          variant="add"
+          accent={accent}
+          summary="Add task"
+          openSummary="Cancel"
+          anchors={addInputId ? [addInputId] : undefined}
+          className="mt-2"
+        >
+          <TaskForm today={today} fixedDomain={fixedDomain} accent={accent} inputId={addInputId} autoFocus />
+        </Disclosure>
+        {!shared && error && (
+          <p role="alert" className="mt-2 text-xs text-danger">
+            {error}
+          </p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div aria-busy={isPending}>
-      {error && (
+      {!shared && error && (
         <p role="alert" className="mb-2 text-xs text-danger">
           {error}
         </p>
@@ -192,7 +273,27 @@ export function ThisWeek({
  * by side squeezed every task title into a two-line wrap, and stacked it costs
  * the column no width at all.
  */
-function GoogleLink({ task, label, accent }: { task: Task & { due: string }; label: string; accent: Accent }) {
+/** A metadata chip that stays out of the title's way: one muted tint, no domain hue. */
+function QuietChip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded bg-(--color-slate)/22 px-2 py-0.5 text-[0.8125rem] capitalize leading-5 text-muted">
+      {children}
+    </span>
+  );
+}
+
+function GoogleLink({
+  task,
+  label,
+  accent,
+  inline = false,
+}: {
+  task: Task & { due: string };
+  label: string;
+  accent: Accent;
+  /** Sits beside the date in the list layout, under it in the table. */
+  inline?: boolean;
+}) {
   return (
     <a
       href={googleEventUrl({
@@ -206,7 +307,7 @@ function GoogleLink({ task, label, accent }: { task: Task & { due: string }; lab
       title={`Opens Google Calendar with “${task.title}” prefilled for ${label} as a one-hour block${
         task.notes ? `, at ${task.notes}` : ""
       }. Pick the calendar you want, then Save — Google creates the event.`}
-      className={`mt-1 block whitespace-nowrap text-muted transition-colors ${accentHoverText[accent]}`}
+      className={`${inline ? "text-sm" : "mt-1 block"} whitespace-nowrap text-muted transition-colors ${accentHoverText[accent]}`}
     >
       calendar ↗
     </a>

@@ -3,13 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Link2, X } from "lucide-react";
-import { accentButton, accentControl, urgencyText } from "@/components/ui/accents";
-import { buttonChrome, primaryButtonChrome, selectChrome } from "@/components/ui/controls";
+import { useTaskToggles } from "@/components/lifeos/TaskToggles";
+import { buttonChrome, filledButtonChrome, selectChrome } from "@/components/ui/controls";
 import { RowAction } from "@/components/ui/RowAction";
 import { dayLabel, dueInfo } from "@/lib/dates";
 import { splitNote } from "@/lib/plan/split";
 import type { PlanTask, ProposalItem, UndoPayload } from "@/lib/plan/types";
-import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
 import { useTransientStatus } from "@/lib/useTransientStatus";
 import { DOMAINS, type Domain } from "@/lib/types";
 
@@ -106,16 +105,9 @@ export function WeekPlan({
     return () => timers.forEach(clearTimeout);
   }, [parsing]);
 
-  const toggles = useOptimisticToggle<PlanTask>({
-    idOf: (t) => t.id,
-    labelOf: (t) => t.title,
-    send: (t, next) =>
-      fetch(`/api/tasks/${t.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ done: next }),
-      }),
-  });
+  // The page's shared toggles (decision #89): a plan item that is also in Due
+  // soon or This week flips in all of them at once.
+  const toggles = useTaskToggles();
 
   const hasPlan = plan.length > 0;
   // Counted here, beside the optimistic boxes, not in the server-rendered tile
@@ -262,7 +254,7 @@ export function WeekPlan({
     <div>
         {showCompose && !draft && (
           <div aria-busy={parsing} className="mb-5">
-            <label htmlFor="plan-note" className="mb-2 block text-sm font-medium text-text">
+            <label htmlFor="plan-note" className="mb-2.5 block text-[1.0625rem] font-semibold text-text">
               {hasPlan ? "Anything else this week?" : "What do you want to get done this week?"}
             </label>
             {/* The page's one input open at rest (decision #64's hub exception now
@@ -285,13 +277,13 @@ export function WeekPlan({
               rows={4}
               aria-invalid={error ? true : undefined}
               aria-describedby={parsing ? "plan-note-help" : undefined}
-              className="block min-h-26 w-full resize-y rounded-lg border border-border bg-(--color-inset) px-3.5 py-3 text-sm leading-relaxed text-text placeholder:text-faint"
+              className="block min-h-28 w-full resize-y rounded-lg border border-border-strong bg-transparent px-3.5 py-3 leading-relaxed text-text"
             />
-            {parsing && <div className="mt-2 h-0.5 rounded-full bg-hub/50" aria-hidden="true" />}
+            {parsing && <div className="mt-2 h-0.5 rounded-full bg-(--color-ink)/50" aria-hidden="true" />}
             {/* No placeholder and no helper line at rest (the user's call, 2026-11-19);
                 only the parser's named progress step shows while it runs. */}
-            <div className="mt-2.5 flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-              <p id="plan-note-help" className="max-w-xl text-xs text-faint">
+            <div className="mt-3 flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+              <p id="plan-note-help" className="max-w-xl text-sm text-muted">
                 {parsing ? progress : null}
               </p>
               <div className="flex shrink-0 gap-2">
@@ -313,7 +305,7 @@ export function WeekPlan({
                     type="button"
                     onClick={planIt}
                     disabled={parsing}
-                    className={`${primaryButtonChrome} ${accentButton.hub} disabled:cursor-default`}
+                    className={filledButtonChrome}
                   >
                     {parsing ? "Planning…" : "Plan it"}
                   </button>
@@ -321,11 +313,11 @@ export function WeekPlan({
               </div>
             </div>
             {failure && (
-              <div role="alert" className="row-card mt-3 px-3 py-2.5">
-                <p className="text-sm font-medium text-danger">{failure.message}</p>
-                <p className="mt-0.5 text-xs text-muted">Your note is kept. Try again, or split it into items yourself.</p>
+              <div role="alert" className="mt-3 rounded-lg border border-border-strong px-3.5 py-3">
+                <p className="font-semibold text-danger">{failure.message}</p>
+                <p className="mt-0.5 text-sm text-muted">Your note is kept. Try again, or split it into items yourself.</p>
                 <div className="mt-2.5 flex flex-wrap gap-2">
-                  <button type="button" onClick={splitMyself} className={`${primaryButtonChrome} ${accentButton.hub}`}>
+                  <button type="button" onClick={splitMyself} className={filledButtonChrome}>
                     Split it myself
                   </button>
                   <button type="button" onClick={planIt} className={buttonChrome}>
@@ -352,7 +344,7 @@ export function WeekPlan({
         )}
 
         {error && (
-          <p role="alert" className="mb-3 text-xs text-danger">
+          <p role="alert" className="mb-3 text-sm text-danger">
             {error}
           </p>
         )}
@@ -372,13 +364,13 @@ export function WeekPlan({
 
         {hasPlan && (
           <>
-            <div className="mb-2 flex justify-end text-xs text-muted">
+            <div className="mb-1 flex justify-end text-sm text-muted">
               <PlanProgress done={doneCount} total={plan.length} />
             </div>
             <PlanList plan={plan} valueFor={toggles.valueFor} onToggle={toggles.toggle} />
           </>
         )}
-        {toggles.error && (
+        {!toggles.shared && toggles.error && (
           <p role="alert" className="mt-2 text-xs text-danger">
             {toggles.error}
           </p>
@@ -391,16 +383,16 @@ export function WeekPlan({
               setComposeOpen(true);
               setTimeout(() => textareaRef.current?.focus(), 0);
             }}
-            className={`${buttonChrome} mt-3`}
+            className={`${buttonChrome} mt-4`}
           >
             + Add to this week
           </button>
         )}
 
-        <div role="status" className="mt-2 flex items-center gap-3 text-xs text-muted empty:mt-0">
+        <div role="status" className="mt-2 flex items-center gap-3 text-sm text-muted empty:mt-0">
           {status && <span>{status}</span>}
           {status && undo && (
-            <button type="button" onClick={undoLast} className="text-xs font-medium text-hub underline-offset-2 hover:underline">
+            <button type="button" onClick={undoLast} className="min-h-6 text-sm font-semibold text-hub underline underline-offset-2">
               Undo
             </button>
           )}
@@ -419,7 +411,7 @@ function PlanProgress({ done, total }: { done: number; total: number }) {
       </span>
       <span aria-hidden="true" className="inline-flex gap-[3px]">
         {Array.from({ length: total }, (_, i) => (
-          <span key={i} className={`h-1.5 w-3.5 rounded-sm ${i < done ? "bg-hub" : "bg-border"}`} />
+          <span key={i} className={`h-1.5 w-3.5 rounded-sm ${i < done ? "bg-(--color-ink)" : "bg-(--color-slate)/45"}`} />
         ))}
       </span>
     </span>
@@ -436,18 +428,18 @@ function PlanList({
   onToggle: (t: PlanTask, current: boolean) => void;
 }) {
   return (
-    <ul className="flex flex-col gap-1.5" aria-label="This week's plan">
+    <ul className="flex flex-col" aria-label="This week's plan">
       {blocks(plan, (t) => t.plan_group).map((block) =>
         block.group ? (
           <li key={`g:${block.group}`}>
-            <div className="flex items-center gap-2 px-1.5 pb-1.5 pt-2">
+            <div className="flex items-center gap-2 px-1.5 pb-1 pt-3">
               <Dot domain={block.members[0].domain} />
-              <span className="text-sm font-semibold text-text">{block.group}</span>
-              <span className="tabular text-xs text-faint">
+              <span className="font-semibold text-text">{block.group}</span>
+              <span className="tabular text-sm text-faint">
                 {block.members.filter((m) => valueFor(m, m.done === 1)).length} of {block.members.length}
               </span>
             </div>
-            <ul className="ml-7 flex flex-col gap-1.5">
+            <ul className="ml-7 flex flex-col">
               {block.members.map((t) => (
                 <PlanRow key={t.id} task={t} done={valueFor(t, t.done === 1)} onToggle={onToggle} inGroup />
               ))}
@@ -474,8 +466,8 @@ function PlanRow({
 }) {
   const due = task.due ? dueInfo(task.due) : null;
   return (
-    <li className="row-card flex min-h-10 items-center gap-2.5 py-1.5 pl-1.5 pr-3">
-      {/* 24px target around a 16px box (decision #76); the label covers the title,
+    <li className="row-card flex min-h-11 flex-wrap items-center gap-x-2.5 gap-y-0.5 py-2 pl-0.5 pr-1">
+      {/* 24px target around the box (decision #76); the label covers the title,
           so the whole text toggles too. */}
       <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5">
         <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center">
@@ -483,17 +475,19 @@ function PlanRow({
             type="checkbox"
             checked={done}
             onChange={() => onToggle(task, done)}
-            className={`h-4 w-4 cursor-pointer ${accentControl.hub}`}
+            className="h-4.5 w-4.5 cursor-pointer"
             aria-label={`done: ${task.title}`}
           />
         </span>
-        <span className={`min-w-0 text-sm transition-colors ${done ? "text-muted line-through" : "text-text"}`}>
+        <span className={`min-w-0 transition-colors ${done ? "text-muted line-through" : "text-text"}`}>
           {task.title}
         </span>
       </label>
-      {due && !done && <span className={`shrink-0 text-xs ${urgencyText[due.urgency]}`}>{due.label}</span>}
+      {due && !done && (
+        <span className={`shrink-0 text-sm text-danger ${due.urgency === "overdue" ? "font-semibold" : ""}`}>{due.label}</span>
+      )}
       {!inGroup && (
-        <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-muted">
+        <span className="inline-flex shrink-0 items-center gap-1.5 text-sm text-muted">
           <Dot domain={task.domain} />
           {task.context ?? DOMAIN_LABEL[task.domain]}
         </span>
@@ -530,23 +524,23 @@ function DraftPanel({
     <section
       aria-label="Draft from your note"
       aria-busy={saving}
-      className="mb-5 rounded-lg border border-dashed border-border-strong px-3.5 pb-3 pt-3"
+      className="mb-5 rounded-lg border border-dashed border-border-strong px-4 pb-3.5 pt-3"
     >
-      {saving && <div className="-mt-3 mb-3 h-0.5 rounded-full bg-hub/50" aria-hidden="true" />}
-      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h3 className="text-sm font-semibold text-text">{headline}</h3>
-        <p className="text-xs text-faint">Nothing is saved until you add it. Click a title to edit it.</p>
+      {saving && <div className="-mt-3 mb-3 h-0.5 rounded-full bg-(--color-ink)/50" aria-hidden="true" />}
+      <div className="mb-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h3 className="font-semibold text-text">{headline}</h3>
+        <p className="text-sm text-muted">Nothing is saved until you add it. Click a title to edit it.</p>
       </div>
-      <ul className="flex flex-col gap-1.5">
+      <ul className="flex flex-col">
         {blocks(draft.items, (it) => it.group).map((block) =>
           block.group ? (
             <li key={`g:${block.group}`}>
-              <div className="flex items-center gap-2 px-1.5 pb-1.5 pt-1">
+              <div className="flex items-center gap-2 px-1.5 pb-1 pt-3">
                 <Dot domain={block.members[0].domain} />
-                <span className="text-sm font-semibold text-text">{block.group}</span>
-                <span className="text-xs text-faint">grouped — {block.members.length} items about one thing</span>
+                <span className="font-semibold text-text">{block.group}</span>
+                <span className="text-sm text-faint">grouped — {block.members.length} items about one thing</span>
               </div>
-              <ul className="ml-7 flex flex-col gap-1.5">
+              <ul className="ml-7 flex flex-col">
                 {block.members.map((it) => (
                   <DraftRow key={it.key} item={it} onTitle={onTitle} onDomain={onDomain} onRemove={onRemove} />
                 ))}
@@ -562,7 +556,7 @@ function DraftPanel({
           type="button"
           onClick={onAdd}
           disabled={saving || n === 0}
-          className={`${primaryButtonChrome} ${accentButton.hub} disabled:cursor-default`}
+          className={filledButtonChrome}
         >
           {saving ? "Adding…" : `Add ${n} to this week`}
         </button>
@@ -591,40 +585,40 @@ function DraftRow({
       <li className="row-card flex items-start gap-2.5 py-2 pl-3 pr-1.5">
         <Link2 size={15} aria-hidden="true" className="mt-0.5 shrink-0 text-hub" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm text-text">
+          <p className="text-text">
             {item.match.title}
-            {item.context && <span className="ml-2 text-xs text-muted">{item.context}</span>}
+            {item.context && <span className="ml-2 text-sm text-muted">{item.context}</span>}
           </p>
-          <p className="mt-0.5 text-xs text-faint">
+          <p className="mt-0.5 text-sm text-faint">
             Already on your list{due}. It joins this week&apos;s plan — not added twice.
           </p>
         </div>
-        <span className="shrink-0 pt-0.5 text-xs text-muted">Matched</span>
+        <span className="shrink-0 pt-0.5 text-sm text-muted">Matched</span>
         <RowAction icon={X} label={`Remove ${item.match.title} from the draft`} onClick={() => onRemove(item.key)} />
       </li>
     );
   }
   return (
-    <li className="row-card flex items-start gap-2 py-1.5 pl-1.5 pr-1.5">
+    <li className="row-card flex flex-wrap items-start gap-2 py-1.5 pl-0 pr-0">
       <div className="min-w-0 flex-1">
         <input
           value={item.title}
           onChange={(e) => onTitle(item.key, e.target.value)}
           aria-label="Item title"
-          className="w-full rounded border border-transparent bg-transparent px-1.5 py-1 text-sm text-text transition-colors hover:border-border"
+          className="w-full rounded border border-transparent bg-transparent px-1.5 py-1 text-text transition-colors hover:border-border-strong"
         />
-        {item.reason && <p className="px-1.5 pb-0.5 text-xs text-faint">{item.reason}</p>}
+        {item.reason && <p className="px-1.5 pb-0.5 text-sm text-faint">{item.reason}</p>}
       </div>
       <div className="flex shrink-0 items-center gap-2 pt-0.5">
-        {item.due && <span className="text-xs text-text">{dueInfo(item.due).label}</span>}
-        {item.context && <span className="text-xs text-muted">{item.context}</span>}
+        {item.due && <span className="text-sm text-danger">{dueInfo(item.due).label}</span>}
+        {item.context && <span className="text-sm text-muted">{item.context}</span>}
         <span className="inline-flex items-center gap-1.5">
           <Dot domain={item.domain} />
           <select
             value={item.domain}
             onChange={(e) => onDomain(item.key, e.target.value as Domain)}
             aria-label={`Domain of ${item.title || "this item"}`}
-            className={`${selectChrome} w-30 py-1 text-xs`}
+            className={`${selectChrome} w-32 py-1 text-sm`}
           >
             {DOMAINS.map((d) => (
               <option key={d} value={d}>
@@ -689,17 +683,17 @@ function Leftovers({
     <section
       aria-label={`Unfinished from ${label}`}
       aria-busy={busy}
-      className="mb-5 rounded-lg border border-dashed border-border-strong px-3.5 pb-3 pt-3"
+      className="mb-5 rounded-lg border border-dashed border-border-strong px-4 pb-3.5 pt-3"
     >
-      <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h3 className="text-sm font-semibold text-text">
+      <div className="mb-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h3 className="font-semibold text-text">
           {items.length} left from {label}
         </h3>
-        <p className="text-xs text-faint">Checked items move into this week.</p>
+        <p className="text-sm text-muted">Checked items move into this week.</p>
       </div>
-      <ul className="flex flex-col gap-1.5">
+      <ul className="flex flex-col">
         {items.map((t) => (
-          <li key={t.id} className="row-card flex min-h-10 items-center gap-2.5 py-1.5 pl-1.5 pr-3">
+          <li key={t.id} className="row-card flex min-h-11 items-center gap-2.5 py-2 pl-0.5 pr-1">
             <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5">
               <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center">
                 <input
@@ -713,13 +707,13 @@ function Leftovers({
                       return next;
                     })
                   }
-                  className={`h-4 w-4 cursor-pointer ${accentControl.hub}`}
+                  className="h-4.5 w-4.5 cursor-pointer"
                   aria-label={`carry over: ${t.title}`}
                 />
               </span>
-              <span className="min-w-0 text-sm text-text">{t.title}</span>
+              <span className="min-w-0 text-text">{t.title}</span>
             </label>
-            <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-muted">
+            <span className="inline-flex shrink-0 items-center gap-1.5 text-sm text-muted">
               <Dot domain={t.domain} />
               {t.plan_group ?? t.context ?? DOMAIN_LABEL[t.domain]}
             </span>
@@ -731,7 +725,7 @@ function Leftovers({
           type="button"
           disabled={busy}
           onClick={() => resolve(carry.map((t) => t.id), drop.map((t) => t.id))}
-          className={`${primaryButtonChrome} ${accentButton.hub}`}
+          className={filledButtonChrome}
         >
           {primaryLabel}
         </button>

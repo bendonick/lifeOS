@@ -149,6 +149,17 @@ export function hourOf(local: string): number {
 }
 
 /** '14 – 20 Sep 2026' for the week starting `monday`; spans months/years when it must. */
+/**
+ * The Overview's headline date in two parts — 'Thursday' and '19 November' — so
+ * the page can break the line between them (decision #88).
+ */
+export function longDateParts(date: string): { weekday: string; dayMonth: string } {
+  const at = new Date(`${date}T12:00:00Z`);
+  const part = (opts: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat("en-GB", { ...opts, timeZone: "UTC" }).format(at);
+  return { weekday: part({ weekday: "long" }), dayMonth: part({ day: "numeric", month: "long" }) };
+}
+
 export function weekLabel(monday: string): string {
   const sunday = addDays(monday, 6);
   const part = (date: string, opts: Intl.DateTimeFormatOptions) =>

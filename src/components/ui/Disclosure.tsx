@@ -60,6 +60,9 @@ export function DisclosureTrigger({
       onClick={onToggle}
       aria-expanded={open}
       aria-controls={controls}
+      // A styling hook only: the Overview theme scopes its own look for the two
+      // variants (globals.css) rather than forking this component.
+      data-variant={variant}
       className={
         isAdd
           ? `flex items-center gap-1.5 self-start rounded-md border border-border bg-raised px-2.5 py-1 text-xs text-muted transition-colors ${

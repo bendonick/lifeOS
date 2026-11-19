@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { Smartphone } from "lucide-react";
+import { filledButtonChrome } from "@/components/ui/controls";
 import { Pill } from "@/components/ui/Pill";
 import type { Accent } from "@/components/ui/accents";
 import { readProposal, type ActionableProposal } from "@/lib/capture/proposal";
@@ -85,75 +87,76 @@ export function InboxPanel({ items, today }: { items: InboxItem[]; today: string
 
   return (
     <div aria-busy={isPending || syncing}>
-      <form onSubmit={capture} className="flex gap-2">
+      {/* One outlined control holding the field and its button (decision #90). The
+          button is the page's filled ink control — the same pairing as "Plan it"
+          and the current page in the navigation. */}
+      <form
+        onSubmit={capture}
+        className="flex items-center gap-2 rounded-lg border border-border-strong py-1 pl-1 pr-1"
+      >
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
           id="new-capture"
-          aria-label="capture text"
+          aria-label="Capture text"
           placeholder="Capture anything…"
-          className="min-w-0 flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-sm placeholder:text-faint focus:border-hub/50"
+          className="min-w-0 flex-1 rounded-md bg-transparent px-2.5 py-1.5 text-text placeholder:text-faint"
         />
-        <button
-          type="submit"
-          className="rounded-md border border-border bg-raised px-3 py-1.5 text-sm transition-colors hover:border-hub/40"
-        >
+        <button type="submit" className={filledButtonChrome}>
           Add
         </button>
       </form>
 
-      <div className="mt-2 flex items-center gap-2 text-[11px]">
+      <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1">
         <button
+          type="button"
           onClick={sync}
           disabled={syncing}
-          className="rounded border border-border px-1.5 py-0.5 text-muted transition-colors hover:border-hub/40 hover:text-text disabled:text-faint"
+          className="inline-flex min-h-7 items-center gap-2 rounded text-hub transition-colors hover:text-text disabled:text-faint"
         >
+          <Smartphone size={17} aria-hidden="true" />
           {syncing ? "Syncing…" : "Sync phone"}
         </button>
         {syncMessage && (
-          <span role="status" className="text-faint">
+          <span role="status" className="text-sm text-muted">
             {syncMessage}
           </span>
         )}
       </div>
 
       {error && (
-        <p role="alert" className="mt-2 text-[11px] text-danger">
+        <p role="alert" className="mt-2 text-sm text-danger">
           {error}
         </p>
       )}
 
-      <ul className="mt-3 flex flex-col gap-2">
-        {items.length === 0 && (
-          <li className="rounded-lg border border-border bg-surface px-3 py-4 text-center text-xs text-faint">
-            inbox zero — captures from here and from your phone land in this list
-          </li>
-        )}
+      <ul className="mt-3 flex flex-col">
+        {items.length === 0 && <li className="py-4 text-center text-muted">No captures yet.</li>}
         {items.map((item) => {
           const proposal = readProposal(item.parsed_json, item.processed);
           return (
-            <li key={item.id} className="rounded-lg border border-border bg-surface px-3 py-2.5">
-              <p className="text-sm">{item.text}</p>
-              <div className="mt-1.5 flex items-center gap-2 text-[11px] text-faint">
+            <li key={item.id} className="border-b border-border py-3 first:border-t">
+              <p className="text-text">{item.text}</p>
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-faint">
                 <span>{item.source === "phone_relay" ? "phone" : "here"}</span>
                 <span>·</span>
                 <span>{utcToZurichLabel(item.created_at)}</span>
                 <span className="flex-1" />
                 <button
                   onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                  className="rounded border border-border px-1.5 py-0.5 text-muted transition-colors hover:border-hub/40 hover:text-text"
+                  className="min-h-6 rounded border border-border px-2 py-0.5 text-muted transition-colors hover:border-border-strong hover:text-text"
                 >
                   → task
                 </button>
                 <button
                   onClick={() => process(item.id, { action: "note", text: item.text })}
-                  className="rounded border border-border px-1.5 py-0.5 text-muted transition-colors hover:border-hub/40 hover:text-text"
+                  className="min-h-6 rounded border border-border px-2 py-0.5 text-muted transition-colors hover:border-border-strong hover:text-text"
                 >
                   → note
                 </button>
                 <button
                   onClick={() => process(item.id, { action: "dismiss" })}
-                  className="rounded border border-border px-1.5 py-0.5 text-muted transition-colors hover:border-danger/40 hover:text-danger"
+                  className="min-h-6 rounded border border-border px-2 py-0.5 text-muted transition-colors hover:border-danger/40 hover:text-danger"
                 >
                   dismiss
                 </button>
@@ -218,12 +221,12 @@ function ProposalChip({ proposal, onAccept }: { proposal: ActionableProposal; on
     <button
       onClick={onAccept}
       title={proposal.reason || undefined}
-      className="mt-2 flex w-full items-center gap-2 rounded-md border border-border bg-raised px-2 py-1.5 text-left text-[11px] transition-colors hover:border-hub/40"
+      className="mt-2 flex w-full items-center gap-2 rounded-md border border-border bg-raised px-2.5 py-1.5 text-left text-sm transition-colors hover:border-border-strong"
     >
       <span className="text-faint">→</span>
       <Pill tone={tone}>{action}</Pill>
       <span className="min-w-0 flex-1 text-muted">{detail}</span>
-      <span className="text-hub">accept</span>
+      <span className="font-semibold text-hub">accept</span>
     </button>
   );
 }
@@ -268,7 +271,7 @@ function CaptureToTaskForm({
         className="rounded border border-border bg-surface px-2 py-1 text-sm aria-[invalid=true]:border-danger"
       />
       {invalid && (
-        <p role="alert" className="text-[11px] text-danger">
+        <p role="alert" className="text-sm text-danger">
           enter a title
         </p>
       )}
@@ -276,7 +279,8 @@ function CaptureToTaskForm({
         <select
           value={domain}
           onChange={(e) => setDomain(e.target.value as Domain)}
-          className="flex-1 rounded border border-border bg-surface px-1.5 py-1 text-xs text-muted"
+          aria-label="domain"
+          className="flex-1 rounded border border-border bg-surface px-1.5 py-1 text-sm text-muted"
         >
           {DOMAINS.map((d) => (
             <option key={d} value={d}>
@@ -289,11 +293,11 @@ function CaptureToTaskForm({
           value={due}
           onChange={(e) => setDue(e.target.value)}
           aria-label="due date"
-          className="rounded border border-border bg-surface px-1.5 py-1 text-xs text-muted"
+          className="rounded border border-border bg-surface px-1.5 py-1 text-sm text-muted"
         />
         <button
           type="submit"
-          className="rounded border border-border bg-surface px-2 py-1 text-xs transition-colors hover:border-hub/40"
+          className="rounded border border-border bg-surface px-2.5 py-1 text-sm transition-colors hover:border-border-strong"
         >
           Create
         </button>

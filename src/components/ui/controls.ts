@@ -25,3 +25,13 @@ export const buttonChrome =
 /** The one emphasised button on a surface — a Quick add, a confirm. */
 export const primaryButtonChrome =
   "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors";
+
+/**
+ * The filled ink control of the Overview theme (decision #87): the current page
+ * in the navigation, "Plan it" and the Inbox "Add" are the same navy ground and
+ * cream text, so the pairing is defined once, here. The colours are the
+ * `--color-ink*` / `--color-paper` properties that only `.theme-overview` sets.
+ * Disabled is a lighter ink (4.6:1 with the text), never an opacity.
+ */
+export const filledButtonChrome =
+  "inline-flex items-center justify-center rounded-md bg-(--color-ink) px-3.5 py-1.5 text-sm font-semibold text-(--color-paper) transition-colors hover:bg-(--color-ink-hover) disabled:cursor-default disabled:bg-(--color-ink-disabled)";

@@ -427,3 +427,138 @@ select {
   background-color: var(--color-field);
   color: var(--color-text);
 }
+
+/*
+ * ---------------------------------------------------------------------------
+ * Overview theme (decision #87) — the hub as an editorial day planner.
+ *
+ * Scoped to a wrapper on `/` and built the way `.theme-editorial` is: every
+ * token below is one @theme variable redefined, so shared components (ThisWeek,
+ * TaskForm, Disclosure, WeekCalendar) re-theme with no fork. The other pages
+ * keep the dark editorial theme; nothing here leaks, because every rule starts
+ * with the scope class or with `:has()` of it.
+ *
+ * The user's palette, exact: Cream #EFDFBB, Deep navy #232F3E, Slate #7A888E,
+ * Rust #C87629, Oxblood #801818. Measured on Cream: navy 10.3:1, oxblood
+ * 7.7:1 — ink. Slate 2.78:1 and rust 2.62:1 cannot carry text, so they are
+ * rules and marks at their exact values and *mixed toward navy* wherever they
+ * must be read: muted 5.99:1, faint 5.23:1, link rust 5.2:1 — each also ≥ 4.5:1
+ * on the chip ground (--color-raised).
+ * ---------------------------------------------------------------------------
+ */
+.theme-overview {
+  /* Flat paper: page, surface and inset are the same cream. Sections are
+     separated by rules and space, never by a second ground. */
+  --color-bg: #efdfbb;
+  --color-surface: #efdfbb;
+  --color-inset: transparent;
+  --color-raised: #e2d5b6; /* chips and secondary buttons — slate at ~13% */
+  --color-track: #dacfb3;
+  --color-border: #b9b8a6; /* hairline rules — slate toward cream */
+  --color-border-strong: #66747c; /* input outlines — 3.66:1, a control boundary */
+  --color-field: #232f3e;
+
+  --color-text: #232f3e; /* Deep navy, exact */
+  --color-muted: #46535e;
+  --color-faint: #4e5c66;
+
+  /* `hub` is the page's secondary accent here: rust, darkened until it reads. */
+  --color-hub: #884a12;
+  --color-academic: #7b2d3b;
+  --color-personal: #884a12;
+  --color-professional: #2b5c8a;
+
+  --color-danger: #801818; /* Oxblood, exact — deadlines */
+  --color-warn: #884a12;
+  --color-focus: #232f3e;
+
+  /* The one filled-control pairing (nav's current page, Plan it, Add) and the
+     exact palette values for marks. Read by `filledButtonChrome` and by
+     arbitrary-value utilities; plain custom properties, so nothing tree-shakes. */
+  --color-ink: #232f3e;
+  --color-ink-hover: #34455a;
+  --color-ink-disabled: #57646e;
+  --color-paper: #efdfbb;
+  --color-rust: #c87629;
+  --color-slate: #7a888e;
+
+  --font-serif: var(--font-newsreader);
+
+  accent-color: #232f3e;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.9375rem; /* 15px body on this page */
+  line-height: 1.5;
+}
+
+/* The canvas outside the wrapper (overscroll, the margins of a short page) and
+   the UA's own controls follow the page that is showing. */
+body:has(.theme-overview) {
+  background-color: #efdfbb;
+}
+:root:has(.theme-overview) {
+  color-scheme: light;
+}
+
+.theme-overview .t-serif {
+  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+
+/* The base focus ring is a literal light grey (1.2:1 on cream). */
+.theme-overview :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline-color: #232f3e;
+}
+
+.theme-overview input[type="checkbox"] {
+  accent-color: #232f3e;
+}
+
+.theme-overview ::selection {
+  background-color: #232f3e;
+  color: #efdfbb;
+}
+
+/* The select glyph is a literal in a data: URI; this is the navy one. */
+.theme-overview select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%2346535e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+/* Repeated items are ruled lines here, not subordinate cards: no ground, no
+   box, one hairline beneath. */
+.theme-overview .row-card {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+}
+
+/* Disclosure triggers read as quiet text actions on this page ("Add task",
+   "Read brief", "Open calendar"), not as bordered chips. The component is
+   shared; the page scopes its look. */
+.theme-overview button[data-variant="add"],
+.theme-overview button[data-variant="chevron"] {
+  border: 0;
+  background: transparent;
+  padding: 0.25rem 0;
+  min-height: 1.75rem;
+  font-size: 0.9375rem;
+  color: var(--color-hub);
+}
+.theme-overview button[data-variant="add"]:hover,
+.theme-overview button[data-variant="chevron"]:hover {
+  color: var(--color-text);
+}
+.theme-overview button[data-variant="chevron"] svg {
+  color: currentColor;
+}
+
+@media (prefers-contrast: more) {
+  .theme-overview {
+    --color-muted: #36424e;
+    --color-faint: #3d4a56;
+    --color-border: #7a888e;
+    --color-border-strong: #46535e;
+  }
+}
