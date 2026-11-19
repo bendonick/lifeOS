@@ -1,0 +1,3 @@
+# Test-only dependencies (decision #84). Not needed to run any script.
+-r requirements.txt
+pytest>=8

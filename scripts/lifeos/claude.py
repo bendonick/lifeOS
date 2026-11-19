@@ -18,6 +18,14 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 BRIEF_MODEL = "claude-sonnet-5"
 PARSER_MODEL = "claude-opus-5"
+# The hub's Week plan parser (decision #84). Sonnet, not the capture parser's
+# Opus: the user is waiting for this answer, and reviews a draft before anything
+# is written, so a misparse costs one edit rather than a wrong row.
+PLAN_MODEL = "claude-sonnet-5-5"
+
+# Server-side refusal fallbacks (beta). With "default" the API re-runs a declined
+# request on a fallback model it picks by refusal category, inside the same call.
+FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
 # Dynamic-filtering web search: Claude writes and runs code to filter results
 # before they reach the context window. Supported on Sonnet 5 and the current
@@ -102,6 +110,7 @@ def run(
     max_tokens: int = 4000,
     output_format: dict | None = None,
     max_continuations: int = 3,
+    fallbacks: str | list | None = None,
 ):
     """One request, resumed across `pause_turn`.
 
@@ -130,7 +139,13 @@ def run(
         if tools:
             kwargs["tools"] = tools
 
-        response = api.messages.create(**kwargs)
+        if fallbacks is not None:
+            # Fallbacks are a beta parameter, so they need the beta endpoint.
+            response = api.beta.messages.create(
+                **kwargs, betas=[FALLBACK_BETA], fallbacks=fallbacks
+            )
+        else:
+            response = api.messages.create(**kwargs)
 
         # A web-search brief takes minutes, not seconds, and prints nothing until
         # it finishes — without this the log of a slow or looping run is empty.
