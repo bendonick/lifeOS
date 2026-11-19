@@ -83,7 +83,8 @@ courses share a name). The script then validates and normalises before storing:
 ## 5. What is sent to the API
 
 The note, course names and short names, project names, open task titles with their due dates and
-ids, and this week's plan titles. Nothing else. The module says so in one line under the box.
+ids, and this week's plan titles. Nothing else. (A line under the box said so at first; the user removed it,
+with the placeholder, on seeing the build — the box is bare at rest.)
 
 ## 6. AI UX rules (decision #85, from Apple's Human Interface Guidelines)
 

@@ -284,16 +284,15 @@ export function WeekPlan({
               readOnly={parsing}
               rows={4}
               aria-invalid={error ? true : undefined}
-              aria-describedby="plan-note-help"
-              placeholder="polish the ATAI chatbot, buy a mop, link fitbit to lifeSTREAMS…"
+              aria-describedby={parsing ? "plan-note-help" : undefined}
               className="block min-h-26 w-full resize-y rounded-lg border border-border bg-(--color-inset) px-3.5 py-3 text-sm leading-relaxed text-text placeholder:text-faint"
             />
             {parsing && <div className="mt-2 h-0.5 rounded-full bg-hub/50" aria-hidden="true" />}
+            {/* No placeholder and no helper line at rest (the user's call, 2026-11-19);
+                only the parser's named progress step shows while it runs. */}
             <div className="mt-2.5 flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
               <p id="plan-note-help" className="max-w-xl text-xs text-faint">
-                {parsing
-                  ? progress
-                  : "Write it the way you think it. Plan it sends this note, your course and project names and your open task titles to Claude, then shows a draft — nothing is saved until you add it."}
+                {parsing ? progress : null}
               </p>
               <div className="flex shrink-0 gap-2">
                 {showCancel && (
