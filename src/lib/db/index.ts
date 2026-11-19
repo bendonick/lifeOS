@@ -84,6 +84,11 @@ function migrate(db: Database.Database) {
   // 2026-10-05 (decision #77): the short code every Academic surface names a
   // course by. NULL means "derive it" — `courseCode()` in lib/academic/semester.ts.
   addColumn(db, "courses", "short_name", "TEXT");
+  // 2026-11-19 (decision #83): the hub's Week plan. A plan item is a task with a
+  // week; a group is a label on its members, not a row of its own.
+  addColumn(db, "tasks", "week", "TEXT");
+  addColumn(db, "tasks", "plan_group", "TEXT");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_tasks_week ON tasks (week) WHERE week IS NOT NULL");
 
   foldFoodCategories(db);
 }

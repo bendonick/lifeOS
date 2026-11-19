@@ -51,7 +51,13 @@ CREATE TABLE IF NOT EXISTS tasks (
   course_id  INTEGER REFERENCES courses(id) ON DELETE SET NULL,
   project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
   notes      TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  -- Week plan (decision #83): the ISO week 'YYYY-Www' a task is planned for, NULL
+  -- when it is in no plan; and a group label copied onto each member of a group.
+  -- Both are also added by migrate() for databases created before 2026-11-19, and
+  -- the index on `week` is created there, after the column is guaranteed to exist.
+  week       TEXT,
+  plan_group TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_tasks_due    ON tasks (done, due);
 CREATE INDEX IF NOT EXISTS idx_tasks_domain ON tasks (domain);
@@ -267,4 +273,20 @@ CREATE TABLE IF NOT EXISTS notes (
 CREATE TABLE IF NOT EXISTS config (
   key   TEXT PRIMARY KEY,
   value TEXT NOT NULL
+);
+
+-- Week plan notes (decision #83/#84): the raw brain dump, kept before the parser
+-- runs so a failed parse never loses it. scripts/plan_parse.py writes only
+-- `proposal_json`, `status` and `error`; the app applies a proposal to `tasks` on
+-- accept and records what it did in `applied_json` so Undo can reverse it.
+CREATE TABLE IF NOT EXISTS plan_notes (
+  id            INTEGER PRIMARY KEY,
+  week          TEXT NOT NULL,                -- ISO 'YYYY-Www'
+  text          TEXT NOT NULL,
+  status        TEXT NOT NULL DEFAULT 'pending'
+                CHECK (status IN ('pending','proposed','failed','accepted','discarded','undone')),
+  proposal_json TEXT,
+  applied_json  TEXT,
+  error         TEXT,
+  created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );

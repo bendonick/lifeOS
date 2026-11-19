@@ -22,6 +22,10 @@ export interface Task {
   project_id: number | null;
   notes: string | null;
   created_at: string;
+  /** ISO week 'YYYY-Www' when the task is in a week plan (decision #83). */
+  week: string | null;
+  /** Group label shared by the members of one plan group, e.g. "LifeSTREAMS". */
+  plan_group: string | null;
 }
 
 export interface Transaction {

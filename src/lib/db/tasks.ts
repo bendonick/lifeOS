@@ -85,12 +85,16 @@ export interface NewTask {
   notes?: string | null;
   course_id?: number | null;
   project_id?: number | null;
+  /** Week plan (decision #83): ISO week and group label. */
+  week?: string | null;
+  plan_group?: string | null;
 }
 
 export function createTask(input: NewTask): Task {
   const { lastInsertRowid } = db
     .prepare(
-      "INSERT INTO tasks (title, domain, type, due, notes, course_id, project_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      `INSERT INTO tasks (title, domain, type, due, notes, course_id, project_id, week, plan_group)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       input.title,
@@ -99,7 +103,9 @@ export function createTask(input: NewTask): Task {
       input.due ?? null,
       input.notes ?? null,
       input.course_id ?? null,
-      input.project_id ?? null
+      input.project_id ?? null,
+      input.week ?? null,
+      input.plan_group ?? null
     );
   return db.prepare("SELECT * FROM tasks WHERE id = ?").get(lastInsertRowid) as Task;
 }
