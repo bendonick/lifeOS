@@ -18,8 +18,9 @@ four other states). Decisions **#82–#86** record what was settled. Where this 
    have.
 3. You edit titles, change a domain, remove items, then **Add N items**. Only then is anything
    written. "N items added · Undo" stays for a few seconds.
-4. Items show as a checklist. A checked item strikes through and stays in place. The header
-   counts done of total with one box per item.
+4. Items show as a checklist. A checked item strikes through and stays in place. Above the
+   list, "N of M done" with one box per item — counted in the client component, beside the
+   optimistic boxes, so it moves with the click.
 5. A second note mid-week **adds** to the plan. A matched task is pulled into the plan, never
    created twice.
 6. On a new week the box is empty and what you did not finish waits **under it**: "3 left from
@@ -61,16 +62,19 @@ The model fills this schema (`scripts/lifeos/plan_prompt.py`):
 
 ```json
 { "items": [ { "title": "…", "domain": "academic|personal|professional",
-               "course": "ATAI" | null, "project": "Day job" | null,
+               "course_id": 1 | null, "project_id": 2 | null,
                "group": "LifeSTREAMS" | null, "due": "YYYY-MM-DD[THH:MM]" | null,
                "match_task_id": 123 | null, "reason": "…" | null } ] }
 ```
 
-The script then validates and normalises before storing:
+The model picks ids from the context it was given (one entry per course name — multi-slot
+courses share a name). The script then validates and normalises before storing:
 
-- `course` resolves to a `course_id` by short name or name; unknown → NULL, and the item keeps
-  its domain. A course forces `domain = academic`.
-- `project` resolves to a `project_id` by name; unknown → NULL.
+- `course_id` must exist; unknown → NULL, and the item keeps its domain. A course forces
+  `domain = academic`. Labels (the course code, the project name) are added by the app when it
+  reads the proposal, so a rename between parse and render still shows the current name.
+- `project_id` must exist; unknown → NULL.
+- A group with one member loses its group. Titles already in this week's plan are dropped.
 - `due` must be a real date in the accepted shapes; otherwise NULL.
 - `match_task_id` must name an **open** task; otherwise NULL. A match carries its current title
   and due date so the draft can say "Already on your list, due Wed 25 Nov".
@@ -92,6 +96,8 @@ ids, and this week's plan titles. Nothing else. The module says so in one line u
 
 ## 7. Out of scope
 
-The rest of the hub (Inbox, briefs, calendar, the Domain tiles) is unchanged in this pass. Editing
+The rest of the hub (Inbox, briefs, calendar, the Domain tiles) keeps its content in this pass;
+only its order moved — Calendar (8) | Inbox (4) now share the last row where This week | Inbox
+sat. Editing
 or removing a single item after Add, a parse-feedback button, and phone captures into the plan are
 in BACKLOG.

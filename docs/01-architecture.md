@@ -123,6 +123,18 @@ This removes the last external dependency from the daily path. Recorded alternat
 Shortcut annoys: Apple Reminders read via AppleScript/EventKit (Siri-native, needs a macOS
 automation grant, task-shaped), or the original Notion relay (decision #7, superseded).
 
+### Week plan parser (2026-11-19, decisions #83/#84)
+
+The same propose-then-apply shape, run on demand. `POST /api/plan/notes` writes the note to
+`plan_notes` **first**, then runs `scripts/plan_parse.py --note ID` through
+`src/lib/plan/parse.ts` (the capture Sync's runner shape, 60 s timeout). The script sends the
+note plus course names/short names, project names, open task titles + due dates + ids and this
+week's plan titles to `claude-sonnet-5-5` with a JSON schema and server-side refusal fallbacks,
+validates every id against the database, and writes only `plan_notes.proposal_json`. The app
+writes `tasks` (`week`, `plan_group`) when the user accepts the draft, and returns an undo
+payload for every apply. When the parser fails, the note is kept and the client offers a local
+split (`src/lib/plan/split.ts`) instead.
+
 ### Anthropic API (Stages 5–6)
 
 Used by brief scripts and the RAG answerer. Key in `.env`. Model names live in

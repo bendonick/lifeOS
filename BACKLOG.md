@@ -290,3 +290,21 @@ becomes a session the day its data exists.
 - **Category averages' period.** `budget.baseline` carries no "over N months" — the label says
   "(historical)" and nothing more honest is available without storing the window it was built
   over.
+
+## Week plan (2026-11-19)
+
+- **Verify a real parse once the API key works.** Draft rendering of groups, matches and reasons
+  has only been seen through accepted rows; run one note through *Plan it* and check the draft,
+  then time it (the progress steps assume a few seconds).
+- **Edit or remove one plan item after Add.** Today only the whole apply can be undone, within
+  the status line's few seconds; a per-row `RowAction` (pencil / remove) is the obvious next step.
+- **Parse feedback.** HIG generative-AI: let people say a draft was wrong. Store the user's edits
+  against the proposal (`plan_notes` already has both sides) and use them to tune
+  `lifeos/plan_prompt.py`.
+- **Phone captures into the plan.** A capture that reads like a week intention could be offered
+  to the plan instead of the Inbox.
+- **The rest of the hub.** Inbox, briefs, calendar and the Domain tiles are next in the hub
+  rework — the Domain tiles carry no live state yet (overdue work, unpaid bills, habits today).
+- **Undo ids.** If undo ever needs to outlive a page view, give `tasks` stable ids (AUTOINCREMENT
+  needs a table rebuild) rather than relying on the title check.
+

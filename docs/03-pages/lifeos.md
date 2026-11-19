@@ -1,5 +1,12 @@
 # Page — LifeOS (hub, `/`)
 
+**Week plan pass, 2026-11-19 (decisions #82–#85; build brief `docs/08-week-plan-brief.md`, which
+wins where it differs from this file).** The hub now opens with a full-width **Week plan**: a
+plain-English note parsed into this week's checklist, with **Due soon** (overdue + next 7 days,
+minus what the plan holds) beside it. Order: Week plan 12 → Domains 12 → Morning brief 12 →
+Calendar 8 | Inbox 4. The **This week** module below is retired from the hub — its job is Due
+soon — and the `ThisWeek` component lives on for Personal.
+
 **Themed and re-laid-out 2026-08-17 (decision #59).** On `theme-editorial` as a twelve-column
 bento of `Tile`s — Domains 12, brief row 12, This week 8 + Inbox 4 — with the calendar full width
 below. (Domains moved from the bottom to the top on 2026-10-05 at the user's ask: the hub's job is

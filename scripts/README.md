@@ -37,6 +37,7 @@ a terminal works either way, which is what makes the failure so quiet.
 | `brief_ai_research.py` | 07:05 Mon–Fri | Sonnet 5 + web search | ~$0.05–0.15 |
 | `brief_german.py` | 07:10 Mon–Fri | Sonnet 5, no search | fractions of a cent |
 | `categorize_assist.py` | **on demand only** | Opus 5, low effort | ~$0.02 for a 120-merchant backlog |
+| `plan_parse.py` | **on demand only** — the hub's *Plan it* | Sonnet 5.5, low effort, refusal fallbacks | ~a cent per note |
 
 `categorize_assist.py` has no schedule on purpose: there is no recurring backlog to drain,
 only the tail of an import, so it runs from the Assist button (`POST /api/money/assist`) or by
@@ -64,6 +65,23 @@ Every script prints a one-line JSON summary; launchd writes it to `data/logs/<la
 
 Re-running a brief replaces today's row (`briefs` is UNIQUE on date+kind) and re-stamps
 `generated_at`. Re-running ingest is free: it dedupes on the capture id.
+
+## Week plan parser
+
+`plan_parse.py --note ID` is the third script under decision #36 (#84 extends it to the hub). The
+app writes the note into `plan_notes` and runs the script synchronously; the script writes a
+validated proposal into `plan_notes.proposal_json` (or `status = 'failed'` with the error) and
+nothing else. Its prompt and JSON schema live alone in `lifeos/plan_prompt.py`. Tune the wording there.
+
+## Tests
+
+```sh
+.venv/bin/pip install -r requirements-dev.txt   # pytest — dev-only, not needed to run anything
+.venv/bin/python -m pytest -q                     # from scripts/
+```
+
+`tests/test_plan_parse.py` builds an in-memory database from the app's real `schema.sql` and
+replaces `claude.client` with a fake, so the tests never call the API.
 
 ## The one rule about writes
 
