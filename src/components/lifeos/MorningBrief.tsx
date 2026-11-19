@@ -74,7 +74,7 @@ export function MorningBrief({ briefs }: { briefs: Partial<Record<BriefKind, Bri
                             rel="noreferrer"
                             // Underlined on hover and focus only: every headline in the
                             // list is a link, and a column of underlines reads as noise.
-                            className={`rounded text-text decoration-1 underline-offset-[3px] hover:underline focus-visible:underline ${
+                            className={`inline-block min-h-6 rounded text-text decoration-1 underline-offset-[3px] hover:underline focus-visible:underline ${
                               excerpts ? "font-semibold" : ""
                             }`}
                           >
