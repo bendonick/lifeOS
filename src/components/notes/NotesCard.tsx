@@ -97,13 +97,16 @@ export function NotesCard({
             const done = valueFor(n, !!n.reviewed);
             return (
               <li key={n.id} className="flex items-start gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={done}
-                  onChange={() => toggle(n, done)}
-                  className={`mt-0.5 h-3.5 w-3.5 shrink-0 cursor-pointer ${accentControl[accent]}`}
-                  aria-label={`done: ${n.text}`}
-                />
+                {/* 24px target around the box (decision #76). */}
+                <label className="-my-0.5 inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={done}
+                    onChange={() => toggle(n, done)}
+                    className={`h-3.5 w-3.5 cursor-pointer ${accentControl[accent]}`}
+                    aria-label={`done: ${n.text}`}
+                  />
+                </label>
                 <span className={done ? "text-faint line-through" : "text-muted"}>{n.text}</span>
               </li>
             );

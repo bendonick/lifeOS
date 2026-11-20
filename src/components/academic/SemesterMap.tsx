@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Disclosure } from "@/components/ui/Disclosure";
 import {
   isBusyWeek,
@@ -62,6 +62,18 @@ const STICKY = "sticky left-0 z-10 bg-bg";
 
 export function SemesterMap({ model }: { model: SemesterMapModel }) {
   const [detail, setDetail] = useState<MapMark | null>(null);
+  const scroller = useRef<HTMLDivElement>(null);
+
+  // On a narrow screen the table scrolls sideways and would open on the term's
+  // first week; bring the current week into view instead, just right of the
+  // sticky course column. A no-op when the whole table already fits.
+  useEffect(() => {
+    const box = scroller.current;
+    const now = box?.querySelector<HTMLElement>('th[aria-current="date"]');
+    const label = box?.querySelector<HTMLElement>("tbody th");
+    if (!box || !now || !label || box.scrollWidth <= box.clientWidth) return;
+    box.scrollLeft = Math.max(0, now.offsetLeft - label.offsetWidth - now.offsetWidth);
+  }, [model.now]);
   // Left edge only: a month's first week gets a stronger guide. `border-l-*`,
   // not `border-*`, or the colour would also repaint the row's top rule.
   const guide = (i: number) => `border-l ${model.weeks[i].monthStart ? "border-l-border-strong/60" : "border-l-border/70"}`;
@@ -75,8 +87,8 @@ export function SemesterMap({ model }: { model: SemesterMapModel }) {
           sideways. `relative` matters: the table holds visually-hidden text
           (`sr-only` is position:absolute), and without a positioned ancestor
           those spans escape the scroll box and widen the whole document. */}
-      <div className="relative overflow-x-auto" tabIndex={0} role="group" aria-label="Semester map, scrolls sideways on a narrow screen">
-        <table className="w-full min-w-[64rem] table-fixed border-separate border-spacing-0 text-sm">
+      <div ref={scroller} className="relative overflow-x-auto" tabIndex={0} role="group" aria-label="Semester map, scrolls sideways on a narrow screen">
+        <table className="w-full min-w-[72rem] table-fixed border-separate border-spacing-0 text-sm">
           <caption className="sr-only">
             Semester map: one row per course, one column per Monday-to-Sunday week, a mark for each dated assignment
             and exam.
@@ -122,7 +134,8 @@ export function SemesterMap({ model }: { model: SemesterMapModel }) {
                   {/* A boundary week wraps after the dash: "26 Oct–" / "1 Nov". */}
                   {w.range.includes(" ") ? (
                     <>
-                      <span className="whitespace-nowrap">{w.range.split("–")[0]}–</span>{" "}
+                      <span className="whitespace-nowrap">{w.range.split("–")[0]}–</span>
+                      <wbr />
                       <span className="whitespace-nowrap">{w.range.split("–")[1]}</span>
                     </>
                   ) : (

@@ -32,10 +32,10 @@ export function AcademicMasthead({
 }) {
   return (
     <ArtworkProvider collection="academic" initialId={artworkId} dailyId={dailyArtworkId} pinnedId={pinnedArtworkId}>
-      <div className="grid items-center gap-x-9 gap-y-4 pt-4 md:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)]">
+      <div className="grid items-center gap-x-9 gap-y-4 pt-3 md:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)]">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">University</p>
-          <h1 className="t-serif mt-1 text-[clamp(2.25rem,4.4vw,3.25rem)] leading-none text-text">Academic</h1>
+          <h1 className="t-serif mt-0.5 text-[clamp(2.25rem,4.2vw,3rem)] leading-none text-text">Academic</h1>
           {(semester || week) && (
             <p className="t-serif !font-medium mt-1.5 text-lg italic text-text">
               {semester}
@@ -47,7 +47,7 @@ export function AcademicMasthead({
         <ArtworkImage aspect="aspect-[5/1]" />
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-1 border-b border-border pb-2">
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-x-6 gap-y-1 border-b border-border pb-1.5">
         <nav aria-label="Sections of this page">
           <ul className="flex flex-wrap items-center gap-y-1">
             {sections.map((s, i) => (

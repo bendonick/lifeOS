@@ -402,7 +402,7 @@ function FeedLine({
         type="button"
         onClick={onRefresh}
         disabled={busy}
-        className="rounded text-faint underline decoration-border underline-offset-2 hover:text-muted disabled:cursor-wait"
+        className="inline-flex min-h-6 items-center rounded text-faint underline decoration-border underline-offset-2 hover:text-muted disabled:cursor-wait"
       >
         {busy ? "refreshing…" : "refresh"}
       </button>
@@ -483,7 +483,7 @@ function Tab({
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      className={`rounded-full border px-2.5 py-0.5 text-[11px] ${
+      className={`inline-flex min-h-6 items-center rounded-full border px-2.5 py-0.5 text-[11px] ${
         active ? "border-border bg-raised text-text" : "border-transparent text-muted hover:text-text"
       }`}
     >
