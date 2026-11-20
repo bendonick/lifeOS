@@ -140,6 +140,9 @@ export function WeekCalendar({
           {days.map((d) => (
             <div
               key={d}
+              // Styling hooks (`data-today`, `data-event`): the Maritime theme
+              // tints today rust and draws event blocks slate; inert elsewhere.
+              data-today={d === today ? "" : undefined}
               className={`border-b border-l border-border px-2 py-2 text-xs font-medium ${
                 d === today ? "text-text" : "text-muted"
               }`}
@@ -266,6 +269,7 @@ function DayColumn({
 }) {
   return (
     <div
+      data-today={day === today ? "" : undefined}
       className={`relative border-l border-border ${day === today ? "bg-raised/40" : ""}`}
       style={{ height: hours.length * HOUR_PX }}
     >
@@ -287,6 +291,7 @@ function DayColumn({
           <div
             key={p.event.id}
             title={`${p.event.title} · ${p.event.start.slice(11, 16)}–${p.event.end.slice(11, 16)}${p.event.location ? ` · ${p.event.location}` : ""}`}
+            data-event=""
             className={`absolute overflow-hidden rounded border px-1.5 py-0.5 text-[11px] leading-tight ${accentEvent[calendarAccent[p.event.calendar]]}`}
             style={{
               top: top + 1,

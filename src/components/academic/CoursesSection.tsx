@@ -144,8 +144,8 @@ function CourseRow({
         onClick={onToggle}
         className="flex w-full items-center gap-3 rounded px-1 py-3 text-left transition-colors hover:bg-raised/30"
       >
-        <span className="w-16 shrink-0 text-sm font-semibold text-text">{group.code}</span>
-        <span className="min-w-0 flex-1 truncate text-xs text-muted">{group.name}</span>
+        <span className="w-20 shrink-0 font-bold text-text">{group.code}</span>
+        <span className="min-w-0 flex-1 text-text">{group.name}</span>
         {group.status !== "enrolled" && <Pill>{group.status}</Pill>}
         <ChevronRight
           size={14}

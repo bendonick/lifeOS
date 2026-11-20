@@ -21,7 +21,12 @@ export function NotesCard({
   accent,
   inputId,
   placeholder,
+  bare = false,
 }: {
+  /** No shell and no title of its own: the page's section already has a
+   *  heading and a rule (the Maritime Academic page, decision #94). The status
+   *  line and the add action then share one row. */
+  bare?: boolean;
   notes: Note[];
   domain: string;
   kind: Note["kind"];
@@ -71,16 +76,19 @@ export function NotesCard({
   return (
     <div
       aria-busy={isPending || isAdding}
-      className="rounded-xl border-2 border-border-strong bg-surface p-4"
+      data-notes-bare={bare ? "" : undefined}
+      className={bare ? "" : "rounded-xl border-2 border-border-strong bg-surface p-4"}
     >
-      <div className={`flex items-center gap-2 text-xs font-medium ${accentText[accent]}`}>
-        {/* Theming hook — the editorial theme renders this as a serif title so
-            NotesCard sits in a rail of Tiles without looking like a stranger.
-            Inert everywhere else. */}
-        <span data-card-label="">{title}</span>
-      </div>
-      <p className="mt-1 text-xs text-muted">
-        {open.length === 0 ? "nothing pending" : `${open.length} pending`}
+      {!bare && (
+        <div className={`flex items-center gap-2 text-xs font-medium ${accentText[accent]}`}>
+          {/* Theming hook — the editorial theme renders this as a serif title so
+              NotesCard sits in a rail of Tiles without looking like a stranger.
+              Inert everywhere else. */}
+          <span data-card-label="">{title}</span>
+        </div>
+      )}
+      <p className={bare ? "t-serif !font-medium text-base italic text-muted" : "mt-1 text-xs text-muted"}>
+        {open.length === 0 ? (bare ? "Nothing pending" : "nothing pending") : `${open.length} pending`}
       </p>
 
       {notes.length > 0 && (
