@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getArtworkPin, getCurrently, setArtworkPin, setCurrently, type Currently } from "@/lib/db/overview";
-import { artworkById } from "@/lib/overview/artwork";
+import { artworkById, type ArtworkCollection } from "@/lib/overview/artwork";
 
 const MAX_ENTRY = 80;
 
@@ -23,11 +23,14 @@ export async function PATCH(req: NextRequest) {
   }
   if (Object.keys(patch).length > 0) setCurrently(patch);
 
+  // `collection` says whose pin this is; a print can only be pinned on the page
+  // that shows its collection.
+  const collection: ArtworkCollection = body.collection === "academic" ? "academic" : "overview";
   if (body.pin !== undefined) {
-    if (body.pin !== null && (typeof body.pin !== "string" || !artworkById(body.pin)))
+    if (body.pin !== null && (typeof body.pin !== "string" || artworkById(body.pin)?.collection !== collection))
       return NextResponse.json({ error: "unknown print" }, { status: 400 });
-    setArtworkPin(body.pin);
+    setArtworkPin(collection, body.pin);
   }
 
-  return NextResponse.json({ currently: getCurrently(), pin: getArtworkPin() });
+  return NextResponse.json({ currently: getCurrently(), pin: getArtworkPin(collection) });
 }

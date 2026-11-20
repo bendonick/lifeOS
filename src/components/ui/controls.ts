@@ -30,7 +30,7 @@ export const primaryButtonChrome =
  * The filled ink control of the Overview theme (decision #87): the current page
  * in the navigation, "Plan it" and the Inbox "Add" are the same navy ground and
  * cream text, so the pairing is defined once, here. The colours are the
- * `--color-ink*` / `--color-paper` properties that only `.theme-overview` sets.
+ * `--color-ink*` / `--color-paper` properties that only `.theme-maritime` sets.
  * Disabled is a lighter ink (4.6:1 with the text), never an opacity.
  */
 export const filledButtonChrome =

@@ -430,13 +430,14 @@ select {
 
 /*
  * ---------------------------------------------------------------------------
- * Overview theme (decision #87) — the hub as an editorial day planner.
+ * Maritime theme (decisions #87, #91) — the light editorial look. First built
+ * for the Overview as `.theme-overview`; renamed when Academic adopted it.
  *
- * Scoped to a wrapper on `/` and built the way `.theme-editorial` is: every
+ * Scoped to a page's wrapper and built the way `.theme-editorial` is: every
  * token below is one @theme variable redefined, so shared components (ThisWeek,
- * TaskForm, Disclosure, WeekCalendar) re-theme with no fork. The other pages
- * keep the dark editorial theme; nothing here leaks, because every rule starts
- * with the scope class or with `:has()` of it.
+ * TaskForm, Disclosure, WeekCalendar) re-theme with no fork. Pages without the
+ * wrapper keep the dark editorial theme; nothing here leaks, because every rule
+ * starts with the scope class or with `:has()` of it.
  *
  * The user's palette, exact: Cream #EFDFBB, Deep navy #232F3E, Slate #7A888E,
  * Rust #C87629, Oxblood #801818. Measured on Cream: navy 10.3:1, oxblood
@@ -446,7 +447,7 @@ select {
  * on the chip ground (--color-raised).
  * ---------------------------------------------------------------------------
  */
-.theme-overview {
+.theme-maritime {
   /* Flat paper: page, surface and inset are the same cream. Sections are
      separated by rules and space, never by a second ground. */
   --color-bg: #efdfbb;
@@ -493,41 +494,41 @@ select {
 
 /* The canvas outside the wrapper (overscroll, the margins of a short page) and
    the UA's own controls follow the page that is showing. */
-body:has(.theme-overview) {
+body:has(.theme-maritime) {
   background-color: #efdfbb;
 }
-:root:has(.theme-overview) {
+:root:has(.theme-maritime) {
   color-scheme: light;
 }
 
-.theme-overview .t-serif {
+.theme-maritime .t-serif {
   font-family: var(--font-serif), Georgia, "Times New Roman", serif;
   font-weight: 600;
   letter-spacing: -0.012em;
 }
 
 /* The base focus ring is a literal light grey (1.2:1 on cream). */
-.theme-overview :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+.theme-maritime :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline-color: #232f3e;
 }
 
-.theme-overview input[type="checkbox"] {
+.theme-maritime input[type="checkbox"] {
   accent-color: #232f3e;
 }
 
-.theme-overview ::selection {
+.theme-maritime ::selection {
   background-color: #232f3e;
   color: #efdfbb;
 }
 
 /* The select glyph is a literal in a data: URI; this is the navy one. */
-.theme-overview select {
+.theme-maritime select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%2346535e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 /* Repeated items are ruled lines here, not subordinate cards: no ground, no
    box, one hairline beneath. */
-.theme-overview .row-card {
+.theme-maritime .row-card {
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--color-border);
@@ -537,8 +538,8 @@ body:has(.theme-overview) {
 /* Disclosure triggers read as quiet text actions on this page ("Add task",
    "Read brief", "Open calendar"), not as bordered chips. The component is
    shared; the page scopes its look. */
-.theme-overview button[data-variant="add"],
-.theme-overview button[data-variant="chevron"] {
+.theme-maritime button[data-variant="add"],
+.theme-maritime button[data-variant="chevron"] {
   border: 0;
   background: transparent;
   padding: 0.25rem 0;
@@ -546,16 +547,16 @@ body:has(.theme-overview) {
   font-size: 0.9375rem;
   color: var(--color-hub);
 }
-.theme-overview button[data-variant="add"]:hover,
-.theme-overview button[data-variant="chevron"]:hover {
+.theme-maritime button[data-variant="add"]:hover,
+.theme-maritime button[data-variant="chevron"]:hover {
   color: var(--color-text);
 }
-.theme-overview button[data-variant="chevron"] svg {
+.theme-maritime button[data-variant="chevron"] svg {
   color: currentColor;
 }
 
 @media (prefers-contrast: more) {
-  .theme-overview {
+  .theme-maritime {
     --color-muted: #36424e;
     --color-faint: #3d4a56;
     --color-border: #7a888e;

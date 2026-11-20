@@ -8,10 +8,10 @@ import { newsreader } from "@/components/lifeos/fonts";
 import { GermanWord } from "@/components/lifeos/GermanWord";
 import { InboxPanel } from "@/components/lifeos/InboxPanel";
 import { MorningBrief } from "@/components/lifeos/MorningBrief";
-import { OverviewNav } from "@/components/lifeos/OverviewNav";
 import { TaskTogglesProvider } from "@/components/lifeos/TaskToggles";
 import { ThisWeek } from "@/components/lifeos/ThisWeek";
 import { WeekPlan } from "@/components/lifeos/WeekPlan";
+import { SiteNav } from "@/components/ui/SiteNav";
 import { latestBriefs } from "@/lib/db/briefs";
 import { unprocessedCaptures } from "@/lib/db/inbox";
 import { getArtworkPin, getCurrently } from "@/lib/db/overview";
@@ -50,9 +50,9 @@ export default function OverviewPage() {
   const daily = dailyArtwork(today);
 
   return (
-    <div className={`theme-overview ${newsreader.variable} min-h-screen`}>
+    <div className={`theme-maritime ${newsreader.variable} min-h-screen`}>
       <div className="mx-auto max-w-[76rem] px-5 pb-20 sm:px-8">
-        <OverviewNav />
+        <SiteNav current="overview" />
         <main>
           <DayHeader
             today={today}
