@@ -1,10 +1,13 @@
 # LifeOS
 
-Local-first personal operating system — one hub page plus three domain pages
-(Academic 🟢 / Personal 🟣 / Professional 🔵) over data you own on disk, with an
-intelligence layer (daily AI briefs, RAG over lecture PDFs, budget/health insights)
-arriving in later stages. Replaces a Notion-based LifeOS. Desktop-only, localhost,
-single user, no auth.
+A local-first personal operating system. An Overview page plus three domain pages,
+Academic, Personal and Professional, over data you own on disk: courses and deadlines,
+habits, a three-tier budget, projects, contacts and a learning plan, with your Google
+calendars read in beside them. Small Python jobs add morning briefs, phone capture and a
+week planner through the Anthropic API. Desktop-only, localhost, single user, no auth.
+
+Built with Next.js 16, TypeScript, Tailwind v4 and SQLite (better-sqlite3), plus Python
+scripts run by launchd.
 
 The design docs in [`docs/`](docs/) are the source of truth — start with
 [`docs/00-vision.md`](docs/00-vision.md) and [`docs/04-roadmap.md`](docs/04-roadmap.md).
@@ -81,9 +84,12 @@ cp data/lifeos.db data/lifeos.db-wal data/lifeos.db-shm backup/   # or all three
 
 ## Status
 
-Stages 1–5 complete: scaffold + schema + design system; the Personal page (habits, health,
-three-tier budget, UBS import); the Academic page with the real Google Calendar (ICS)
-integration feeding every page; the Professional page (day job, learning, projects, network
-CRM); and the intelligence layer — phone capture, parsed at ingest, plus the three morning
-briefs. Next: Stage 6 — RAG over lecture PDFs, budget and health insights.
-See [`docs/04-roadmap.md`](docs/04-roadmap.md).
+Stages 1–6 are complete: the data layer and design system; the Personal page (habits,
+three-tier budget, bank CSV import and budget intelligence); the Academic page with the
+Google Calendar (ICS) feeds; the Professional page (day job, learning, projects, network
+CRM); and the scripts layer (phone capture, morning briefs, week plan parser). A later
+design pass rebuilt the Overview; the Academic redesign is on `feat/academic-redesign`. See [`docs/04-roadmap.md`](docs/04-roadmap.md).
+
+## License
+
+[MIT](LICENSE)
