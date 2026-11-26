@@ -9,6 +9,7 @@ import { allDayOn, hourRange, placeTimed, type PlacedEvent } from "@/lib/calenda
 import {
   calendarAccent,
   calendarLabel,
+  inHome,
   isUnconfigured,
   type CalendarKey,
   type CalendarWindow,
@@ -77,7 +78,7 @@ export function WeekCalendar({
   );
 
   const visible = useMemo(
-    () => (showAll || !home ? data.events : data.events.filter((e) => e.calendar === home)),
+    () => (showAll || !home ? data.events : data.events.filter((e) => inHome(e.calendar, home))),
     [data.events, home, showAll]
   );
 
@@ -440,7 +441,7 @@ function NotConfigured() {
         <li>
           Paste it into <span className="text-muted">.env</span> as{" "}
           <span className="text-muted">ICS_URL_ACADEMIC</span> (also CLASS, PERSONAL,
-          PROFESSIONAL), then restart <span className="text-muted">npm run dev</span>.
+          PROFESSIONAL, EXAM_PREP), then restart <span className="text-muted">npm run dev</span>.
         </li>
       </ol>
     </div>

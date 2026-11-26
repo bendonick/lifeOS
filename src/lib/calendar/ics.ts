@@ -131,7 +131,7 @@ export async function calendarWindow(
         };
       } catch (err) {
         // A feed that parses today can stop parsing tomorrow; one bad feed must
-        // not blank the other three.
+        // not blank the others.
         return {
           status: {
             key,

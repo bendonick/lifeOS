@@ -92,8 +92,8 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
    GPA (#10). Each course opens the detail view (metadata incl. the short name, its
    assignments/exams with their own add buttons, materials).
 
-6. **Timetable** — read-only week view of the **Academic** ICS calendar (toggle: all
-   calendars), full width with nothing beside it (decision #28). Built in Stage 3 on the shared
+6. **Timetable** — read-only week view of the **Academic** and **Exam Prep** ICS calendars
+   (toggle: all calendars; Exam Prep added 2026-11-26 through `calendarHome`), full width with nothing beside it (decision #28). Built in Stage 3 on the shared
    `WeekCalendar`, which also serves the hub and Personal. Class blocks come from Google
    recurring events the user creates once per course — from Stage 3 the course row links out to
    a prefilled Google form to save the retyping (decision #27).
