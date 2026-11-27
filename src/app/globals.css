@@ -625,6 +625,21 @@ body:has(.theme-maritime) {
   color: var(--color-text);
   font-size: 0.75rem;
 }
+/* Exam Prep study blocks are named after their courses, so in the same slate
+   they read as classes. A rust edge on the left sets them apart, and the
+   legend's swatch carries the same edge. Rust is darkened from #C87629
+   (2.62:1 on cream) until the edge clears 3:1 against both the block and
+   the page, the same way the theme darkens it for text. */
+.page-academic {
+  --color-exam-prep: #9a5516;
+}
+.page-academic [data-calendar="examPrep"]:not([data-swatch]) {
+  border-left: 3px solid var(--color-exam-prep);
+}
+.page-academic [data-swatch][data-calendar="examPrep"] {
+  box-shadow: inset 3px 0 0 var(--color-exam-prep);
+  opacity: 1;
+}
 /* The task list's column headers stay for screen readers; the rows are three
    plain facts and need no visible header on this page. */
 .page-academic #assignments thead th,

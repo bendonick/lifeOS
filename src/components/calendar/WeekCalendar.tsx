@@ -141,8 +141,9 @@ export function WeekCalendar({
           {days.map((d) => (
             <div
               key={d}
-              // Styling hooks (`data-today`, `data-event`): the Maritime theme
-              // tints today rust and draws event blocks slate; inert elsewhere.
+              // Styling hooks (`data-today`, `data-event`, `data-calendar`): the
+              // Maritime theme tints today rust, draws event blocks slate and
+              // marks Exam Prep with a rust edge; inert elsewhere.
               data-today={d === today ? "" : undefined}
               className={`border-b border-l border-border px-2 py-2 text-xs font-medium ${
                 d === today ? "text-text" : "text-muted"
@@ -182,6 +183,7 @@ export function WeekCalendar({
                     <div
                       key={e.id}
                       title={e.title}
+                      data-calendar={e.calendar}
                       className={`truncate rounded border px-1.5 py-0.5 text-[11px] ${accentEvent[calendarAccent[e.calendar]]}`}
                     >
                       {e.title}
@@ -293,6 +295,7 @@ function DayColumn({
             key={p.event.id}
             title={`${p.event.title} · ${p.event.start.slice(11, 16)}–${p.event.end.slice(11, 16)}${p.event.location ? ` · ${p.event.location}` : ""}`}
             data-event=""
+            data-calendar={p.event.calendar}
             className={`absolute overflow-hidden rounded border px-1.5 py-0.5 text-[11px] leading-tight ${accentEvent[calendarAccent[p.event.calendar]]}`}
             style={{
               top: top + 1,
@@ -382,6 +385,8 @@ function FeedLine({
               <span key={f.key} className={`flex items-center gap-1.5 ${accentText[calendarAccent[f.key]]}`}>
                 <span
                   aria-hidden="true"
+                  data-swatch=""
+                  data-calendar={f.key}
                   className="inline-block size-2 rounded-[2px] bg-current opacity-70"
                 />
                 {f.label}
