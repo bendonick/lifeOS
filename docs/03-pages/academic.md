@@ -93,7 +93,8 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
    assignments/exams with their own add buttons, materials).
 
 6. **Timetable** — read-only week view of the **Academic** and **Exam Prep** ICS calendars
-   (toggle: all calendars; Exam Prep added 2026-11-26 through `calendarHome`; its blocks
+   (tabs: Academic, which shows both, Exam Prep alone, and All calendars; Exam Prep added
+   2026-11-26 through `calendarHome`, its own tab 2026-11-27; its blocks
    carry a rust left edge so study time reads apart from classes), full width with nothing beside it (decision #28). Built in Stage 3 on the shared
    `WeekCalendar`, which also serves the hub and Personal. Class blocks come from Google
    recurring events the user creates once per course — from Stage 3 the course row links out to

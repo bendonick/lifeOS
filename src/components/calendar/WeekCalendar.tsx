@@ -7,6 +7,7 @@ import { accentEvent, accentText } from "@/components/ui/accents";
 import { dueOn, type Deadline } from "@/lib/calendar/deadlines";
 import { allDayOn, hourRange, placeTimed, type PlacedEvent } from "@/lib/calendar/layout";
 import {
+  CALENDARS,
   calendarAccent,
   calendarLabel,
   inHome,
@@ -35,11 +36,18 @@ import { addDays, dayLabel, hourOf, mondayOf, TZ, weekLabel, zurichLocal } from 
 
 const HOUR_PX = 44;
 
+/**
+ * What the timetable shows: the page's own view (`home`: every calendar that
+ * lives on the page), one of those calendars alone, or every calendar.
+ */
+type View = "home" | "all" | CalendarKey;
+
 export function WeekCalendar({
   initial,
   monday: initialMonday,
   today,
-  /** When set, the default view is this calendar alone with an "All calendars" tab. */
+  /** When set, the default view is this page's calendars, with a tab for each
+   *  calendar that lives here besides its own and an "All calendars" tab. */
   home,
   /** Open, dated work to draw in the due strip and list under the grid. */
   deadlines,
@@ -54,7 +62,11 @@ export function WeekCalendar({
   const [data, setData] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
-  const [showAll, setShowAll] = useState(!home);
+  const [view, setView] = useState<View>(home ? "home" : "all");
+  const showAll = view === "all" || !home;
+  // Calendars that live on this page besides its own (Exam Prep on Academic)
+  // each get a tab that shows them alone, between the home and "All" tabs.
+  const guests = home ? CALENDARS.filter((c) => c.key !== home && inHome(c.key, home)) : [];
 
   const load = useCallback(async (target: string, force = false) => {
     setBusy(true);
@@ -77,10 +89,11 @@ export function WeekCalendar({
     [monday]
   );
 
-  const visible = useMemo(
-    () => (showAll || !home ? data.events : data.events.filter((e) => inHome(e.calendar, home))),
-    [data.events, home, showAll]
-  );
+  const visible = useMemo(() => {
+    if (view === "all" || !home) return data.events;
+    if (view === "home") return data.events.filter((e) => inHome(e.calendar, home));
+    return data.events.filter((e) => e.calendar === view);
+  }, [data.events, home, view]);
 
   const placed = useMemo(() => days.map((d) => placeTimed(visible, d)), [days, visible]);
   const allDay = useMemo(() => days.map((d) => allDayOn(visible, d)), [days, visible]);
@@ -118,10 +131,15 @@ export function WeekCalendar({
 
         {home && (
           <div className="flex items-center gap-1" role="tablist" aria-label="Calendars shown">
-            <Tab active={!showAll} onClick={() => setShowAll(false)}>
+            <Tab active={view === "home"} onClick={() => setView("home")}>
               {calendarLabel[home]}
             </Tab>
-            <Tab active={showAll} onClick={() => setShowAll(true)}>
+            {guests.map((c) => (
+              <Tab key={c.key} active={view === c.key} onClick={() => setView(c.key)}>
+                {c.label}
+              </Tab>
+            ))}
+            <Tab active={view === "all"} onClick={() => setView("all")}>
               All calendars
             </Tab>
           </div>
@@ -223,7 +241,7 @@ export function WeekCalendar({
       <FeedLine
         feeds={data.feeds}
         shown={shown}
-        showAll={showAll || !home}
+        showAll={showAll}
         hasDeadlines={Boolean(deadlines)}
         busy={busy}
         failed={failed}
