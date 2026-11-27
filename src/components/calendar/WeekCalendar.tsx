@@ -42,6 +42,16 @@ const HOUR_PX = 44;
  */
 type View = "home" | "all" | CalendarKey;
 
+/**
+ * A calendar from outside the page (Class or Personal on Academic, say). Its
+ * blocks carry `data-outside` and name their calendar, so on "All calendars"
+ * they read apart from the page's own even where a theme draws every block
+ * in one colour. False on a page without a home, where nothing is outside.
+ */
+function isOutside(calendar: CalendarKey, home: CalendarKey | undefined): boolean {
+  return Boolean(home) && !inHome(calendar, home as CalendarKey);
+}
+
 export function WeekCalendar({
   initial,
   monday: initialMonday,
@@ -159,9 +169,10 @@ export function WeekCalendar({
           {days.map((d) => (
             <div
               key={d}
-              // Styling hooks (`data-today`, `data-event`, `data-calendar`): the
-              // Maritime theme tints today rust, draws event blocks slate and
-              // marks Exam Prep with a rust edge; inert elsewhere.
+              // Styling hooks (`data-today`, `data-event`, `data-calendar`,
+              // `data-outside`): the Maritime theme tints today rust, draws event
+              // blocks slate, hatches Exam Prep rust and outlines calendars from
+              // outside the page; inert elsewhere.
               data-today={d === today ? "" : undefined}
               className={`border-b border-l border-border px-2 py-2 text-xs font-medium ${
                 d === today ? "text-text" : "text-muted"
@@ -200,8 +211,9 @@ export function WeekCalendar({
                   {allDay[i].map((e) => (
                     <div
                       key={e.id}
-                      title={e.title}
+                      title={isOutside(e.calendar, home) ? `${e.title} · ${calendarLabel[e.calendar]}` : e.title}
                       data-calendar={e.calendar}
+                      data-outside={isOutside(e.calendar, home) ? "" : undefined}
                       className={`truncate rounded border px-1.5 py-0.5 text-[11px] ${accentEvent[calendarAccent[e.calendar]]}`}
                     >
                       {e.title}
@@ -233,6 +245,7 @@ export function WeekCalendar({
               fromHour={fromHour}
               toHour={toHour}
               placed={placed[i]}
+              home={home}
             />
           ))}
         </div>
@@ -242,6 +255,7 @@ export function WeekCalendar({
         feeds={data.feeds}
         shown={shown}
         showAll={showAll}
+        home={home}
         hasDeadlines={Boolean(deadlines)}
         busy={busy}
         failed={failed}
@@ -280,6 +294,7 @@ function DayColumn({
   fromHour,
   toHour,
   placed,
+  home,
 }: {
   day: string;
   today: string;
@@ -287,6 +302,7 @@ function DayColumn({
   fromHour: number;
   toHour: number;
   placed: PlacedEvent[];
+  home?: CalendarKey;
 }) {
   return (
     <div
@@ -308,12 +324,15 @@ function DayColumn({
         const top = (p.startHour - fromHour) * HOUR_PX;
         const height = (p.endHour - p.startHour) * HOUR_PX;
         const width = `calc((100% - 0.5rem) / ${p.lanes})`;
+        const outside = isOutside(p.event.calendar, home);
+        const source = outside ? ` · ${calendarLabel[p.event.calendar]}` : "";
         return (
           <div
             key={p.event.id}
-            title={`${p.event.title} · ${p.event.start.slice(11, 16)}–${p.event.end.slice(11, 16)}${p.event.location ? ` · ${p.event.location}` : ""}`}
+            title={`${p.event.title} · ${p.event.start.slice(11, 16)}–${p.event.end.slice(11, 16)}${source}${p.event.location ? ` · ${p.event.location}` : ""}`}
             data-event=""
             data-calendar={p.event.calendar}
+            data-outside={outside ? "" : undefined}
             className={`absolute overflow-hidden rounded border px-1.5 py-0.5 text-[11px] leading-tight ${accentEvent[calendarAccent[p.event.calendar]]}`}
             style={{
               top: top + 1,
@@ -332,6 +351,9 @@ function DayColumn({
                 {/* Lanes mean a half-width block, where a full range truncates to
                     "08:00–1…"; the end time stays in the tooltip instead. */}
                 {p.continuesAfter ? " …" : p.lanes > 1 ? "" : `–${p.event.end.slice(11, 16)}`}
+                {/* An outside calendar names itself after the time, ahead of the
+                    place: which calendar it is matters more on this page. */}
+                {source}
                 {p.event.location && p.lanes === 1 && height >= 52 ? ` · ${p.event.location}` : ""}
               </div>
             )}
@@ -368,6 +390,7 @@ function FeedLine({
   feeds,
   shown,
   showAll,
+  home,
   hasDeadlines,
   busy,
   failed,
@@ -376,6 +399,7 @@ function FeedLine({
   feeds: FeedStatus[];
   shown: Set<CalendarKey>;
   showAll: boolean;
+  home?: CalendarKey;
   /** With a due strip on the grid the legend has two kinds to name, so it
    *  renders even for a single calendar. */
   hasDeadlines: boolean;
@@ -405,6 +429,7 @@ function FeedLine({
                   aria-hidden="true"
                   data-swatch=""
                   data-calendar={f.key}
+                  data-outside={isOutside(f.key, home) ? "" : undefined}
                   className="inline-block size-2 rounded-[2px] bg-current opacity-70"
                 />
                 {f.label}

@@ -14,8 +14,8 @@ rail, no tiles. Top to bottom:
 4. **Upcoming work | Exams** — ~60/40 with one rule. Filters, horizon groups, Later, done boxes,
    the inline editor and course links unchanged. Exams ends after "N more exams" (#93).
 5. **Courses** — the two-column index of expandable rows (unchanged behaviour).
-6. **Timetable** — open, full width; slate event blocks, Exam Prep blocks with a rust left
-   edge; the deadline strip labelled against the displayed week (#94).
+6. **Timetable** — open, full width; slate event blocks, Exam Prep blocks in a rust hatch
+   with a dashed border, other calendars as labelled outlines (#95); the deadline strip labelled against the displayed week (#94).
 7. **Reminders** — full width, `NotesCard bare`.
 
 
@@ -95,7 +95,8 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
 6. **Timetable** — read-only week view of the **Academic** and **Exam Prep** ICS calendars
    (tabs: Academic, which shows both, Exam Prep alone, and All calendars; Exam Prep added
    2026-11-26 through `calendarHome`, its own tab 2026-11-27; its blocks
-   carry a rust left edge so study time reads apart from classes), full width with nothing beside it (decision #28). Built in Stage 3 on the shared
+   are a rust hatch so study time reads apart from classes, and on All calendars the
+   calendars from outside the page are outlines that name their calendar, #95), full width with nothing beside it (decision #28). Built in Stage 3 on the shared
    `WeekCalendar`, which also serves the hub and Personal. Class blocks come from Google
    recurring events the user creates once per course — from Stage 3 the course row links out to
    a prefilled Google form to save the retyping (decision #27).
