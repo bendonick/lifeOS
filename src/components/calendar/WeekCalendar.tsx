@@ -75,7 +75,7 @@ export function WeekCalendar({
 
   // The page's own events go by course code ('NLP', 'FoC II · mock exam'), so
   // one course reads the same however its Google titles spell it, and the
-  // code fits where the full name was cut off. The tooltip keeps the title.
+  // code fits where the full name was cut off.
   const nameOf = useCallback(
     (e: CalendarEvent) =>
       courses && home && inHome(e.calendar, home) ? courseTitle(e.title, courses) : e.title,
@@ -209,7 +209,6 @@ export function WeekCalendar({
                   {allDay[i].map((e) => (
                     <div
                       key={e.id}
-                      title={isOutside(e.calendar, home) ? `${e.title} · ${calendarLabel[e.calendar]}` : e.title}
                       data-calendar={e.calendar}
                       data-outside={isOutside(e.calendar, home) ? "" : undefined}
                       className={`truncate rounded border px-1.5 py-0.5 text-[11px] ${accentEvent[calendarAccent[e.calendar]]}`}
@@ -269,15 +268,14 @@ export function WeekCalendar({
 /**
  * A deadline in the due strip: title and what it is filed against, nothing
  * more. Olive is the palette's green — the one the user asked for — reached
- * through the existing `hub` accent rather than a new token. The full line,
- * date included, is the tooltip; the figures live in the list under the grid.
+ * through the existing `hub` accent rather than a new token. The date and the
+ * figures live in the list under the grid; the grid has no hover tooltips.
  */
 function DeadlineChip({ item }: { item: Deadline }) {
   const time = item.due.length > 10 ? item.due.slice(11, 16) : null;
   const detail = [time, item.context].filter(Boolean).join(" · ");
   return (
     <div
-      title={`${item.title}${item.context ? ` · ${item.context}` : ""} · due ${item.due.slice(0, 10)}${time ? ` ${time}` : ""}`}
       className={`rounded-md border px-1.5 py-1 text-[11px] leading-tight ${accentEvent.hub}`}
     >
       <div className="truncate font-medium">{item.title}</div>
@@ -330,7 +328,6 @@ function DayColumn({
         return (
           <div
             key={p.event.id}
-            title={`${p.event.title} · ${p.event.start.slice(11, 16)}–${p.event.end.slice(11, 16)}${source}${p.event.location ? ` · ${p.event.location}` : ""}`}
             data-event=""
             data-calendar={p.event.calendar}
             data-outside={outside ? "" : undefined}
@@ -350,7 +347,7 @@ function DayColumn({
               <div className="truncate opacity-80">
                 {p.continuesBefore ? "…" : p.event.start.slice(11, 16)}
                 {/* Lanes mean a half-width block, where a full range truncates to
-                    "08:00–1…"; the end time stays in the tooltip instead. */}
+                    "08:00–1…"; the start time alone is shown instead. */}
                 {p.continuesAfter ? " …" : p.lanes > 1 ? "" : `–${p.event.end.slice(11, 16)}`}
                 {/* An outside calendar names itself after the time, ahead of the
                     place: which calendar it is matters more on this page. */}

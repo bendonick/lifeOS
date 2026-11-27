@@ -108,8 +108,8 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
 
    **Deadlines on the grid (2026-10-05, decision #73).** The open, dated rows of the two
    tables above — assignments, tasks, exams — also draw on the timetable: as Olive chips in a
-   **due strip** between the day headers and the hours (title and course only, one colour, the
-   full line as a tooltip), and as a **bulleted list under the grid**, overdue first, where the
+   **due strip** between the day headers and the hours (title and course only, one colour, no
+   hover tooltip), and as a **bulleted list under the grid**, overdue first, where the
    date and days-left figure appear in the tables' urgency colours. Both follow the week being
    paged. The grid renders **open by default on this page** — the one exception to #66 — and
    the "next four classes" summary list is not shown here. Nothing is written to Google: the
