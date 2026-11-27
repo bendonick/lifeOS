@@ -149,7 +149,12 @@ export default function AcademicPage() {
               carries the deadlines in a due strip and lists them beneath. */}
           <RuledSection id="timetable" title="Timetable" meta="Zürich time">
             <Suspense fallback={<CalendarTileSkeleton />}>
-              <CalendarTile home="academic" deadlines={deadlines} expanded />
+              <CalendarTile
+                home="academic"
+                deadlines={deadlines}
+                courses={groups.map((g) => ({ name: g.name, code: g.code }))}
+                expanded
+              />
             </Suspense>
           </RuledSection>
 

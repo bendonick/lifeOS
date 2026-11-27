@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DeadlineList } from "./DeadlineList";
 import { accentEvent, accentText } from "@/components/ui/accents";
+import { courseTitle, type CourseName } from "@/lib/calendar/courses";
 import { dueOn, type Deadline } from "@/lib/calendar/deadlines";
 import { allDayOn, hourRange, placeTimed, type PlacedEvent } from "@/lib/calendar/layout";
 import {
@@ -11,6 +12,7 @@ import {
   calendarLabel,
   inHome,
   isUnconfigured,
+  type CalendarEvent,
   type CalendarKey,
   type CalendarWindow,
   type FeedStatus,
@@ -55,18 +57,30 @@ export function WeekCalendar({
   home,
   /** Open, dated work to draw in the due strip and list under the grid. */
   deadlines,
+  /** The page's courses: its own events are named by course code. */
+  courses,
 }: {
   initial: CalendarWindow;
   monday: string;
   today: string;
   home?: CalendarKey;
   deadlines?: Deadline[];
+  courses?: CourseName[];
 }) {
   const [monday, setMonday] = useState(initialMonday);
   const [data, setData] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(!home);
+
+  // The page's own events go by course code ('NLP', 'FoC II · mock exam'), so
+  // one course reads the same however its Google titles spell it, and the
+  // code fits where the full name was cut off. The tooltip keeps the title.
+  const nameOf = useCallback(
+    (e: CalendarEvent) =>
+      courses && home && inHome(e.calendar, home) ? courseTitle(e.title, courses) : e.title,
+    [courses, home]
+  );
 
   const load = useCallback(async (target: string, force = false) => {
     setBusy(true);
@@ -200,7 +214,7 @@ export function WeekCalendar({
                       data-outside={isOutside(e.calendar, home) ? "" : undefined}
                       className={`truncate rounded border px-1.5 py-0.5 text-[11px] ${accentEvent[calendarAccent[e.calendar]]}`}
                     >
-                      {e.title}
+                      {nameOf(e)}
                     </div>
                   ))}
                 </div>
@@ -230,6 +244,7 @@ export function WeekCalendar({
               toHour={toHour}
               placed={placed[i]}
               home={home}
+              nameOf={nameOf}
             />
           ))}
         </div>
@@ -279,6 +294,7 @@ function DayColumn({
   toHour,
   placed,
   home,
+  nameOf,
 }: {
   day: string;
   today: string;
@@ -287,6 +303,7 @@ function DayColumn({
   toHour: number;
   placed: PlacedEvent[];
   home?: CalendarKey;
+  nameOf: (e: CalendarEvent) => string;
 }) {
   return (
     <div
@@ -327,7 +344,7 @@ function DayColumn({
           >
             {/* A tall block has room to wrap; a short one must stay on one line. */}
             <div className={`font-medium ${height >= 60 ? "line-clamp-2" : "truncate"}`}>
-              {p.event.title}
+              {nameOf(p.event)}
             </div>
             {height >= 34 && (
               <div className="truncate opacity-80">

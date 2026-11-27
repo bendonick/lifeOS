@@ -96,7 +96,8 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
    (tabs: Academic, which shows both, and All calendars, which adds every calendar outside
    Academic; Exam Prep added 2026-11-26 through `calendarHome`; its blocks
    are a rust hatch so study time reads apart from classes, and on All calendars the
-   calendars from outside the page are outlines that name their calendar, #95), full width with nothing beside it (decision #28). Built in Stage 3 on the shared
+   calendars from outside the page are outlines that name their calendar, #95; Academic and
+   Exam Prep blocks go by course code, #96), full width with nothing beside it (decision #28). Built in Stage 3 on the shared
    `WeekCalendar`, which also serves the hub and Personal. Class blocks come from Google
    recurring events the user creates once per course — from Stage 3 the course row links out to
    a prefilled Google form to save the retyping (decision #27).
