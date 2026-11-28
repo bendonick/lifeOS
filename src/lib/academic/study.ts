@@ -124,7 +124,7 @@ export function studyProgress(
       exams
         .filter((e) => !e.done && e.due && inGroup(e.course_id))
         .map((e) => e.due!)
-        .sort()[0] ?? null;
+        .sort((a, b) => a.localeCompare(b))[0] ?? null;
     const log = logs.filter((l) => inGroup(l.course_id));
     byCode.set(g.code, {
       code: g.code,

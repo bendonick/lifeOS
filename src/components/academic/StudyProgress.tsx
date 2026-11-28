@@ -31,7 +31,7 @@ export async function StudyProgress({
   const lastExam = exams
     .filter((e) => !e.done && e.due)
     .map((e) => e.due!.slice(0, 10))
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
     .at(-1);
   const from = termStart && termStart < today ? termStart : addDays(today, -120);
   const to = addDays(lastExam && lastExam > today ? lastExam : addDays(today, 120), 1);
