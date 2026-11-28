@@ -348,3 +348,16 @@ becomes a session the day its data exists.
   week-on-week line. Streaks stay out for now (#106).
 - **`time_of_day` is unread.** Drop the column in a table rebuild if it stays unused.
 - **Drag on touch** has been exercised with a mouse only; check it on a phone.
+
+## Personal money split (2026-11-28)
+
+- **Rework the Money page.** Bills and Spending moved to `/personal/money` unchanged (#110);
+  its own layout is the next step.
+- **Say when spending was last imported.** Nothing on either page says the data stops at the
+  last CSV import, so a stale month reads as "CHF 0 spent · under pace". The mocks had a
+  "Spending up to {date} · N days without an import" line.
+- **Bills and the budget's Fixed tier track the same payments twice** (Budget details
+  counts a fixed line as paid from transactions; Bills from the tick). Decide which one owns "paid".
+- **One fixed budget line has no monthly payment.** Add it with "Add payment" if it should be
+  checked off too.
+- **Amounts with cents** show rounded to whole francs on the Money page.

@@ -4,8 +4,18 @@ Habits, money, and everyday life. **Built in Stage 2 (2026-08-16)** to `docs/06-
 **re-laid out 2026-08-18** (decisions #63–#66) and **rebuilt on the Academic shell 2026-10-10
 (decision #81)**, when Health left the page. This doc describes what exists.
 
-**Maritime redesign, 2026-11-28 (decisions #103–#109) — this section is current; where the text
-below differs, this wins.** Light theme (`.theme-maritime` + `.page-personal`), no navigation
+**Money split, 2026-11-28 (decisions #110–#112) — current, and wins over everything below.**
+Personal shows no money figures. Bills and Spending left the page for **`/personal/money`**
+(Bills with amounts, then Spending, both unchanged in behaviour; `+ Add` there offers Expense;
+the masthead label "← Personal" links back). In their place beside Habits: **Money**
+(`MonthlyPayments`), meta "{Month} · Money →", the month's bills and subscriptions as one
+checklist ("Monthly payments", "N of M paid"), each name a tick drawn like a habit's, a status
+in words, a pencil to edit (name, due day, Remove), and "Add payment". The + Add menu is Task or
+appointment · Habit · Payment `#new-payment` · Note. Section links: Habits · Money · Upcoming ·
+German · Notes.
+
+**Maritime redesign, 2026-11-28 (decisions #103–#109) — current except where the Money split
+above differs.** Light theme (`.theme-maritime` + `.page-personal`), no navigation
 rail, no tiles. Top to bottom:
 
 1. **Navigation** — `ui/SiteNav current="personal"` with the filled **+ Add** menu (Task or
