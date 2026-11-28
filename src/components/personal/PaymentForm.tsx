@@ -3,17 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { TagField } from "@/components/personal/TagField";
-import { filledButtonChrome, inputChrome, selectChrome } from "@/components/ui/controls";
+import { filledButtonChrome, inputChrome } from "@/components/ui/controls";
 import { zurichToday } from "@/lib/dates";
-import {
-  CURRENCIES,
-  CURRENCY_NAMES,
-  PAYMENT_NAME_MAX,
-  SUBSCRIPTION_CURRENCY,
-  checkPayment,
-  type Currency,
-  type PaymentKind,
-} from "@/lib/personal/payments";
+import { PAYMENT_NAME_MAX, SUBSCRIPTION_CURRENCY, checkPayment, type PaymentKind } from "@/lib/personal/payments";
 
 /**
  * One form for a monthly payment or a subscription: its name and the day of
@@ -24,10 +16,10 @@ import {
  * there leaves them as they were.
  *
  * There is no type switch: the list a form belongs to decides it (`kind`), and
- * a payment is created under the right one rather than moved later. A
- * subscription's form also picks its currency (USD, EUR, CHF, GBP; new ones
- * start in dollars) and, when editing, offers **Cancel subscription**, which
- * asks for the day it was cancelled and moves it to the Cancelled list.
+ * a payment is created under the right one rather than moved later. A monthly
+ * payment's amount is in francs and a subscription's in US dollars. Editing a
+ * subscription also offers **Cancel subscription**, which asks for the day it
+ * was cancelled and moves it to the Cancelled list.
  *
  * Editing also offers Remove, which asks once in the row before it acts: the
  * entry leaves every list (a payment's paid months stay in the log).
@@ -48,7 +40,6 @@ export function PaymentForm({
     due_day: number;
     amount_chf: number | null;
     tags?: string[];
-    currency?: Currency;
   };
   /** Which list the form belongs to: a new entry is created as this. */
   kind?: PaymentKind;
@@ -68,7 +59,6 @@ export function PaymentForm({
   const [name, setName] = useState(payment?.name ?? "");
   const [dueDay, setDueDay] = useState(payment ? String(payment.due_day) : "");
   const [amount, setAmount] = useState(payment?.amount_chf != null ? String(payment.amount_chf) : "");
-  const [currency, setCurrency] = useState<Currency>(payment?.currency ?? SUBSCRIPTION_CURRENCY);
   const [tags, setTags] = useState<string[]>(payment?.tags ?? []);
   const [tagDraft, setTagDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -102,7 +92,6 @@ export function PaymentForm({
       ...(withAmount ? { amount_chf: amount } : {}),
       // A tag typed but not yet added is kept, not lost on Save.
       ...(withLabels ? { tags: tagDraft.trim() ? [...tags, tagDraft] : tags } : {}),
-      ...(withAmount && subscription ? { currency } : {}),
       // The type is set once, when it is created.
       ...(payment ? {} : { kind }),
     });
@@ -224,33 +213,9 @@ export function PaymentForm({
           className={`w-12 text-center ${inputChrome}`}
         />
       </label>
-      {withAmount && subscription && (
-        <span className="flex items-center gap-1.5">
-          <select
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value as Currency)}
-            aria-label="Currency"
-            className={`text-text ${selectChrome}`}
-          >
-            {CURRENCIES.map((c) => (
-              <option key={c} value={c} title={CURRENCY_NAMES[c]}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <input
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            inputMode="decimal"
-            placeholder="—"
-            aria-label="Amount"
-            className={`tabular w-20 text-right ${inputChrome}`}
-          />
-        </span>
-      )}
-      {withAmount && !subscription && (
+      {withAmount && (
         <label className="flex items-center gap-1.5 text-sm text-muted">
-          CHF
+          {subscription ? SUBSCRIPTION_CURRENCY : "CHF"}
           <input
             value={amount}
             onChange={(e) => setAmount(e.target.value)}

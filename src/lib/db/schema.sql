@@ -208,13 +208,12 @@ CREATE TABLE IF NOT EXISTS bills (
   id         INTEGER PRIMARY KEY,
   name       TEXT NOT NULL,
   due_day    INTEGER NOT NULL CHECK (due_day BETWEEN 1 AND 31),
-  amount_chf REAL,                    -- in `currency`: francs, unless a subscription bills in another
+  amount_chf REAL,                    -- francs for a core payment; US dollars for a subscription
   active     INTEGER NOT NULL DEFAULT 1,
   created_month TEXT,                -- 'YYYY-MM' it was added in; NULL = before this was tracked
   note       TEXT,                   -- free text the user keeps about the payment; NULL = none
   kind       TEXT NOT NULL DEFAULT 'core' CHECK (kind IN ('core', 'subscription')),
   tags       TEXT,                   -- JSON array of tag words, e.g. '["Utility","Tech"]'; NULL = none
-  currency   TEXT NOT NULL DEFAULT 'CHF' CHECK (currency IN ('USD', 'EUR', 'CHF', 'GBP')),
   cancelled_on TEXT                  -- 'YYYY-MM-DD' a subscription was cancelled; NULL = running
 );
 

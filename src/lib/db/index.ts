@@ -115,9 +115,8 @@ function migrate(db: Database.Database) {
   // it) and carries any number of tags (the page filters by them).
   addColumn(db, "bills", "kind", "TEXT NOT NULL DEFAULT 'core' CHECK (kind IN ('core', 'subscription'))");
   addColumn(db, "bills", "tags", "TEXT");
-  // 2026-11-28: a subscription bills in its own currency and can be cancelled
-  // (listed as Cancelled for six months from that day).
-  addColumn(db, "bills", "currency", "TEXT NOT NULL DEFAULT 'CHF' CHECK (currency IN ('USD', 'EUR', 'CHF', 'GBP'))");
+  // 2026-11-28: a subscription can be cancelled (listed as Cancelled for six
+  // months from that day).
   addColumn(db, "bills", "cancelled_on", "TEXT");
 
   foldFoodCategories(db);

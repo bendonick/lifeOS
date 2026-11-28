@@ -5,7 +5,7 @@ import { checkCancelDate, checkPayment, checkPaymentNote } from "@/lib/personal/
 
 // One monthly payment. PATCH does three jobs, told apart by the body:
 // `{ month, paid }` ticks or unticks a month; `{ name, due_day, amount_chf?,
-// kind?, tags?, currency? }` edits it (what is left out stays as it was);
+// kind?, tags? }` edits it (what is left out stays as it was);
 // `{ note }` sets its note (empty or null clears it); `{ cancelled_on }`
 // cancels a subscription on that day, or restores it with null. DELETE takes
 // it off the lists and keeps its paid log.
