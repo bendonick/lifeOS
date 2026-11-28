@@ -260,4 +260,18 @@ function seed(db: Database.Database) {
   }).immediate();
 }
 
-export const db = globalForDb.lifeosDb ?? (globalForDb.lifeosDb = open());
+/**
+ * The dev server keeps the connection on `globalThis` across hot reloads, so a
+ * table added to schema.sql while it runs would not exist until a restart (and
+ * every page reading it would fail). When this module is evaluated again with
+ * a connection already open, the schema is re-applied: every statement in it is
+ * IF NOT EXISTS, so this only ever adds what is missing. Production opens once.
+ */
+function connection(): Database.Database {
+  const cached = globalForDb.lifeosDb;
+  if (!cached) return (globalForDb.lifeosDb = open());
+  if (process.env.NODE_ENV !== "production") cached.exec(fs.readFileSync(SCHEMA_PATH, "utf8"));
+  return cached;
+}
+
+export const db = connection();
