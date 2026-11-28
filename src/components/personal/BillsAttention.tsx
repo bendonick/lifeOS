@@ -1,11 +1,13 @@
 "use client";
 
 import { useId, useState } from "react";
-import { ChevronRight } from "lucide-react";
-import { DisclosureTrigger } from "@/components/ui/Disclosure";
+import { ChevronRight, Pencil } from "lucide-react";
+import { PaymentForm } from "@/components/personal/PaymentForm";
+import { Disclosure, DisclosureTrigger } from "@/components/ui/Disclosure";
+import { RowAction } from "@/components/ui/RowAction";
 import { accentControl } from "@/components/ui/accents";
 import type { BillStatus } from "@/lib/db/bills";
-import { dayLabel } from "@/lib/dates";
+import { dayLabel, daysInMonth } from "@/lib/dates";
 import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
 
 /**
@@ -16,6 +18,10 @@ import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
  * paid included, with every box. Warm colours mean urgency only: amber past
  * the due day, red when last month rolled over unpaid.
  *
+ * "Manage bills" is also where payments are edited with their amounts (a
+ * pencil per row opens the shared PaymentForm with its amount field) and
+ * added ("Add payment" under the list). Personal edits name and due day only.
+ *
  * Count, total and rows all move with the optimistic toggle, which is why they
  * render here rather than in the tile header. The due-period scope is the
  * existing one: this calendar month, `billsForMonth(month)`.
@@ -25,6 +31,7 @@ const chf = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
 export function BillsAttention({ bills, month, today }: { bills: BillStatus[]; month: string; today: string }) {
   const [openRow, setOpenRow] = useState<number | null>(null);
   const [manage, setManage] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const listId = useId();
   const { toggle, valueFor, isPending, error } = useOptimisticToggle<BillStatus>({
     idOf: (b) => b.id,
@@ -37,17 +44,30 @@ export function BillsAttention({ bills, month, today }: { bills: BillStatus[]; m
       }),
   });
 
+  const addPayment = (
+    <Disclosure variant="add" accent="personal" summary="Add payment" openSummary="Cancel" className="mt-3">
+      <PaymentForm withAmount />
+    </Disclosure>
+  );
+
   if (bills.length === 0) {
-    return <p className="text-sm text-muted">No bills tracked yet.</p>;
+    return (
+      <div>
+        <p className="text-sm text-muted">No bills tracked yet.</p>
+        {addPayment}
+      </div>
+    );
   }
 
   const dayOfMonth = Number(today.slice(8, 10));
   const paidOf = (b: BillStatus) => valueFor(b, b.paid);
-  const dueDate = (b: BillStatus) => `${month}-${String(b.due_day).padStart(2, "0")}`;
+  // A due day past the month's end (31 in November) falls on its last day.
+  const dueDay = (b: BillStatus) => Math.min(b.due_day, daysInMonth(month));
+  const dueDate = (b: BillStatus) => `${month}-${String(dueDay(b)).padStart(2, "0")}`;
   const statusOf = (b: BillStatus): { text: string; tone: string } => {
     if (paidOf(b)) return { text: "Paid", tone: "text-muted" };
     if (b.prevMonthMissed) return { text: "Missed last month", tone: "text-danger" };
-    if (dayOfMonth > b.due_day) return { text: "Overdue", tone: "text-warn" };
+    if (dayOfMonth > dueDay(b)) return { text: "Overdue", tone: "text-warn" };
     return { text: `Due ${dayLabel(dueDate(b))}`, tone: "text-muted" };
   };
 
@@ -132,6 +152,13 @@ export function BillsAttention({ bills, month, today }: { bills: BillStatus[]; m
       {manage && (
         <ul className="mt-2 divide-y divide-border border-t border-border">
           {ordered.map((b) => {
+            if (editingId === b.id) {
+              return (
+                <li key={b.id} className="py-2.5">
+                  <PaymentForm payment={b} withAmount onDone={() => setEditingId(null)} />
+                </li>
+              );
+            }
             const paid = paidOf(b);
             const status = statusOf(b);
             return (
@@ -146,11 +173,13 @@ export function BillsAttention({ bills, month, today }: { bills: BillStatus[]; m
                 <span className={`tabular shrink-0 text-xs whitespace-nowrap ${status.tone}`}>
                   {paid ? "paid" : `due ${dayLabel(dueDate(b))}`}
                 </span>
+                <RowAction icon={Pencil} label={`Edit ${b.name}`} onClick={() => setEditingId(b.id)} />
               </li>
             );
           })}
         </ul>
       )}
+      {manage && addPayment}
     </div>
   );
 }

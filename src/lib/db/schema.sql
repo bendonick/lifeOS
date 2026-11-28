@@ -209,7 +209,8 @@ CREATE TABLE IF NOT EXISTS bills (
   name       TEXT NOT NULL,
   due_day    INTEGER NOT NULL CHECK (due_day BETWEEN 1 AND 31),
   amount_chf REAL,
-  active     INTEGER NOT NULL DEFAULT 1
+  active     INTEGER NOT NULL DEFAULT 1,
+  created_month TEXT                 -- 'YYYY-MM' it was added in; NULL = before this was tracked
 );
 
 -- Per-month paid log for bills (docs/01-architecture.md "plus a per-month paid log").

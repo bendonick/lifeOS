@@ -68,6 +68,7 @@ export default function PersonalPage() {
             items={[
               { label: "Task or appointment", hash: "new-task" },
               { label: "Habit", hash: "new-habit" },
+              { label: "Payment", hash: "new-payment" },
               { label: "Note", hash: "new-note" },
             ]}
           />

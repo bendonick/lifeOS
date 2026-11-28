@@ -1,6 +1,10 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, Pencil } from "lucide-react";
+import { useState } from "react";
+import { PaymentForm } from "@/components/personal/PaymentForm";
+import { Disclosure } from "@/components/ui/Disclosure";
+import { RowAction } from "@/components/ui/RowAction";
 import type { BillStatus } from "@/lib/db/bills";
 import { dayLabel, daysInMonth } from "@/lib/dates";
 import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
@@ -15,10 +19,16 @@ import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
  * alone: "Due Mon 1 Dec", "Overdue" (amber) past the due day, "Missed last
  * month" (red) when last month rolled over unpaid, "Paid".
  *
+ * Payments are managed in place, as habits are: a pencil at the end of a row
+ * turns it into its editor (name, due day, Remove), and "Add payment" under
+ * the list, or Payment in the page's `+ Add` menu (`#new-payment`), opens the
+ * same form empty. No amount field here; amounts are set on the Money page.
+ *
  * The count moves with the optimistic toggle, so it renders here rather than
  * in the section heading.
  */
 export function MonthlyPayments({ bills, month, today }: { bills: BillStatus[]; month: string; today: string }) {
+  const [editingId, setEditingId] = useState<number | null>(null);
   const { toggle, valueFor, isPending, error } = useOptimisticToggle<BillStatus>({
     idOf: (b) => b.id,
     labelOf: (b) => b.name,
@@ -30,8 +40,26 @@ export function MonthlyPayments({ bills, month, today }: { bills: BillStatus[]; 
       }),
   });
 
+  const addPayment = (
+    <Disclosure
+      variant="add"
+      accent="personal"
+      summary="Add payment"
+      openSummary="Cancel"
+      anchors={["new-payment"]}
+      className="mt-3"
+    >
+      <PaymentForm inputId="new-payment" />
+    </Disclosure>
+  );
+
   if (bills.length === 0) {
-    return <p className="text-sm text-muted">No monthly payments yet.</p>;
+    return (
+      <div>
+        <p className="text-sm text-muted">No monthly payments yet.</p>
+        {addPayment}
+      </div>
+    );
   }
 
   const dayOfMonth = Number(today.slice(8, 10));
@@ -65,6 +93,13 @@ export function MonthlyPayments({ bills, month, today }: { bills: BillStatus[]; 
 
       <ul className="divide-y divide-border border-y border-border">
         {bills.map((b) => {
+          if (editingId === b.id) {
+            return (
+              <li key={b.id} className="py-2.5">
+                <PaymentForm payment={b} onDone={() => setEditingId(null)} />
+              </li>
+            );
+          }
           const paid = paidOf(b);
           const status = statusOf(b);
           return (
@@ -88,10 +123,13 @@ export function MonthlyPayments({ bills, month, today }: { bills: BillStatus[]; 
               <span className={`tabular w-28 shrink-0 text-right text-xs ${status.tone}`}>
                 {status.text}
               </span>
+              <RowAction icon={Pencil} label={`Edit ${b.name}`} onClick={() => setEditingId(b.id)} />
             </li>
           );
         })}
       </ul>
+
+      {addPayment}
     </div>
   );
 }

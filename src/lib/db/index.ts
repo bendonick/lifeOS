@@ -105,6 +105,9 @@ function migrate(db: Database.Database) {
   // 2026-11-28: habits are put in order by dragging. NULL means "never moved"
   // and sorts by id, the order habits were added in.
   addColumn(db, "habits", "position", "INTEGER");
+  // 2026-11-28: payments are added on the page. A payment added this month
+  // cannot have been missed last month; NULL is every payment from before.
+  addColumn(db, "bills", "created_month", "TEXT");
 
   foldFoodCategories(db);
 }
