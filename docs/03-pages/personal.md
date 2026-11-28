@@ -66,6 +66,7 @@ its detail cannot disagree. No form is open at rest (#64).
    **Add habit** under the list, or Habit in **+ Add**, opens the same form empty. Ticks are
    optimistic with revert-on-failure, and today's box and today's mark are one value. Today is
    the app's Zurich day; the week resets on Monday. No streaks, no time of day.
+   Below `sm` a row is two lines, the week under the name, so the name keeps its width on a phone.
 
 2. **Bills needing attention** (`BillsAttention`) — `bills`/`bill_payments` for the current
    month (`billsForMonth`). "N unpaid" and **CHF N outstanding** in full, then one row per unpaid

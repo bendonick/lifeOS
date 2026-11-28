@@ -17,6 +17,10 @@ import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
  * never behind anything; the week is always in view rather than behind a
  * "7-day history" toggle, so the missed days show without asking.
  *
+ * Below `sm` a row is two lines: handle, name and pencil, then the week under
+ * the name, ending where the strips end on wider screens so the day letters
+ * still sit over their columns. On one line the name had under 100px.
+ *
  * Each past day in a strip is its own 24px button (a 14px mark inside it), so
  * a day forgotten earlier in the week can be caught up from where it shows as
  * missed. Days after today are drawn dashed and cannot be ticked. Today's box
@@ -142,7 +146,7 @@ export function HabitsToday({ habits, today }: { habits: HabitWeek[]; today: str
             <li
               key={h.id}
               ref={drag.rowRef(h.id)}
-              className={`flex min-h-12 items-center gap-3 py-2 ${
+              className={`grid min-h-12 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 py-2 sm:flex ${
                 drag.dragId === h.id ? "relative z-10 bg-raised shadow-sm" : ""
               }`}
             >
@@ -162,7 +166,7 @@ export function HabitsToday({ habits, today }: { habits: HabitWeek[]; today: str
                   row-wide, so it never reads as one of the strip's day marks.
                   The check's slot is held open when undone so the name does
                   not shift on a tick. */}
-              <span className="min-w-0 flex-1">
+              <span className="min-w-0 sm:flex-1">
                 <button
                   type="button"
                   aria-pressed={doneToday}
@@ -183,7 +187,7 @@ export function HabitsToday({ habits, today }: { habits: HabitWeek[]; today: str
               <span
                 role="group"
                 aria-label={`${h.name} this week: ${weekDone} of ${todayIdx + 1} days so far`}
-                className="flex shrink-0"
+                className="col-start-2 row-start-2 flex shrink-0 justify-self-end"
               >
                 {dates.map((date, i) => {
                   if (i > todayIdx) {
@@ -218,7 +222,9 @@ export function HabitsToday({ habits, today }: { habits: HabitWeek[]; today: str
                   );
                 })}
               </span>
-              <RowAction icon={Pencil} label={`Edit ${h.name}`} onClick={() => setEditingId(h.id)} />
+              <span className="col-start-3 row-start-1 inline-flex">
+                <RowAction icon={Pencil} label={`Edit ${h.name}`} onClick={() => setEditingId(h.id)} />
+              </span>
             </li>
           );
         })}
