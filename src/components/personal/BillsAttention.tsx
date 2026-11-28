@@ -60,19 +60,15 @@ export function BillsAttention({ bills, month, today }: { bills: BillStatus[]; m
 
   return (
     <div aria-busy={isPending}>
-      <div className="flex items-baseline justify-end">
-        <span className="tabular text-xs text-muted">
-          {unpaid.length} unpaid
-        </span>
-      </div>
-
       {unpaid.length === 0 ? (
-        <p className="mt-2 text-sm text-muted">All paid for {monthName}.</p>
+        <p className="text-sm text-muted">All paid for {monthName}.</p>
       ) : (
         <>
-          <div className="mt-1">
+          <div>
             <div className="tabular t-metric text-3xl">CHF {chf.format(outstanding)}</div>
-            <p className="mt-0.5 text-sm text-muted">outstanding</p>
+            <p className="tabular mt-0.5 text-sm text-muted">
+              outstanding · {unpaid.length} unpaid
+            </p>
           </div>
 
           <ul className="mt-3 divide-y divide-border border-t border-border">

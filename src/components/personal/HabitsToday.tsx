@@ -38,23 +38,25 @@ export function HabitsToday({ habits, today }: { habits: HabitWeek[]; today: str
 
   return (
     <div aria-busy={isPending}>
-      <div className="flex items-baseline justify-end">
-        <span className="tabular text-xs text-muted">
-          {doneCount} of {habits.length} completed{complete && " · all done"}
-        </span>
-      </div>
-      <div
-        role="progressbar"
-        aria-label="habits completed today"
-        aria-valuemin={0}
-        aria-valuemax={habits.length}
-        aria-valuenow={doneCount}
-        className="mt-2 h-1.5 overflow-hidden rounded-full bg-track"
-      >
+      {/* The count and its track share one line, so the count reads as the
+          track's label rather than floating on its own above it. */}
+      <div className="flex items-center gap-4">
         <div
-          className="h-full rounded-full bg-hub transition-[width] duration-200 ease-out"
-          style={{ width: `${(doneCount / habits.length) * 100}%` }}
-        />
+          role="progressbar"
+          aria-label="habits completed today"
+          aria-valuemin={0}
+          aria-valuemax={habits.length}
+          aria-valuenow={doneCount}
+          className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-track"
+        >
+          <div
+            className="h-full rounded-full bg-hub transition-[width] duration-200 ease-out"
+            style={{ width: `${(doneCount / habits.length) * 100}%` }}
+          />
+        </div>
+        <span className="tabular shrink-0 text-xs text-muted">
+          {complete ? "All done" : `${doneCount} of ${habits.length} done`}
+        </span>
       </div>
 
       {error && (
