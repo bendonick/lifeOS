@@ -8,7 +8,7 @@ import { newsreader } from "@/components/ui/fonts";
 import { PageMasthead } from "@/components/ui/PageMasthead";
 import { RuledSection } from "@/components/ui/RuledSection";
 import { SiteNav } from "@/components/ui/SiteNav";
-import { billsForMonth, paymentHistory } from "@/lib/db/bills";
+import { billsForMonth } from "@/lib/db/bills";
 import { monthOf, zurichToday } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export const viewport: Viewport = { themeColor: "#efdfbb", colorScheme: "light" 
  * the figures live here.
  *
  *   1. **Monthly payments** (`PaymentsLedger`): the same checklist with due
- *      date, amount and status in columns; a row opens to its detail.
+ *      date, amount and status in columns.
  *   2. **Details**, closed at rest: spending, budget, history and the
  *      transaction tools, as they stood on Personal, until each is rebuilt as
  *      a module of its own. `+ Add → Expense` and the "History" anchor still
@@ -32,7 +32,6 @@ export default function MoneyPage() {
   const today = zurichToday();
   const month = monthOf(today);
   const bills = billsForMonth(month);
-  const history = paymentHistory(month);
 
   const monthName = new Intl.DateTimeFormat("en-GB", { month: "long", timeZone: "UTC" }).format(
     new Date(`${month}-15T12:00:00Z`)
@@ -76,7 +75,7 @@ export default function MoneyPage() {
           />
 
           <RuledSection id="payments" title="Monthly payments" meta={monthName}>
-            <PaymentsLedger bills={bills} history={history} month={month} today={today} />
+            <PaymentsLedger bills={bills} month={month} today={today} />
           </RuledSection>
 
           <section id="details" aria-label="Details" className="scroll-mt-24 border-b border-border py-4">
