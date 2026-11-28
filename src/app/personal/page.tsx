@@ -18,6 +18,7 @@ import { habitsWithWeek } from "@/lib/db/habits";
 import { personalNotes } from "@/lib/db/notes";
 import { weekTasksByDomain } from "@/lib/db/tasks";
 import { monthOf, zurichToday } from "@/lib/dates";
+import { weekSpanLabel } from "@/lib/plan/week";
 
 // Reads happen here on the server via the shared db modules; client components
 // mutate through /api/* and router.refresh() back to this page's data.
@@ -95,7 +96,12 @@ export default function PersonalPage() {
           {/* Habits get the wider column; one thin rule separates Bills. Below
               `lg` they stack. */}
           <div className="grid grid-cols-1 border-b border-border lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-            <RuledSection id="habits" title="Habits today" className="min-w-0 border-b lg:border-b-0 lg:pr-8">
+            <RuledSection
+              id="habits"
+              title="Habits today"
+              meta={weekSpanLabel(today)}
+              className="min-w-0 border-b lg:border-b-0 lg:pr-8"
+            >
               <HabitsToday habits={habits} today={today} />
             </RuledSection>
             <RuledSection

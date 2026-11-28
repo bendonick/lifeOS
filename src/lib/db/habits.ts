@@ -1,16 +1,17 @@
 import { db } from "@/lib/db";
-import { addDays } from "@/lib/dates";
+import { addDays, mondayOf } from "@/lib/dates";
 
 export interface HabitWeek {
   id: number;
   name: string;
   time_of_day: "morning" | "anytime" | "evening";
-  /** Trailing 7 days, oldest → newest — index 6 is today (§3). */
+  /** This calendar week, Monday → Sunday: index 0 is Monday. Days after
+   *  today are always false. */
   days: boolean[];
 }
 
-/** All active habits with their trailing week — one query for the whole log
- *  window, not one per habit (§3). */
+/** All active habits with this calendar week's log (Monday to Sunday of
+ *  `today`'s week) — one query for the whole window, not one per habit (§3). */
 export function habitsWithWeek(today: string): HabitWeek[] {
   // Flat list, but still flowing morning → anytime → evening (user dropped the
   // group headers for compactness, 2026-08-16).
@@ -21,7 +22,7 @@ export function habitsWithWeek(today: string): HabitWeek[] {
     )
     .all() as Array<Pick<HabitWeek, "id" | "name" | "time_of_day">>;
 
-  const from = addDays(today, -6);
+  const from = mondayOf(today);
   const logs = db
     .prepare("SELECT habit_id, date FROM habit_log WHERE done = 1 AND date >= ? AND date <= ?")
     .all(from, today) as Array<{ habit_id: number; date: string }>;
