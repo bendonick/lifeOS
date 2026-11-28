@@ -15,7 +15,7 @@ import {
   type CalendarWindow,
   type FeedStatus,
 } from "@/lib/calendar/types";
-import { addDays, dayLabel, hourOf, mondayOf, weekLabel, zurichLocal } from "@/lib/dates";
+import { addDays, dayLabel, hourOf, mondayOf, TZ, weekLabel, zurichLocal } from "@/lib/dates";
 
 /**
  * The read-only half of the command center (docs/02-design-system.md): time on
@@ -403,7 +403,7 @@ function FeedLine({
           )}
         </div>
       )}
-      {newest && <span>updated {new Date(newest).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</span>}
+      {newest && <span>updated {new Date(newest).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: TZ })}</span>}
       <button
         type="button"
         onClick={onRefresh}
