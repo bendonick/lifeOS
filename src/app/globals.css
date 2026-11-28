@@ -701,6 +701,16 @@ body:has(.theme-maritime) {
 .page-academic .study-seg[data-kind="mock"][data-filled] {
   background: var(--color-text);
 }
+/* The pace tick (decision #101): where the plan says you should be by now.
+   Ink, and taller than the bar so it reads over filled and empty segments. */
+.page-academic .study-pace {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--color-text);
+}
 
 /* The task list's column headers stay for screen readers; the rows are three
    plain facts and need no visible header on this page. */

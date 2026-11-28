@@ -82,7 +82,10 @@ function CourseRow({ course: c, today, onChange }: { course: CourseStudy; today:
         <Bar course={c} />
 
         <div className="col-span-2 flex min-h-7 flex-wrap items-center justify-between gap-x-4 sm:col-span-1 sm:col-start-2 sm:row-start-2">
-          <p className="tabular text-sm text-muted">{countLabel(c)}</p>
+          <p className="tabular text-sm text-muted">
+            {countLabel(c)}
+            <PaceLabel course={c} />
+          </p>
           {c.log.length > 0 && (
             <DisclosureTrigger
               open={showLog}
@@ -125,11 +128,27 @@ function Bar({ course: c }: { course: CourseStudy }) {
       </div>
     );
   }
+  const n = c.slots.length;
+  const pace = paceText(c);
   return (
-    <div role="img" aria-label={`${c.code}: ${countLabel(c)}`} className={`${place} flex gap-[2px]`}>
+    <div
+      role="img"
+      aria-label={`${c.code}: ${countLabel(c)}${pace ? `, ${pace}` : ""}`}
+      className={`${place} relative flex gap-[2px]`}
+    >
       {c.slots.map((s) => (
         <span key={s.id} className="study-seg flex-1" data-kind={s.kind} data-filled={s.filled ? "" : undefined} />
       ))}
+      {/* The pace tick (#101): in the gap after the last segment whose
+          session has ended. Segments are equal with 2px gaps, so the k-th gap
+          is centred at k * (width + 2px) / n - 1px. */}
+      {c.due > 0 && (
+        <span
+          aria-hidden="true"
+          className="study-pace"
+          style={{ left: `calc(${c.due} * (100% + 2px) / ${n} - 2px)` }}
+        />
+      )}
     </div>
   );
 }
@@ -358,6 +377,25 @@ function countLabel(c: CourseStudy): string {
   return parts.join(" · ") || "Nothing logged yet";
 }
 
+/** 'on pace' / '2 behind' / '1 ahead' against the sessions planned by now;
+ *  null before anything was planned or logged. */
+function paceText(c: CourseStudy): string | null {
+  if (c.due === 0 && c.pace === 0) return null;
+  if (c.pace === 0) return "on pace";
+  return c.pace < 0 ? `${-c.pace} behind` : `${c.pace} ahead`;
+}
+
+function PaceLabel({ course: c }: { course: CourseStudy }) {
+  const text = paceText(c);
+  if (!text) return null;
+  return (
+    <>
+      {" · "}
+      <span className={c.pace < 0 ? "font-semibold text-warn" : "text-text"}>{text}</span>
+    </>
+  );
+}
+
 function examWhen(c: CourseStudy): string | null {
   if (c.daysToExam === null) return null;
   const n = c.daysToExam;
@@ -387,6 +425,12 @@ function Legend() {
           {i.label}
         </li>
       ))}
+      <li className="inline-flex items-center gap-2">
+        <span aria-hidden="true" className="relative inline-block h-3 w-3.5">
+          <span className="study-pace" style={{ left: "calc(50% - 1px)", top: "-2px", bottom: "-2px" }} />
+        </span>
+        Planned by now
+      </li>
     </ul>
   );
 }

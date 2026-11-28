@@ -4,7 +4,7 @@ import { studyProgress } from "@/lib/academic/study";
 import { calendarWindow } from "@/lib/calendar/ics";
 import { studyLogs } from "@/lib/db/study";
 import type { CourseTask } from "@/lib/db/tasks";
-import { addDays, zurichToday } from "@/lib/dates";
+import { addDays, zurichLocal } from "@/lib/dates";
 
 /**
  * Study progress (decisions #97, #98): one bar per course that ends at its
@@ -26,7 +26,8 @@ export async function StudyProgress({
   exams: CourseTask[];
   termStart: string | null;
 }) {
-  const today = zurichToday();
+  const now = zurichLocal(new Date());
+  const today = now.slice(0, 10);
   const lastExam = exams
     .filter((e) => !e.done && e.due)
     .map((e) => e.due!.slice(0, 10))
@@ -36,7 +37,7 @@ export async function StudyProgress({
   const to = addDays(lastExam && lastExam > today ? lastExam : addDays(today, 120), 1);
   const data = await calendarWindow(from, to);
   const feed = data.feeds.find((f) => f.key === "examPrep");
-  const courses = studyProgress(data.events, groups, exams, studyLogs(), today);
+  const courses = studyProgress(data.events, groups, exams, studyLogs(), now);
 
   return (
     <div>

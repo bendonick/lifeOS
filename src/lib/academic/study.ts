@@ -5,15 +5,21 @@ import type { CourseTask } from "@/lib/db/tasks";
 import { daysBetween, type CourseGroup } from "./semester";
 
 /*
- * Study progress per course (decisions #97, #98). Pure: no SQLite, no clock;
- * `today` comes in as Zurich 'YYYY-MM-DD'. Client components import the types.
+ * Study progress per course (decisions #97, #98, #101). Pure: no SQLite, no
+ * clock; `now` comes in as Zurich 'YYYY-MM-DDTHH:MM'. Client components import
+ * the types.
  *
  * The Exam Prep calendar sets the goal and nothing else: how many study
  * sessions and mock exams a course is planned to take before its exam, and
  * where the mock exams fall among them. Progress is the user's own log
  * (`study_sessions`): every bar starts empty, and each logged session fills
  * the next study segment, each logged mock exam the next mock segment. Whether
- * a planned session's time has passed does not matter.
+ * a planned session's time has passed never fills anything.
+ *
+ * It does set the pace (#101): `due` is how many planned sessions, of either
+ * kind, had ended by `now`, and `pace` is the logged count minus that, so a
+ * course is "2 behind" when the calendar had five sessions done by now and
+ * three are logged. The bar draws a tick after the `due`-th segment.
  *
  * A calendar session belongs to a course when its title names the course
  * (`matchCourse`, the same reading the timetable uses). What the title says
@@ -83,6 +89,10 @@ export interface CourseStudy {
   done: Record<SlotKind, number>;
   /** This course's logged sessions, newest first. */
   log: StudyLog[];
+  /** Planned sessions (study and mock) that had ended by now. */
+  due: number;
+  /** Logged sessions minus `due`: negative is behind, positive ahead. */
+  pace: number;
 }
 
 export function studyProgress(
@@ -90,8 +100,9 @@ export function studyProgress(
   groups: CourseGroup[],
   exams: CourseTask[],
   logs: StudyLog[],
-  today: string
+  now: string
 ): CourseStudy[] {
+  const today = now.slice(0, 10);
   const enrolled = groups.filter((g) => g.status === "enrolled");
   const names: CourseName[] = enrolled.map((g) => ({ name: g.name, code: g.code }));
 
@@ -117,6 +128,8 @@ export function studyProgress(
         mock: log.filter((l) => l.kind === "mock").length,
       },
       log,
+      due: 0,
+      pace: 0,
     });
   }
 
@@ -134,7 +147,9 @@ export function studyProgress(
     const filled = course.planned[kind] < course.done[kind];
     course.planned[kind] += 1;
     course.slots.push({ id: e.id, kind, filled });
+    if (e.end <= now) course.due += 1;
   }
+  for (const c of byCode.values()) c.pace = c.done.study + c.done.mock - c.due;
 
   // Courses heading for an exam first, nearest first; then the rest by code. A
   // course with no exam, no plan and no log is not part of this view.

@@ -13,8 +13,9 @@ rail, no tiles. Top to bottom:
    marks; the current week tinted rust; Weekly load = open assignments and exams due.
 4. **Upcoming work | Exams** — ~60/40 with one rule. Filters, horizon groups, Later, done boxes,
    the inline editor and course links unchanged. Exams ends after "N more exams" (#93).
-5. **Study progress** (#97–#100) — one row per course with an exam: code with a filled plus, a
-   bar of one segment per planned Exam Prep session (mock and past exams outlined) and the exam
+5. **Study progress** (#97–#101) — one row per course with an exam: code with a filled plus, a
+   bar of one segment per planned Exam Prep session (mock and past exams outlined) with a tick
+   where the plan says you should be by now ("on pace" / "N behind" / "N ahead"), and the exam
    date with days left at the bar's end. Bars start empty and fill from the user's log: the plus
    opens a dialog (title, description; logged for today) and "Sessions" under the bar lists the
    log with edit (same dialog, filled in) and delete; a legend beneath.
