@@ -1,5 +1,10 @@
 "use client";
 
+import { Pencil } from "lucide-react";
+import { useState } from "react";
+import { HabitForm } from "@/components/personal/HabitForm";
+import { Disclosure } from "@/components/ui/Disclosure";
+import { RowAction } from "@/components/ui/RowAction";
 import { accentControl } from "@/components/ui/accents";
 import type { HabitWeek } from "@/lib/db/habits";
 import { addDays, mondayOf } from "@/lib/dates";
@@ -16,6 +21,10 @@ import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
  * missed. Days after today are drawn dashed and cannot be ticked. Today's box
  * and today's mark in the strip are one value under one key, so they flip
  * together.
+ *
+ * Habits are managed in place: a pencil at the end of a row turns the row into
+ * its editor (name, time of day, Remove), and "Add habit" under the list, or
+ * Habit in the page's `+ Add` menu (`#new-habit`), opens the same form empty.
  *
  * The count is rendered here rather than in the section heading so it moves
  * with the optimistic toggle; a server-rendered heading would lag the click by
@@ -48,8 +57,21 @@ export function HabitsToday({ habits, today }: { habits: HabitWeek[]; today: str
       }),
   });
 
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+  const addHabit = (
+    <Disclosure variant="add" accent="personal" summary="Add habit" openSummary="Cancel" anchors={["new-habit"]} className="mt-3">
+      <HabitForm inputId="new-habit" />
+    </Disclosure>
+  );
+
   if (habits.length === 0) {
-    return <p className="text-sm text-muted">No habits yet.</p>;
+    return (
+      <div>
+        <p className="text-sm text-muted">No habits yet.</p>
+        {addHabit}
+      </div>
+    );
   }
 
   const isDone = (habit: HabitWeek, day: number) => valueFor({ habit, day }, habit.days[day]);
@@ -63,15 +85,19 @@ export function HabitsToday({ habits, today }: { habits: HabitWeek[]; today: str
         <span className="tabular text-sm text-muted">
           {complete ? "All done today" : `${doneCount} of ${habits.length} done today`}
         </span>
-        <span aria-hidden="true" className="flex shrink-0">
-          {LETTERS.map((l, i) => (
-            <span
-              key={i}
-              className={`w-6 text-center text-[11px] ${i === todayIdx ? "font-bold text-text" : "text-muted"}`}
-            >
-              {l}
-            </span>
-          ))}
+        <span aria-hidden="true" className="flex shrink-0 gap-3">
+          <span className="flex">
+            {LETTERS.map((l, i) => (
+              <span
+                key={i}
+                className={`w-6 text-center text-[11px] ${i === todayIdx ? "font-bold text-text" : "text-muted"}`}
+              >
+                {l}
+              </span>
+            ))}
+          </span>
+          {/* Over the edit column, so the letters stay above their marks. */}
+          <span className="w-6" />
         </span>
       </div>
 
@@ -83,6 +109,13 @@ export function HabitsToday({ habits, today }: { habits: HabitWeek[]; today: str
 
       <ul className="divide-y divide-border border-y border-border">
         {habits.map((h) => {
+          if (editingId === h.id) {
+            return (
+              <li key={h.id} className="py-2.5">
+                <HabitForm habit={h} onDone={() => setEditingId(null)} />
+              </li>
+            );
+          }
           const doneToday = isDone(h, todayIdx);
           const weekDone = h.days.filter((_, i) => i <= todayIdx && isDone(h, i)).length;
           return (
@@ -138,10 +171,13 @@ export function HabitsToday({ habits, today }: { habits: HabitWeek[]; today: str
                   );
                 })}
               </span>
+              <RowAction icon={Pencil} label={`Edit ${h.name}`} onClick={() => setEditingId(h.id)} />
             </li>
           );
         })}
       </ul>
+
+      {addHabit}
     </div>
   );
 }

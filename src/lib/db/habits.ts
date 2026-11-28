@@ -1,10 +1,11 @@
 import { db } from "@/lib/db";
 import { addDays, mondayOf } from "@/lib/dates";
+import type { HabitTime } from "@/lib/personal/habits";
 
 export interface HabitWeek {
   id: number;
   name: string;
-  time_of_day: "morning" | "anytime" | "evening";
+  time_of_day: HabitTime;
   /** This calendar week, Monday → Sunday: index 0 is Monday. Days after
    *  today are always false. */
   days: boolean[];
@@ -41,6 +42,24 @@ export function setHabitDone(habitId: number, date: string, isDone: boolean) {
   }
 }
 
+/** Only active habits count: a removed habit can no longer be ticked or edited. */
 export function habitExists(id: number): boolean {
-  return !!db.prepare("SELECT 1 AS hit FROM habits WHERE id = ?").get(id);
+  return !!db.prepare("SELECT 1 AS hit FROM habits WHERE id = ? AND active = 1").get(id);
+}
+
+export function createHabit(name: string, timeOfDay: HabitTime): number {
+  const res = db.prepare("INSERT INTO habits (name, time_of_day) VALUES (?, ?)").run(name, timeOfDay);
+  return Number(res.lastInsertRowid);
+}
+
+export function updateHabit(id: number, patch: { name?: string; time_of_day?: HabitTime }) {
+  if (patch.name !== undefined) db.prepare("UPDATE habits SET name = ? WHERE id = ?").run(patch.name, id);
+  if (patch.time_of_day !== undefined)
+    db.prepare("UPDATE habits SET time_of_day = ? WHERE id = ?").run(patch.time_of_day, id);
+}
+
+/** Removing a habit retires it (`active = 0`) rather than deleting the row, so
+ *  its past ticks stay in `habit_log` with a name to belong to. */
+export function archiveHabit(id: number) {
+  db.prepare("UPDATE habits SET active = 0 WHERE id = ?").run(id);
 }

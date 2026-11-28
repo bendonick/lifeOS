@@ -67,6 +67,7 @@ export default function PersonalPage() {
             variant="filled"
             items={[
               { label: "Task or appointment", hash: "new-task" },
+              { label: "Habit", hash: "new-habit" },
               { label: "Expense", hash: "new-expense" },
               { label: "Note", hash: "new-note" },
             ]}
