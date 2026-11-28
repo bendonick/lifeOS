@@ -24,18 +24,18 @@ import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
  * Remove payment (asks once; its paid months stay in the log). One row is
  * edited at a time.
  *
- * Before the pencil, a chevron opens the row's **Details**: for now a note
- * (`PaymentNote`), read and written in place without going into the editor.
- * Closed at rest; any number of rows can be open. A dot on the chevron says a
- * note exists while the row is closed.
+ * At the right end of the payment's bar, inside it, a chevron opens the row's
+ * **Details**: for now a note (`PaymentNote`), read and written in place
+ * without going into the editor. Closed at rest; any number of rows can be
+ * open. A dot on the chevron says a note exists while the row is closed.
  *
- * Below `sm` a row is two lines: the tick, the chevron and the pencil, then
- * due · amount · status, so the name keeps its width on a phone.
+ * Below `sm` a row is two lines: the bar and the pencil, then due · amount ·
+ * status, so the name keeps its width on a phone.
  */
 // Whole francs as "CHF 70", anything with cents as "CHF 12.90".
 const chf = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
 const chfCents = new Intl.NumberFormat("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const COLS = "sm:grid-cols-[minmax(0,1fr)_6.5rem_6.5rem_8.5rem_1.75rem_1.75rem]";
+const COLS = "sm:grid-cols-[minmax(0,1fr)_6.5rem_6.5rem_8.5rem_1.75rem]";
 
 export function PaymentsLedger({ bills, month, today }: { bills: BillStatus[]; month: string; today: string }) {
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -125,7 +125,6 @@ export function PaymentsLedger({ bills, month, today }: { bills: BillStatus[]; m
         <span className="text-right">Amount</span>
         <span className="text-right">Status</span>
         <span />
-        <span />
       </div>
 
       <ul className="divide-y divide-border border-b border-border max-sm:border-t">
@@ -144,49 +143,56 @@ export function PaymentsLedger({ bills, month, today }: { bills: BillStatus[]; m
           return (
             <li key={b.id}>
               <div
-                className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-2 gap-y-1 py-1.5 sm:gap-x-3 ${COLS}`}
+                className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 py-1.5 ${COLS}`}
               >
-                {/* The tick: the name in a wide box, as on Personal. */}
-                <button
-                  type="button"
-                  aria-pressed={paid}
-                  aria-label={`${b.name} paid this month`}
-                  onClick={() => toggle(b, paid)}
-                  className={`col-start-1 row-start-1 flex min-h-9 min-w-0 items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm text-text transition-colors ${
+                {/* The bar: the tick (the name, as on Personal) and, at its
+                    right end, the Details toggle. Two buttons in one box. */}
+                <div
+                  className={`col-start-1 row-start-1 flex min-h-9 min-w-0 items-stretch rounded-md text-sm text-text ${
                     paid
                       ? "bg-[color-mix(in_oklab,var(--color-rust)_22%,var(--color-bg))] shadow-[inset_3px_0_0_var(--color-hub)]"
-                      : "ring-1 ring-inset ring-border-strong hover:bg-raised"
+                      : "ring-1 ring-inset ring-border-strong"
                   }`}
                 >
-                  <span className="inline-flex w-3.5 shrink-0 justify-center text-hub">
-                    {paid && <Check size={14} strokeWidth={2.5} aria-hidden="true" />}
-                  </span>
-                  <span className="truncate">{b.name}</span>
-                </button>
+                  <button
+                    type="button"
+                    aria-pressed={paid}
+                    aria-label={`${b.name} paid this month`}
+                    onClick={() => toggle(b, paid)}
+                    className={`flex min-w-0 flex-1 items-center gap-2 rounded-l-md py-1.5 pl-2.5 pr-2 text-left transition-colors ${
+                      paid ? "" : "hover:bg-raised"
+                    }`}
+                  >
+                    <span className="inline-flex w-3.5 shrink-0 justify-center text-hub">
+                      {paid && <Check size={14} strokeWidth={2.5} aria-hidden="true" />}
+                    </span>
+                    <span className="truncate">{b.name}</span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    aria-controls={detailId}
+                    aria-label={`Details for ${b.name}${b.note ? " (has a note)" : ""}`}
+                    onClick={() => toggleOpen(b.id)}
+                    className="relative my-1.5 inline-flex w-9 shrink-0 items-center justify-center rounded-r-md border-l border-border text-muted transition-colors hover:text-text"
+                  >
+                    <ChevronRight
+                      size={14}
+                      aria-hidden="true"
+                      className={`transition-transform duration-150 ease-out ${open ? "rotate-90" : ""}`}
+                    />
+                    {b.note && !open && (
+                      <span aria-hidden="true" className="absolute right-2 top-0 h-1.5 w-1.5 rounded-full bg-hub" />
+                    )}
+                  </button>
+                </div>
 
-                <button
-                  type="button"
-                  aria-expanded={open}
-                  aria-controls={detailId}
-                  aria-label={`Details for ${b.name}${b.note ? " (has a note)" : ""}`}
-                  onClick={() => toggleOpen(b.id)}
-                  className="relative col-start-2 row-start-1 inline-flex h-6 w-6 items-center justify-center justify-self-center rounded text-muted transition-colors hover:text-text sm:col-start-5"
-                >
-                  <ChevronRight
-                    size={14}
-                    aria-hidden="true"
-                    className={`transition-transform duration-150 ease-out ${open ? "rotate-90" : ""}`}
-                  />
-                  {b.note && !open && (
-                    <span aria-hidden="true" className="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-hub" />
-                  )}
-                </button>
-                <span className="col-start-3 row-start-1 inline-flex justify-center sm:col-start-6">
+                <span className="col-start-2 row-start-1 inline-flex justify-center sm:col-start-5">
                   <RowAction icon={Pencil} label={`Edit ${b.name}`} onClick={() => setEditingId(b.id)} />
                 </span>
 
                 {/* Phone: due · amount · status on a second line. */}
-                <span className="col-span-3 flex gap-2 px-1 text-xs sm:hidden">
+                <span className="col-span-2 flex gap-2 px-1 text-xs sm:hidden">
                   <span className="tabular text-muted">Due {dayLabel(dueDate(b))}</span>
                   <span className="tabular text-text">{money(b.amount_chf)}</span>
                   <span className={`ml-auto ${status.tone}`}>{status.text}</span>
