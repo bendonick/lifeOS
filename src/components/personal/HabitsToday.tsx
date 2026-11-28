@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil } from "lucide-react";
+import { Menu, Pencil } from "lucide-react";
 import { useState } from "react";
 import { HabitForm } from "@/components/personal/HabitForm";
 import { Disclosure } from "@/components/ui/Disclosure";
@@ -8,6 +8,7 @@ import { RowAction } from "@/components/ui/RowAction";
 import { accentControl } from "@/components/ui/accents";
 import type { HabitWeek } from "@/lib/db/habits";
 import { addDays, mondayOf } from "@/lib/dates";
+import { useDragOrder } from "@/lib/useDragOrder";
 import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
 
 /**
@@ -25,6 +26,8 @@ import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
  * Habits are managed in place: a pencil at the end of a row turns the row into
  * its editor (name, Remove), and "Add habit" under the list, or
  * Habit in the page's `+ Add` menu (`#new-habit`), opens the same form empty.
+ * The three lines at the start of a row are its handle: drag it up or down to
+ * change the order, or focus it and use the arrow keys (`useDragOrder`).
  *
  * The count is rendered here rather than in the section heading so it moves
  * with the optimistic toggle; a server-rendered heading would lag the click by
@@ -58,6 +61,18 @@ export function HabitsToday({ habits, today }: { habits: HabitWeek[]; today: str
   });
 
   const [editingId, setEditingId] = useState<number | null>(null);
+  const byId = new Map(habits.map((h) => [h.id, h]));
+  const drag = useDragOrder({
+    ids: habits.map((h) => h.id),
+    labelOf: (id) => byId.get(id)?.name ?? "Habit",
+    save: (order) =>
+      fetch("/api/habits", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order }),
+      }),
+  });
+  const ordered = drag.order.map((id) => byId.get(id)).filter((h): h is HabitWeek => !!h);
 
   const addHabit = (
     <Disclosure variant="add" accent="personal" summary="Add habit" openSummary="Cancel" anchors={["new-habit"]} className="mt-3">
@@ -101,17 +116,22 @@ export function HabitsToday({ habits, today }: { habits: HabitWeek[]; today: str
         </span>
       </div>
 
-      {error && (
+      {(error ?? drag.error) && (
         <p role="alert" className="mb-2 text-xs text-danger">
-          {error}
+          {error ?? drag.error}
         </p>
       )}
+      <p role="status" className="sr-only">
+        {drag.status}
+      </p>
 
-      <ul className="divide-y divide-border border-y border-border">
-        {habits.map((h) => {
+      <ul
+        className={`divide-y divide-border border-y border-border ${drag.dragId !== null ? "cursor-grabbing select-none" : ""}`}
+      >
+        {ordered.map((h) => {
           if (editingId === h.id) {
             return (
-              <li key={h.id} className="py-2.5">
+              <li key={h.id} ref={drag.rowRef(h.id)} className="py-2.5">
                 <HabitForm habit={h} onDone={() => setEditingId(null)} />
               </li>
             );
@@ -119,7 +139,23 @@ export function HabitsToday({ habits, today }: { habits: HabitWeek[]; today: str
           const doneToday = isDone(h, todayIdx);
           const weekDone = h.days.filter((_, i) => i <= todayIdx && isDone(h, i)).length;
           return (
-            <li key={h.id} className="flex min-h-12 items-center gap-3 py-2">
+            <li
+              key={h.id}
+              ref={drag.rowRef(h.id)}
+              className={`flex min-h-12 items-center gap-3 py-2 ${
+                drag.dragId === h.id ? "relative z-10 bg-raised shadow-sm" : ""
+              }`}
+            >
+              <button
+                type="button"
+                {...drag.handleProps(h.id)}
+                aria-label={`Move ${h.name}: drag, or use the arrow keys`}
+                className={`-ml-1 inline-flex h-6 w-6 shrink-0 touch-none items-center justify-center rounded text-muted transition-colors hover:text-text ${
+                  drag.dragId === h.id ? "cursor-grabbing" : "cursor-grab"
+                }`}
+              >
+                <Menu size={14} aria-hidden="true" />
+              </button>
               {/* 24px target around a 16px glyph (decision #76). */}
               <label className="inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded">
                 <input
