@@ -102,6 +102,9 @@ function migrate(db: Database.Database) {
   addColumn(db, "study_sessions", "description", "TEXT");
   // Decision #102: a logged session can be flagged to go over again.
   addColumn(db, "study_sessions", "review", "INTEGER NOT NULL DEFAULT 0");
+  // 2026-11-28: habits are put in order by dragging. NULL means "never moved"
+  // and sorts by id, the order habits were added in.
+  addColumn(db, "habits", "position", "INTEGER");
 
   foldFoodCategories(db);
 }

@@ -1,15 +1,4 @@
-import {
-  Briefcase,
-  CalendarDays,
-  CircleCheck,
-  GraduationCap,
-  Home,
-  Languages,
-  NotebookPen,
-  Receipt,
-  User,
-  Wallet,
-} from "lucide-react";
+import type { Viewport } from "next";
 import { Suspense } from "react";
 import { CalendarTileSkeleton } from "@/components/calendar/CalendarTile";
 import { BillsAttention } from "@/components/personal/BillsAttention";
@@ -19,27 +8,35 @@ import { NotesPanel } from "@/components/personal/NotesPanel";
 import { SpendingSection } from "@/components/personal/SpendingSection";
 import { UpcomingSection } from "@/components/personal/UpcomingSection";
 import { AddMenu } from "@/components/ui/AddMenu";
-import { NavRail } from "@/components/ui/NavRail";
-import { Tile } from "@/components/ui/Tile";
+import { newsreader } from "@/components/ui/fonts";
+import { PageMasthead } from "@/components/ui/PageMasthead";
+import { RuledSection } from "@/components/ui/RuledSection";
+import { SiteNav } from "@/components/ui/SiteNav";
 import { billsForMonth } from "@/lib/db/bills";
 import { latestGermanWord } from "@/lib/db/briefs";
 import { habitsWithWeek } from "@/lib/db/habits";
 import { personalNotes } from "@/lib/db/notes";
 import { weekTasksByDomain } from "@/lib/db/tasks";
 import { monthOf, zurichToday } from "@/lib/dates";
+import { weekSpanLabel } from "@/lib/plan/week";
 
 // Reads happen here on the server via the shared db modules; client components
 // mutate through /api/* and router.refresh() back to this page's data.
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Personal" };
 
+// A Maritime page, like the Overview and Academic: light.
+export const viewport: Viewport = { themeColor: "#efdfbb", colorScheme: "light" };
+
 /*
- * Layout (decision #81): the Academic shell — a slim navigation rail, one
- * `+ Add` menu, modules on quiet tiles — in the order the day asks for them:
- * Habits today beside Bills needing attention, then Upcoming (tasks,
- * appointments and the calendar as one module), Spending with this month
- * first, then German beside Notes. Health is gone from the page: no module, no
- * link, no creation entry. Its data, API and trends route are untouched.
+ * Layout (replacing #81's navigation rail and tiles): the horizontal LifeOS
+ * navigation with the page's one `+ Add` menu, the shared masthead with the
+ * section links, then the modules in the order the day asks for them: Habits
+ * today beside Bills needing attention, Spending with this month first,
+ * Upcoming (tasks, appointments and the calendar as one module), then German
+ * beside Notes. Flat cream paper: sections are separated by rules, never by
+ * tiles. Health stays off the page; its data, API and trends route are
+ * untouched.
  *
  * Every figure a module shows is computed by the function its detail view
  * uses, so a summary and its detail cannot disagree.
@@ -59,122 +56,101 @@ export default function PersonalPage() {
   const monthYear = new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(
     new Date(`${month}-15T12:00:00Z`)
   );
+  const toReview = notes.filter((n) => !n.reviewed).length;
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[13rem_minmax(0,1fr)]">
-      <NavRail
-        page="Personal"
-        pageIcon={<User size={16} />}
-        accent="personal"
-        sections={[
-          { id: "overview", label: "Overview", icon: <Home size={15} /> },
-          { id: "habits", label: "Habits", icon: <CircleCheck size={15} /> },
-          { id: "spending", label: "Spending", icon: <Wallet size={15} /> },
-          { id: "upcoming", label: "Calendar", icon: <CalendarDays size={15} /> },
-          { id: "notes", label: "Notes", icon: <NotebookPen size={15} /> },
-        ]}
-        links={[
-          { href: "/academic", label: "Academic", icon: <GraduationCap size={15} /> },
-          { href: "/professional", label: "Professional", icon: <Briefcase size={15} /> },
-        ]}
-        footer={<p className="px-2.5 text-xs text-muted">{monthYear}</p>}
-      />
-
-      <main className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
-        <header id="overview" className="flex scroll-mt-6 flex-wrap items-end justify-between gap-x-6 gap-y-3">
-          <div className="flex flex-wrap items-baseline gap-x-3">
-            <h1 className="t-serif text-3xl font-semibold tracking-tight">Personal</h1>
-            <p className="text-sm text-muted">habits · schedule · money</p>
-          </div>
+    <div className={`theme-maritime page-personal ${newsreader.variable} min-h-screen`}>
+      <div className="mx-auto max-w-[76rem] px-5 pb-20 sm:px-8">
+        <SiteNav current="personal">
           <AddMenu
             accent="personal"
+            variant="filled"
             items={[
               { label: "Task or appointment", hash: "new-task" },
+              { label: "Habit", hash: "new-habit" },
               { label: "Expense", hash: "new-expense" },
               { label: "Note", hash: "new-note" },
             ]}
           />
-        </header>
+        </SiteNav>
 
-        <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-          <Tile
-            id="habits"
-            accent="personal"
-            frame="quiet"
-            icon={<CircleCheck size={16} />}
-            title="Habits today"
-            span="lg:col-span-12 xl:col-span-7"
-          >
-            <HabitsToday habits={habits} today={today} />
-          </Tile>
+        <main>
+          <PageMasthead
+            eyebrow="Home"
+            title="Personal"
+            subtitle={
+              <>
+                {monthYear}
+                <span className="text-muted"> · habits, schedule and money</span>
+              </>
+            }
+            sections={[
+              { id: "habits", label: "Habits" },
+              { id: "bills", label: "Bills" },
+              { id: "spending", label: "Spending" },
+              { id: "upcoming", label: "Upcoming" },
+              { id: "german", label: "German" },
+              { id: "notes", label: "Notes", count: toReview },
+            ]}
+          />
 
-          <Tile
-            id="bills"
-            accent="personal"
-            frame="quiet"
-            icon={<Receipt size={16} />}
-            title="Bills needing attention"
-            span="lg:col-span-12 xl:col-span-5"
-          >
-            <BillsAttention bills={bills} month={month} today={today} />
-          </Tile>
+          {/* Habits get the wider column; one thin rule separates Bills. Below
+              `lg` they stack. */}
+          <div className="grid grid-cols-1 border-b border-border lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            <RuledSection
+              id="habits"
+              title="Habits today"
+              meta={weekSpanLabel(today)}
+              className="min-w-0 border-b lg:border-b-0 lg:pr-8"
+            >
+              <HabitsToday habits={habits} today={today} />
+            </RuledSection>
+            <RuledSection
+              id="bills"
+              title="Bills"
+              className="min-w-0 border-b-0 lg:border-l lg:border-border lg:pl-8"
+            >
+              <BillsAttention bills={bills} month={month} today={today} />
+            </RuledSection>
+          </div>
 
-          <Tile
-            id="upcoming"
-            accent="personal"
-            frame="quiet"
-            icon={<CalendarDays size={16} />}
-            title="Upcoming"
-            span="lg:col-span-12"
+          <RuledSection
+            id="spending"
+            title="Spending"
+            meta={
+              <>
+                {monthName}
+                <span aria-hidden="true"> · </span>
+                <a href="#spending-history" className="rounded text-link hover:text-text">
+                  History →
+                </a>
+              </>
+            }
           >
+            <SpendingSection today={today} />
+          </RuledSection>
+
+          <RuledSection id="upcoming" title="Upcoming" meta="Zürich time">
             <Suspense fallback={<CalendarTileSkeleton />}>
               <UpcomingSection tasks={tasks} today={today} />
             </Suspense>
-          </Tile>
+          </RuledSection>
 
-          <Tile
-            id="spending"
-            accent="personal"
-            frame="quiet"
-            icon={<Wallet size={16} />}
-            title="Spending"
-            meta={
-              <span className="flex items-center gap-3">
-                <span>{monthName}</span>
-                <a href="#spending-history" className="rounded transition-colors hover:text-text">
-                  History →
-                </a>
-              </span>
-            }
-            span="lg:col-span-12"
-          >
-            <SpendingSection today={today} />
-          </Tile>
-
-          <Tile
-            id="german"
-            accent="personal"
-            frame="quiet"
-            icon={<Languages size={16} />}
-            title="German"
-            span="lg:col-span-12 md:col-span-6"
-          >
-            <GermanCard brief={germanWord} />
-          </Tile>
-
-          <Tile
-            id="notes"
-            accent="personal"
-            frame="quiet"
-            icon={<NotebookPen size={16} />}
-            title="Notes"
-            meta={`${notes.length} ${notes.length === 1 ? "note" : "notes"}`}
-            span="lg:col-span-12 md:col-span-6"
-          >
-            <NotesPanel notes={notes} />
-          </Tile>
-        </div>
-      </main>
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            <RuledSection id="german" title="German" className="min-w-0 border-b lg:border-b-0 lg:pr-8">
+              <GermanCard brief={germanWord} />
+            </RuledSection>
+            <RuledSection
+              id="notes"
+              title="Notes"
+              meta={`${notes.length} ${notes.length === 1 ? "note" : "notes"}`}
+              className="min-w-0 border-b-0 lg:border-l lg:border-border lg:pl-8"
+            >
+              <NotesPanel notes={notes} />
+            </RuledSection>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

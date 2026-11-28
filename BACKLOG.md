@@ -277,7 +277,6 @@ becomes a session the day its data exists.
 - **Bill editor.** Bills are seeded rows with a monthly paid box; the design's "edit, delete,
   recurrence" actions have nothing to open. A bills API (name, amount, due day, active) and a
   small form inside Manage bills would close it.
-- **Habit editor.** Same shape: creation, rename, order and retirement are database edits today.
 - **Health code paths left in place** on purpose (#81): `lib/db/health.ts`, `/api/health/*`,
   `/personal/health` + `TrendsView`, `charts/Sparkline`, the `health.*` config keys and the
   Python scripts' `health.metric_keys` contract. Delete when the user decides the data is not
@@ -328,8 +327,8 @@ becomes a session the day its data exists.
 - **Course detail pages are still dark.** A course link from the light Academic page lands on
   the dark `/academic/courses/[id]`. Moving it means `SiteNav`, `RuledSection` and the theme
   wrapper on that route, and a pass over `SectionBanner` there.
-- **Personal and Professional are still dark,** with the navigation rail (Personal) and the
-  rail-and-bento (Professional). The shared parts they would need now exist.
+- **Professional is still dark,** with the rail-and-bento. The shared parts it would need now
+  exist (Personal moved 2026-11-28, #103).
 - **Centre the timetable's week range between its arrows,** as the reference draws it. It is a
   change to `WeekCalendar`, which four pages share; held back for that reason.
 - **Scroll-spy on the section links.** The navigation rail marked the section in view; the link
@@ -339,3 +338,13 @@ becomes a session the day its data exists.
   `data-view-tab` rule.
 - **`generated_images/`** now holds 24 source PNGs, untracked.
 
+## Personal on the Maritime theme (2026-11-28)
+
+- **Personal prints.** The masthead has no print until the user's three Personal prints exist
+  (1800×600 webp, 3:1, into `public/artwork/`). Then: add `"personal"` to `ArtworkCollection`,
+  entries in `ARTWORKS`, allow it in `/api/overview/prefs`, and pass `artwork` to
+  `PageMasthead`.
+- **Habits, not chosen yet:** a weekly target per habit (e.g. 3 of 7 for Workout), and a
+  week-on-week line. Streaks stay out for now (#106).
+- **`time_of_day` is unread.** Drop the column in a table rebuild if it stays unused.
+- **Drag on touch** has been exercised with a mouse only; check it on a phone.

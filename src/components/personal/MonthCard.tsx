@@ -75,19 +75,22 @@ function InFlight({ o, insights }: { o: BudgetOverview; insights: Insight[] }) {
   // One pace verdict, from the one shared helper, used by the word and the bar
   // alike — three components once each had their own threshold and the gauge
   // read orange beside a card that read "on pace".
-  const paceWord = over ? "over budget" : o.variable.pace;
+  const paceWord = o.variable.pace === "on pace" ? "on pace" : `${o.variable.pace} pace`;
   const paceTone = over ? "text-danger" : o.variable.pace === "over" ? "text-warn" : "text-muted";
   const fillClass = over ? "bg-danger" : o.variable.pace === "over" ? "bg-warn" : "bg-hub";
 
   return (
     <div>
-      <div className="flex items-baseline justify-between gap-3">
-        <span className={`tabular t-metric text-4xl ${over ? "text-danger" : ""}`}>
-          CHF {chf.format(Math.abs(Math.round(left)))}
-        </span>
-        <span className={`text-xs ${paceTone}`}>{paceWord}</span>
-      </div>
-      <p className="mt-1 text-sm text-muted">{over ? "Over the variable budget" : "Available to spend"}</p>
+      <span className={`tabular t-metric block text-4xl ${over ? "text-danger" : ""}`}>
+        CHF {chf.format(Math.abs(Math.round(left)))}
+      </span>
+      {/* The pace verdict finishes the line under the figure, so it reads as a
+          sentence ("Available to spend · under pace") rather than a lone word
+          at the far edge. */}
+      <p className="mt-1 text-sm text-muted">
+        {over ? "Over the variable budget" : "Available to spend"}
+        {!over && <span className={paceTone}> · {paceWord}</span>}
+      </p>
 
       <div className="relative mt-3 h-2 rounded-full bg-track">
         <div

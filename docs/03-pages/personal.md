@@ -1,8 +1,26 @@
-# Page — Personal (`/personal`, Tobacco)
+# Page — Personal (`/personal`)
 
 Habits, money, and everyday life. **Built in Stage 2 (2026-08-16)** to `docs/06-stage2-brief.md`;
 **re-laid out 2026-08-18** (decisions #63–#66) and **rebuilt on the Academic shell 2026-10-10
 (decision #81)**, when Health left the page. This doc describes what exists.
+
+**Maritime redesign, 2026-11-28 (decisions #103–#109) — this section is current; where the text
+below differs, this wins.** Light theme (`.theme-maritime` + `.page-personal`), no navigation
+rail, no tiles. Top to bottom:
+
+1. **Navigation** — `ui/SiteNav current="personal"` with the filled **+ Add** menu (Task or
+   appointment `#new-task` · Habit `#new-habit` · Expense `#new-expense` · Note `#new-note`).
+2. **Masthead** — `ui/PageMasthead`: "Home", "Personal", "{Month Year} · habits, schedule and
+   money", then the section links Habits · Bills · Spending · Upcoming · German · Notes (the
+   unreviewed count on Notes). No print yet; the user is making three Personal prints.
+3. **Habits today | Bills** — ~60/40 with one rule, stacked below `lg`. Habits as described
+   under Modules below. Bills unchanged in behaviour; its meta line reads "outstanding · N unpaid".
+4. **Spending** — full width, meta the month and **History →**. Unchanged in behaviour; the pace
+   verdict reads as part of its line ("Available to spend · under pace"), the budget, proposal
+   and merchant boxes are ruled blocks (`data-panel`), the tabs are the filled ink control
+   (`data-view-tab`), and the categories use the Maritime palette (#105).
+5. **Upcoming** — full width, meta "Zürich time". Unchanged in behaviour.
+6. **German | Notes** — two columns with one rule, stacked below `lg`. Unchanged in behaviour.
 
 ## Layout
 
@@ -33,12 +51,22 @@ its detail cannot disagree. No form is open at rest (#64).
 
 ## Modules (as built)
 
-1. **Habits today** (`HabitsToday`) — `habits`/`habit_log`, flat list ordered morning → anytime
-   → evening. "N of M completed" over a quiet olive track (the completion ring is gone), one 24px
-   done box and the name per row at ≥ 48px, hairline separators, no `n/7` beside rows. Optimistic
-   toggle with revert-on-failure; the count and track move with it. The trailing 7-dot strips sit
-   behind **7-day history**. Today is the app's Zurich day. Habits are seeded in the database;
-   there is no editor (BACKLOG).
+1. **Habits today** (`HabitsToday`, `HabitForm`, `lib/useDragOrder.ts`) — `habits`/`habit_log`,
+   active habits in the user's order (`habits.position`, then id). A count ("N of M done today",
+   "All done today") over the day letters M–S, today in bold. One row per habit at ≥ 48px:
+   - a **drag handle** (three lines): drag up or down to reorder, or focus it and use Arrow Up /
+     Arrow Down; saved at once (#108);
+   - **today's tick**, the habit's name in a wide box: outlined until done, then a light rust
+     ground with a rust edge and a check (#109);
+   - **the week**, Monday to Sunday: each past day a 24px button around a 14px mark (done in
+     ink, today done in rust, a miss outlined), days after today dashed and inert (#106);
+   - a **pencil** that turns the row into its editor: name, Save, Cancel, Remove habit (asks
+     once; the habit leaves the page and its log stays) (#107).
+
+   **Add habit** under the list, or Habit in **+ Add**, opens the same form empty. Ticks are
+   optimistic with revert-on-failure, and today's box and today's mark are one value. Today is
+   the app's Zurich day; the week resets on Monday. No streaks, no time of day.
+   Below `sm` a row is two lines, the week under the name, so the name keeps its width on a phone.
 
 2. **Bills needing attention** (`BillsAttention`) — `bills`/`bill_payments` for the current
    month (`billsForMonth`). "N unpaid" and **CHF N outstanding** in full, then one row per unpaid
@@ -83,6 +111,6 @@ its detail cannot disagree. No form is open at rest (#64).
 
 ## Data touched
 
-`habits`, `habit_log`, `tasks`, `bills`, `bill_payments`, `notes`, `transactions`, `budgets`,
+`habits` (read and written: name, active, position), `habit_log`, `tasks`, `bills`, `bill_payments`, `notes`, `transactions`, `budgets`,
 `budget_lines`, `category_map`, `import_batches`, `config`, `briefs` (read), the Personal ICS
 feed (read), `data/imports/`. `health_metrics` is no longer read by this page.

@@ -106,7 +106,8 @@ CREATE TABLE IF NOT EXISTS habits (
   id          INTEGER PRIMARY KEY,
   name        TEXT NOT NULL,
   time_of_day TEXT NOT NULL DEFAULT 'anytime' CHECK (time_of_day IN ('morning','anytime','evening')),
-  active      INTEGER NOT NULL DEFAULT 1
+  active      INTEGER NOT NULL DEFAULT 1,
+  position    INTEGER                -- the user's order; NULL falls back to id
 );
 
 CREATE TABLE IF NOT EXISTS habit_log (

@@ -1,6 +1,5 @@
 import type { Viewport } from "next";
 import { Suspense } from "react";
-import { AcademicMasthead } from "@/components/academic/AcademicMasthead";
 import { AcademicTasks } from "@/components/academic/AcademicTasks";
 import { CoursesSection } from "@/components/academic/CoursesSection";
 import { ExamsPanel } from "@/components/academic/ExamsPanel";
@@ -10,6 +9,7 @@ import { StudyProgress } from "@/components/academic/StudyProgress";
 import { CalendarTile, CalendarTileSkeleton } from "@/components/calendar/CalendarTile";
 import { AddMenu } from "@/components/ui/AddMenu";
 import { newsreader } from "@/components/ui/fonts";
+import { PageMasthead } from "@/components/ui/PageMasthead";
 import { RuledSection } from "@/components/ui/RuledSection";
 import { SiteNav } from "@/components/ui/SiteNav";
 import {
@@ -61,6 +61,7 @@ export default function AcademicPage() {
   const map = semesterMap(groups, work, exams, today, term);
   const weekNo = term ? weekOfTerm(term, today) : null;
   const semester = semesterLabel(enrolled[0]?.semester ?? groups[0]?.semester);
+  const week = term && weekNo ? `week ${weekNo} of ${term.weeks}` : null;
 
   const open = work.filter((t) => !t.done);
   const thisWeek = open.filter((t) => ["today", "week"].includes(horizonOf(t.due, today))).length;
@@ -92,9 +93,18 @@ export default function AcademicPage() {
         </SiteNav>
 
         <main>
-          <AcademicMasthead
-            semester={semester}
-            week={term && weekNo ? `week ${weekNo} of ${term.weeks}` : null}
+          <PageMasthead
+            eyebrow="University"
+            title="Academic"
+            subtitle={
+              semester || week ? (
+                <>
+                  {semester}
+                  {semester && week && <span className="text-muted"> · {week}</span>}
+                  {!semester && week}
+                </>
+              ) : null
+            }
             sections={[
               ...(map ? [{ id: "semester", label: "Semester" }] : []),
               { id: "assignments", label: "Assignments" },
@@ -104,9 +114,7 @@ export default function AcademicPage() {
               { id: "timetable", label: "Timetable" },
               { id: "reminders", label: "Reminders", count: pending },
             ]}
-            artworkId={pin ?? daily.id}
-            dailyArtworkId={daily.id}
-            pinnedArtworkId={pin}
+            artwork={{ collection: "academic", artworkId: pin ?? daily.id, dailyArtworkId: daily.id, pinnedArtworkId: pin }}
           />
 
           {/* The hero. Absent until a course carries a term start — a map with

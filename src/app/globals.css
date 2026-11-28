@@ -487,6 +487,16 @@ select {
   --color-rust: #c87629;
   --color-slate: #7a888e;
 
+  /* Spending's three category slots and the remainder (Personal), from the
+     palette: blue, rust, oxblood, and slate for the rest. Each mark clears
+     3:1 on cream (5.3, 3.3, 7.7 and 3.2), and every pair is apart by at
+     least 31 ΔE76. Rust and slate are darkened from their exact values until
+     they do. */
+  --color-cat-1: #2b5c8a; /* groceries */
+  --color-cat-2: #b0661f; /* restaurants */
+  --color-cat-3: #801818; /* bars */
+  --color-cat-rest: #6f7d84; /* the remainder */
+
   --font-serif: var(--font-newsreader);
 
   accent-color: #232f3e;
@@ -727,6 +737,16 @@ body:has(.theme-maritime) {
 .page-academic #assignments thead tr,
 .page-academic #exams thead tr {
   border-bottom-width: 0;
+}
+
+/* Personal's panels (budget table, proposal, merchants) are boxes on the dark
+   theme. Here they open and close on a rule, like the sections around them:
+   no side borders, no corners, no ground. The hook is `data-panel`. */
+.theme-maritime [data-panel] {
+  border-left-width: 0;
+  border-right-width: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 /* A bare NotesCard: the status line and the add action share one row. */

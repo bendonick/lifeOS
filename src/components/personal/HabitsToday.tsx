@@ -1,133 +1,236 @@
 "use client";
 
+import { Check, Menu, Pencil } from "lucide-react";
 import { useState } from "react";
-import { DisclosureTrigger } from "@/components/ui/Disclosure";
-import { accentControl } from "@/components/ui/accents";
+import { HabitForm } from "@/components/personal/HabitForm";
+import { Disclosure } from "@/components/ui/Disclosure";
+import { RowAction } from "@/components/ui/RowAction";
 import type { HabitWeek } from "@/lib/db/habits";
+import { addDays, mondayOf } from "@/lib/dates";
+import { useDragOrder } from "@/lib/useDragOrder";
 import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
 
 /**
- * Habits today (decision #81): the day's checklist as a main-column module.
- * One box and one name per row, "N of M completed" over a quiet olive track,
- * and the trailing week behind "7-day history" — the dots are history, not the
- * action, so they come back on request. Ticking today is never behind anything.
+ * Habits today: today's checklist first, one habit per row whose name is its
+ * tick for today (a wide box, tinted rust once done), and at
+ * the end of every row the week so far, Monday to Sunday. Ticking today is
+ * never behind anything; the week is always in view rather than behind a
+ * "7-day history" toggle, so the missed days show without asking.
  *
- * The count and the track are rendered here rather than in the tile header so
- * they move with the optimistic toggle; a server-rendered header would lag the
- * click by a round trip.
+ * Below `sm` a row is two lines: handle, name and pencil, then the week under
+ * the name, ending where the strips end on wider screens so the day letters
+ * still sit over their columns. On one line the name had under 100px.
+ *
+ * Each past day in a strip is its own 24px button (a 14px mark inside it), so
+ * a day forgotten earlier in the week can be caught up from where it shows as
+ * missed. Days after today are drawn dashed and cannot be ticked. Today's box
+ * and today's mark in the strip are one value under one key, so they flip
+ * together.
+ *
+ * Habits are managed in place: a pencil at the end of a row turns the row into
+ * its editor (name, Remove), and "Add habit" under the list, or
+ * Habit in the page's `+ Add` menu (`#new-habit`), opens the same form empty.
+ * The three lines at the start of a row are its handle: drag it up or down to
+ * change the order, or focus it and use the arrow keys (`useDragOrder`).
+ *
+ * The count is rendered here rather than in the section heading so it moves
+ * with the optimistic toggle; a server-rendered heading would lag the click by
+ * a round trip.
  */
+
+const LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
+const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+/** One habit on one day of the week (0 = Monday). */
+interface Cell {
+  habit: HabitWeek;
+  day: number;
+}
+
 export function HabitsToday({ habits, today }: { habits: HabitWeek[]; today: string }) {
-  const [showWeek, setShowWeek] = useState(false);
-  const { toggle, valueFor, isPending, error } = useOptimisticToggle<HabitWeek>({
-    idOf: (h) => h.id,
-    labelOf: (h) => h.name,
-    send: (h, next) =>
-      fetch(`/api/habits/${h.id}`, {
+  const monday = mondayOf(today);
+  const dates = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+  const todayIdx = dates.indexOf(today);
+
+  const { toggle, valueFor, isPending, error } = useOptimisticToggle<Cell>({
+    // Unique per habit and day while `day` stays within 0–6.
+    idOf: (c) => c.habit.id * 7 + c.day,
+    labelOf: (c) => (c.day === todayIdx ? c.habit.name : `${c.habit.name} on ${DAY_NAMES[c.day]}`),
+    send: (c, next) =>
+      fetch(`/api/habits/${c.habit.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: today, done: next }),
+        body: JSON.stringify({ date: dates[c.day], done: next }),
       }),
   });
 
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const byId = new Map(habits.map((h) => [h.id, h]));
+  const drag = useDragOrder({
+    ids: habits.map((h) => h.id),
+    labelOf: (id) => byId.get(id)?.name ?? "Habit",
+    save: (order) =>
+      fetch("/api/habits", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order }),
+      }),
+  });
+  const ordered = drag.order.map((id) => byId.get(id)).filter((h): h is HabitWeek => !!h);
+
+  const addHabit = (
+    <Disclosure variant="add" accent="personal" summary="Add habit" openSummary="Cancel" anchors={["new-habit"]} className="mt-3">
+      <HabitForm inputId="new-habit" />
+    </Disclosure>
+  );
+
   if (habits.length === 0) {
-    return <p className="text-sm text-muted">No habits yet.</p>;
+    return (
+      <div>
+        <p className="text-sm text-muted">No habits yet.</p>
+        {addHabit}
+      </div>
+    );
   }
 
-  const doneCount = habits.filter((h) => valueFor(h, h.days[6])).length;
+  const isDone = (habit: HabitWeek, day: number) => valueFor({ habit, day }, habit.days[day]);
+  const doneCount = habits.filter((h) => isDone(h, todayIdx)).length;
   const complete = doneCount === habits.length;
 
   return (
     <div aria-busy={isPending}>
-      <div className="flex items-baseline justify-end">
-        <span className="tabular text-xs text-muted">
-          {doneCount} of {habits.length} completed{complete && " · all done"}
+      {/* The count, and the strip's day letters above its columns. */}
+      <div className="flex items-end justify-between gap-4 pb-1.5">
+        <span className="tabular text-sm text-muted">
+          {complete ? "All done today" : `${doneCount} of ${habits.length} done today`}
+        </span>
+        <span aria-hidden="true" className="flex shrink-0 gap-3">
+          <span className="flex">
+            {LETTERS.map((l, i) => (
+              <span
+                key={i}
+                className={`w-6 text-center text-[11px] ${i === todayIdx ? "font-bold text-text" : "text-muted"}`}
+              >
+                {l}
+              </span>
+            ))}
+          </span>
+          {/* Over the edit column, so the letters stay above their marks. */}
+          <span className="w-6" />
         </span>
       </div>
-      <div
-        role="progressbar"
-        aria-label="habits completed today"
-        aria-valuemin={0}
-        aria-valuemax={habits.length}
-        aria-valuenow={doneCount}
-        className="mt-2 h-1.5 overflow-hidden rounded-full bg-track"
-      >
-        <div
-          className="h-full rounded-full bg-hub transition-[width] duration-200 ease-out"
-          style={{ width: `${(doneCount / habits.length) * 100}%` }}
-        />
-      </div>
 
-      {error && (
-        <p role="alert" className="mt-2 text-xs text-danger">
-          {error}
+      {(error ?? drag.error) && (
+        <p role="alert" className="mb-2 text-xs text-danger">
+          {error ?? drag.error}
         </p>
       )}
+      <p role="status" className="sr-only">
+        {drag.status}
+      </p>
 
-      <ul className="mt-3 divide-y divide-border border-t border-border">
-        {habits.map((h) => {
-          const doneToday = valueFor(h, h.days[6]);
+      <ul
+        className={`divide-y divide-border border-y border-border ${drag.dragId !== null ? "cursor-grabbing select-none" : ""}`}
+      >
+        {ordered.map((h) => {
+          if (editingId === h.id) {
+            return (
+              <li key={h.id} ref={drag.rowRef(h.id)} className="py-2.5">
+                <HabitForm habit={h} onDone={() => setEditingId(null)} />
+              </li>
+            );
+          }
+          const doneToday = isDone(h, todayIdx);
+          const weekDone = h.days.filter((_, i) => i <= todayIdx && isDone(h, i)).length;
           return (
-            <li key={h.id} className="flex min-h-12 items-center gap-3 py-2">
-              {/* 24px target around a 16px glyph (decision #76). */}
-              <label className="inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded">
-                <input
-                  type="checkbox"
-                  checked={doneToday}
-                  onChange={() => toggle(h, doneToday)}
-                  className={`h-4 w-4 cursor-pointer ${accentControl.personal}`}
+            <li
+              key={h.id}
+              ref={drag.rowRef(h.id)}
+              className={`grid min-h-12 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 py-2 sm:flex ${
+                drag.dragId === h.id ? "relative z-10 bg-raised shadow-sm" : ""
+              }`}
+            >
+              <button
+                type="button"
+                {...drag.handleProps(h.id)}
+                aria-label={`Move ${h.name}: drag, or use the arrow keys`}
+                className={`-ml-1 inline-flex h-6 w-6 shrink-0 touch-none items-center justify-center rounded text-muted transition-colors hover:text-text ${
+                  drag.dragId === h.id ? "cursor-grabbing" : "cursor-grab"
+                }`}
+              >
+                <Menu size={14} aria-hidden="true" />
+              </button>
+              {/* Today's tick is the name itself, in a wide box: outlined at
+                  the control-boundary tone (3.7:1) until done, then a light
+                  rust ground with a rust edge and a check. Square-cornered and
+                  row-wide, so it never reads as one of the strip's day marks.
+                  The check's slot is held open when undone so the name does
+                  not shift on a tick. */}
+              <span className="min-w-0 sm:flex-1">
+                <button
+                  type="button"
+                  aria-pressed={doneToday}
                   aria-label={`${h.name} done today`}
-                />
-              </label>
-              <span className={`min-w-0 flex-1 text-sm ${doneToday ? "text-muted line-through" : "text-text"}`}>
-                {h.name}
+                  onClick={() => toggle({ habit: h, day: todayIdx }, doneToday)}
+                  className={`flex min-h-9 w-full max-w-60 items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm text-text transition-colors ${
+                    doneToday
+                      ? "bg-[color-mix(in_oklab,var(--color-rust)_22%,var(--color-bg))] shadow-[inset_3px_0_0_var(--color-hub)]"
+                      : "ring-1 ring-inset ring-border-strong hover:bg-raised"
+                  }`}
+                >
+                  <span className="inline-flex w-3.5 shrink-0 justify-center text-hub">
+                    {doneToday && <Check size={14} strokeWidth={2.5} aria-hidden="true" />}
+                  </span>
+                  <span className="truncate">{h.name}</span>
+                </button>
+              </span>
+              <span
+                role="group"
+                aria-label={`${h.name} this week: ${weekDone} of ${todayIdx + 1} days so far`}
+                className="col-start-2 row-start-2 flex shrink-0 justify-self-end"
+              >
+                {dates.map((date, i) => {
+                  if (i > todayIdx) {
+                    return (
+                      <span key={date} aria-hidden="true" className="inline-flex h-6 w-6 items-center justify-center">
+                        <span className="h-3.5 w-3.5 rounded-[3px] border border-dashed border-border" />
+                      </span>
+                    );
+                  }
+                  const done = isDone(h, i);
+                  return (
+                    <button
+                      key={date}
+                      type="button"
+                      aria-pressed={done}
+                      aria-label={`${h.name}, ${i === todayIdx ? "today" : DAY_NAMES[i]}`}
+                      onClick={() => toggle({ habit: h, day: i }, done)}
+                      className="inline-flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-raised"
+                    >
+                      {/* Past days done in ink, today done in the page's rust;
+                          a miss is an outline at the control-boundary tone (3.7:1). */}
+                      <span
+                        className={`h-3.5 w-3.5 rounded-[3px] ${
+                          done
+                            ? i === todayIdx
+                              ? "bg-hub"
+                              : "bg-text"
+                            : "ring-1 ring-inset ring-border-strong"
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+              </span>
+              <span className="col-start-3 row-start-1 inline-flex">
+                <RowAction icon={Pencil} label={`Edit ${h.name}`} onClick={() => setEditingId(h.id)} />
               </span>
             </li>
           );
         })}
       </ul>
 
-      <div className="mt-3">
-        <DisclosureTrigger
-          open={showWeek}
-          onToggle={() => setShowWeek((v) => !v)}
-          summary="7-day history"
-          openSummary="Hide history"
-        />
-      </div>
-      {showWeek && (
-        <ul className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
-          {habits.map((h) => {
-            const doneToday = valueFor(h, h.days[6]);
-            const weekDone = h.days.filter((d, i) => (i === 6 ? doneToday : d)).length;
-            return (
-              <li key={h.id} className="flex items-center gap-3 text-xs">
-                <span className="w-32 shrink-0 truncate text-muted">{h.name}</span>
-                <span
-                  className="flex shrink-0 items-center gap-1.5"
-                  role="img"
-                  aria-label={`${h.name}: ${weekDone} of the last 7 days done`}
-                >
-                  {h.days.map((done, i) => {
-                    const isToday = i === 6;
-                    const filled = isToday ? doneToday : done;
-                    return (
-                      <span
-                        key={i}
-                        // An empty day has to be visible or the strip reads as a
-                        // few floating dots instead of a 7-slot track.
-                        className={`h-2 w-2 rounded-full ${filled ? "bg-hub" : "bg-raised ring-1 ring-border"} ${
-                          isToday ? "ring-1 ring-hub/60 ring-offset-1 ring-offset-surface" : ""
-                        }`}
-                      />
-                    );
-                  })}
-                </span>
-                <span className="tabular text-faint">{weekDone}/7</span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      {addHabit}
     </div>
   );
 }
