@@ -1,13 +1,14 @@
 import type { Viewport } from "next";
 import Link from "next/link";
-import { BillsAttention } from "@/components/personal/BillsAttention";
+import { PaymentsLedger } from "@/components/personal/PaymentsLedger";
 import { SpendingSection } from "@/components/personal/SpendingSection";
 import { AddMenu } from "@/components/ui/AddMenu";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { newsreader } from "@/components/ui/fonts";
 import { PageMasthead } from "@/components/ui/PageMasthead";
 import { RuledSection } from "@/components/ui/RuledSection";
 import { SiteNav } from "@/components/ui/SiteNav";
-import { billsForMonth } from "@/lib/db/bills";
+import { billsForMonth, paymentHistory } from "@/lib/db/bills";
 import { monthOf, zurichToday } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
@@ -16,18 +17,22 @@ export const metadata = { title: "Money" };
 export const viewport: Viewport = { themeColor: "#efdfbb", colorScheme: "light" };
 
 /*
- * Money: the detail behind Personal. Personal keeps one high-level check (the
- * month's payments, ticked, with no figures); every amount lives here. Bills
- * first, with their amounts and the outstanding total, then Spending as it
- * stood on Personal: this month, the budget, the history and the bookkeeping
- * (quick-add, CSV import, the merchant queue).
+ * Money: the detail behind Personal, rebuilt one module at a time. Personal
+ * keeps one high-level check (the month's payments, ticked, with no figures);
+ * the figures live here.
  *
- * The components moved as they were; reworking them is the next step.
+ *   1. **Monthly payments** (`PaymentsLedger`): the same checklist with due
+ *      date, amount and status in columns; a row opens to its detail.
+ *   2. **Details**, closed at rest: spending, budget, history and the
+ *      transaction tools, as they stood on Personal, until each is rebuilt as
+ *      a module of its own. `+ Add → Expense` and the "History" anchor still
+ *      land inside it (`Disclosure.anchors`).
  */
 export default function MoneyPage() {
   const today = zurichToday();
   const month = monthOf(today);
   const bills = billsForMonth(month);
+  const history = paymentHistory(month);
 
   const monthName = new Intl.DateTimeFormat("en-GB", { month: "long", timeZone: "UTC" }).format(
     new Date(`${month}-15T12:00:00Z`)
@@ -40,7 +45,14 @@ export default function MoneyPage() {
     <div className={`theme-maritime page-personal ${newsreader.variable} min-h-screen`}>
       <div className="mx-auto max-w-[76rem] px-5 pb-20 sm:px-8">
         <SiteNav current="personal">
-          <AddMenu accent="personal" variant="filled" items={[{ label: "Expense", hash: "new-expense" }]} />
+          <AddMenu
+            accent="personal"
+            variant="filled"
+            items={[
+              { label: "Payment", hash: "new-payment" },
+              { label: "Expense", hash: "new-expense" },
+            ]}
+          />
         </SiteNav>
 
         <main>
@@ -54,34 +66,31 @@ export default function MoneyPage() {
             subtitle={
               <>
                 {monthYear}
-                <span className="text-muted"> · bills, budget and spending</span>
+                <span className="text-muted"> · payments and spending</span>
               </>
             }
             sections={[
-              { id: "bills", label: "Bills" },
-              { id: "spending", label: "Spending" },
+              { id: "payments", label: "Monthly payments" },
+              { id: "details", label: "Details" },
             ]}
           />
 
-          <RuledSection id="bills" title="Bills" className="min-w-0">
-            <BillsAttention bills={bills} month={month} today={today} />
+          <RuledSection id="payments" title="Monthly payments" meta={monthName}>
+            <PaymentsLedger bills={bills} history={history} month={month} today={today} />
           </RuledSection>
 
-          <RuledSection
-            id="spending"
-            title="Spending"
-            meta={
-              <>
-                {monthName}
-                <span aria-hidden="true"> · </span>
-                <a href="#spending-history" className="rounded text-link hover:text-text">
-                  History →
-                </a>
-              </>
-            }
-          >
-            <SpendingSection today={today} />
-          </RuledSection>
+          <section id="details" aria-label="Details" className="scroll-mt-24 border-b border-border py-4">
+            <Disclosure
+              summary="Details"
+              openSummary="Hide details"
+              detail="spending, budget, history and transactions"
+              anchors={["new-expense", "spending-history", "uncategorised"]}
+            >
+              <div className="pt-4">
+                <SpendingSection today={today} />
+              </div>
+            </Disclosure>
+          </section>
         </main>
       </div>
     </div>

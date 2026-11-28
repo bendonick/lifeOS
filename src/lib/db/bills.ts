@@ -88,3 +88,38 @@ export function updateBill(id: number, input: { name: string; due_day: number; a
 export function archiveBill(id: number) {
   db.prepare("UPDATE bills SET active = 0 WHERE id = ?").run(id);
 }
+
+export interface PaymentHistory {
+  /** Months, oldest first, ending with `month`. */
+  months: string[];
+  /** Months the paid log has any row for (the user was ticking then), plus `month`. */
+  tracked: string[];
+  /** Per bill: the months it was paid in, and when this month's tick was made. */
+  byBill: Record<number, { paidMonths: string[]; paidAt: string | null; createdMonth: string | null }>;
+}
+
+/** The last `count` months of the paid log, for a payment's detail. */
+export function paymentHistory(month: string, count = 6): PaymentHistory {
+  const months = [month];
+  while (months.length < count) months.unshift(monthOf(addDays(`${months[0]}-01`, -1)));
+
+  const rows = db
+    .prepare("SELECT bill_id, month, paid_at FROM bill_payments WHERE month >= ? AND month <= ?")
+    .all(months[0], month) as Array<{ bill_id: number; month: string; paid_at: string }>;
+  const bills = db.prepare("SELECT id, created_month FROM bills WHERE active = 1").all() as Array<{
+    id: number;
+    created_month: string | null;
+  }>;
+
+  const tracked = new Set(rows.map((r) => r.month));
+  tracked.add(month);
+  const byBill: PaymentHistory["byBill"] = {};
+  for (const b of bills) byBill[b.id] = { paidMonths: [], paidAt: null, createdMonth: b.created_month };
+  for (const r of rows) {
+    const entry = byBill[r.bill_id];
+    if (!entry) continue;
+    entry.paidMonths.push(r.month);
+    if (r.month === month) entry.paidAt = r.paid_at;
+  }
+  return { months, tracked: months.filter((m) => tracked.has(m)), byBill };
+}
