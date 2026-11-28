@@ -33,6 +33,9 @@ export function Tabs<T extends string>({
           type="button"
           onClick={() => onChange(t.key)}
           aria-pressed={active === t.key}
+          // Styling hook: the Maritime theme draws the active tab as its filled
+          // ink control (globals.css). Inert on the dark pages.
+          data-view-tab=""
           className={`rounded-full border px-2.5 py-0.5 text-[11px] transition-colors ${
             active === t.key
               ? accentTab[accent]
