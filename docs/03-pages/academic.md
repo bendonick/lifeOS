@@ -8,15 +8,18 @@ rail, no tiles. Top to bottom:
    Assignment or task · Exam · Reminder; same hashes and forms as before).
 2. **Masthead** — "University", "Academic", "Autumn semester 2026 · week N of M"; a
    print in a 5:1 slot; then the section links Semester · Assignments · Exams · Courses ·
-   Timetable · Reminders (pending count on the last) with the print's previous / pin / next.
+   Timetable · Reminders (pending count on the last) with the print's previous / pin / next. Study sits between Exams and Courses.
 3. **Semester map** — full width, a `<table>`; every column a Monday–Sunday range (#92); three
    marks; the current week tinted rust; Weekly load = open assignments and exams due.
 4. **Upcoming work | Exams** — ~60/40 with one rule. Filters, horizon groups, Later, done boxes,
    the inline editor and course links unchanged. Exams ends after "N more exams" (#93).
-5. **Courses** — the two-column index of expandable rows (unchanged behaviour).
-6. **Timetable** — open, full width; slate event blocks, Exam Prep blocks in a rust hatch
+5. **Study progress** (#97) — one row per course with an exam: code, a bar of one segment per
+   Exam Prep session (rust when done, hatched when planned, outlined for mock and past exams)
+   and the exam date with days left at the bar's end; a legend beneath.
+6. **Courses** — the two-column index of expandable rows (unchanged behaviour).
+7. **Timetable** — open, full width; slate event blocks, Exam Prep blocks in a rust hatch
    with a dashed border, other calendars as labelled outlines (#95); the deadline strip labelled against the displayed week (#94).
-7. **Reminders** — full width, `NotesCard bare`.
+8. **Reminders** — full width, `NotesCard bare`.
 
 
 **Laid out to the approved v3 design 2026-10-10 (decisions #78–#80).** A 13rem navigation rail

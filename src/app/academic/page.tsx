@@ -6,6 +6,7 @@ import { CoursesSection } from "@/components/academic/CoursesSection";
 import { ExamsPanel } from "@/components/academic/ExamsPanel";
 import { RemindersCard } from "@/components/academic/RemindersCard";
 import { SemesterMap } from "@/components/academic/SemesterMap";
+import { StudyProgress } from "@/components/academic/StudyProgress";
 import { CalendarTile, CalendarTileSkeleton } from "@/components/calendar/CalendarTile";
 import { AddMenu } from "@/components/ui/AddMenu";
 import { newsreader } from "@/components/ui/fonts";
@@ -98,6 +99,7 @@ export default function AcademicPage() {
               ...(map ? [{ id: "semester", label: "Semester" }] : []),
               { id: "assignments", label: "Assignments" },
               { id: "exams", label: "Exams" },
+              { id: "study", label: "Study" },
               { id: "courses", label: "Courses" },
               { id: "timetable", label: "Timetable" },
               { id: "reminders", label: "Reminders", count: pending },
@@ -139,6 +141,14 @@ export default function AcademicPage() {
               <ExamsPanel exams={exams} courses={courses} today={today} />
             </RuledSection>
           </div>
+
+          {/* Sessions per course toward each exam (#97), between the exams they
+              lead to and the course list. Read from the Exam Prep calendar. */}
+          <RuledSection id="study" title="Study progress" meta="Sessions from Exam Prep">
+            <Suspense fallback={<p className="text-muted">Loading sessions…</p>}>
+              <StudyProgress groups={groups} exams={exams} termStart={term?.start ?? null} />
+            </Suspense>
+          </RuledSection>
 
           <RuledSection id="courses" title="Courses" meta={courseSummary(enrolled)}>
             <CoursesSection courses={courses} />
