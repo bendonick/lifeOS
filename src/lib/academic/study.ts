@@ -66,6 +66,17 @@ export function readSessionText(
   return { title, description: description || null };
 }
 
+/**
+ * The review flag on a session body (decision #102): undefined when the body
+ * leaves it out, an error when it is there but not true or false.
+ */
+export function readReview(body: unknown): boolean | undefined | { error: string } {
+  const review = (body ?? {}) as { review?: unknown };
+  if (review.review === undefined) return undefined;
+  if (typeof review.review !== "boolean") return { error: "review must be true or false" };
+  return review.review;
+}
+
 /** One planned session: a segment of the bar. */
 export interface StudySlot {
   /** The calendar occurrence id (uid + start). */

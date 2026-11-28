@@ -3,21 +3,22 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Flag, Pencil, Plus, Trash2 } from "lucide-react";
 import { DisclosureTrigger } from "@/components/ui/Disclosure";
 import { RowAction } from "@/components/ui/RowAction";
+import { accentControl } from "@/components/ui/accents";
 import { buttonChrome, filledButtonChrome, inputChrome } from "@/components/ui/controls";
 import type { CourseStudy } from "@/lib/academic/study";
 import type { StudyLog } from "@/lib/db/study";
 import { dayLabel } from "@/lib/dates";
 
 /**
- * The Study progress rows (decisions #98 to #100): code | bar | exam. The
+ * The Study progress rows (decisions #98 to #102): code | bar | exam. The
  * filled plus beside each course code opens a small dialog (title,
- * description) that logs a session for today; "Sessions" under the bar lists
- * what has been logged, newest first, each with an edit (the same dialog,
- * filled in) and a delete. Every change refreshes the page's
- * server data, so the bar is always the database's count.
+ * description, a review flag) that logs a session for today; "Sessions" under
+ * the bar lists what has been logged, newest first, each with a review flag,
+ * an edit (the same dialog, filled in) and a delete. Every change refreshes
+ * the page's server data, so the bar is always the database's count.
  */
 export function StudyProgressList({ courses, today }: { courses: CourseStudy[]; today: string }) {
   const router = useRouter();
@@ -45,6 +46,7 @@ function CourseRow({ course: c, today, onChange }: { course: CourseStudy; today:
   const [showLog, setShowLog] = useState(false);
   const logId = useId();
   const when = examWhen(c);
+  const flagged = c.log.filter((l) => l.review).length;
 
   return (
     <li className="border-b border-border py-3.5">
@@ -92,7 +94,15 @@ function CourseRow({ course: c, today, onChange }: { course: CourseStudy; today:
               onToggle={() => setShowLog((v) => !v)}
               summary="Sessions"
               openSummary="Hide sessions"
-              detail={c.log.length}
+              detail={
+                flagged > 0 ? (
+                  <>
+                    {c.log.length} · <FlagMark /> {flagged} to review
+                  </>
+                ) : (
+                  c.log.length
+                )
+              }
               controls={logId}
             />
           )}
@@ -157,8 +167,9 @@ function Bar({ course: c }: { course: CourseStudy }) {
  * The session dialog: a native modal <dialog>, so Escape, focus and the inert
  * page behind it come from the browser. A click on the backdrop closes it too.
  * Without `entry` it logs a new session for today; with one it edits that
- * session's title and description, keeping its day. Either way a title naming
- * a mock or past exam fills a mock segment (`logKind`, applied by the API).
+ * session's title, description and review flag, keeping its day. Either way a
+ * title naming a mock or past exam fills a mock segment (`logKind`, applied by
+ * the API).
  */
 function LogDialog({
   course: c,
@@ -180,6 +191,7 @@ function LogDialog({
   const titleId = useId();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [review, setReview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -203,6 +215,7 @@ function LogDialog({
     if (open && !dialog.open) {
       setTitle(entry?.title ?? "");
       setDescription(entry?.description ?? "");
+      setReview(entry?.review === 1);
       setError(null);
       dialog.showModal();
     } else if (!open && dialog.open) {
@@ -218,7 +231,7 @@ function LogDialog({
     }
     setSaving(true);
     setError(null);
-    const text = { title: title.trim(), description: description.trim() };
+    const text = { title: title.trim(), description: description.trim(), review };
     const res = await fetch(entry ? `/api/study-sessions/${entry.id}` : "/api/study-sessions", {
       method: entry ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
@@ -281,6 +294,18 @@ function LogDialog({
           />
         </label>
 
+        <label className="flex cursor-pointer items-center gap-2 self-start text-sm text-text">
+          <input
+            type="checkbox"
+            checked={review}
+            onChange={(e) => setReview(e.target.checked)}
+            className={`h-4 w-4 cursor-pointer ${accentControl.academic}`}
+          />
+          <span>
+            Flag for review <span className="text-muted">(to go over it again)</span>
+          </span>
+        </label>
+
         {error && (
           <p role="alert" className="text-sm text-danger">
             {error}
@@ -303,6 +328,20 @@ function LogDialog({
 function SessionLog({ course: c, today, onChange }: { course: CourseStudy; today: string; onChange: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<StudyLog | null>(null);
+
+  async function toggleReview(entry: StudyLog) {
+    setError(null);
+    const res = await fetch(`/api/study-sessions/${entry.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ review: !entry.review }),
+    }).catch(() => null);
+    if (!res?.ok) {
+      setError(`could not ${entry.review ? "unflag" : "flag"} “${entry.title}”`);
+      return;
+    }
+    onChange();
+  }
 
   async function remove(entry: StudyLog) {
     if (!window.confirm(`Delete “${entry.title}” from the ${c.code} log?`)) return;
@@ -337,6 +376,7 @@ function SessionLog({ course: c, today, onChange }: { course: CourseStudy; today
               )}
             </div>
             <div className="flex shrink-0 items-center">
+              <ReviewToggle entry={l} onClick={() => toggleReview(l)} />
               <RowAction icon={Pencil} label={`Edit “${l.title}”`} onClick={() => setEditing(l)} />
               <RowAction icon={Trash2} label={`Delete “${l.title}”`} onClick={() => remove(l)} danger />
             </div>
@@ -355,6 +395,41 @@ function SessionLog({ course: c, today, onChange }: { course: CourseStudy; today
         }}
       />
     </div>
+  );
+}
+
+/** The review flag's glyph, filled in the bar's rust. */
+function FlagMark() {
+  return (
+    <Flag
+      size={11}
+      aria-hidden="true"
+      className="inline-block -translate-y-px text-(--color-rust)"
+      fill="currentColor"
+    />
+  );
+}
+
+/**
+ * A row's review flag (#102): an outline flag at text weight like the other
+ * row actions, filled in rust once flagged, so the flagged rows stand out in
+ * one column.
+ */
+function ReviewToggle({ entry, onClick }: { entry: StudyLog; onClick: () => void }) {
+  const on = entry.review === 1;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={on}
+      aria-label={on ? `Unflag “${entry.title}”` : `Flag “${entry.title}” for review`}
+      title={on ? "Flagged for review" : "Flag for review"}
+      className={`inline-flex h-6 w-6 items-center justify-center rounded align-middle transition-colors ${
+        on ? "text-(--color-rust) hover:text-(--color-warn)" : "text-muted hover:text-text"
+      }`}
+    >
+      <Flag size={14} aria-hidden="true" fill={on ? "currentColor" : "none"} />
+    </button>
   );
 }
 

@@ -10,6 +10,8 @@ export interface StudyLog {
   description: string | null;
   kind: StudyLogKind;
   date: string;
+  /** 1 when flagged to go over again (decision #102). */
+  review: 0 | 1;
   created_at: string;
 }
 
@@ -28,17 +30,21 @@ export function createStudyLog(input: {
   description: string | null;
   kind: StudyLogKind;
   date: string;
+  review: boolean;
 }): StudyLog {
   const { lastInsertRowid } = db
-    .prepare("INSERT INTO study_sessions (course_id, title, description, kind, date) VALUES (?, ?, ?, ?, ?)")
-    .run(input.courseId, input.title, input.description, input.kind, input.date);
+    .prepare(
+      "INSERT INTO study_sessions (course_id, title, description, kind, date, review) VALUES (?, ?, ?, ?, ?, ?)"
+    )
+    .run(input.courseId, input.title, input.description, input.kind, input.date, input.review ? 1 : 0);
   return db.prepare("SELECT * FROM study_sessions WHERE id = ?").get(lastInsertRowid) as StudyLog;
 }
 
-/** Rewrite a logged session's text and kind; its course and day stay. */
+/** Rewrite a logged session's text and kind, and its review flag when given;
+ *  its course and day stay. */
 export function updateStudyLog(
   id: number,
-  input: { title: string; description: string | null; kind: StudyLogKind }
+  input: { title: string; description: string | null; kind: StudyLogKind; review?: boolean }
 ): StudyLog | undefined {
   db.prepare("UPDATE study_sessions SET title = ?, description = ?, kind = ? WHERE id = ?").run(
     input.title,
@@ -46,6 +52,13 @@ export function updateStudyLog(
     input.kind,
     id
   );
+  if (input.review !== undefined) setStudyLogReview(id, input.review);
+  return db.prepare("SELECT * FROM study_sessions WHERE id = ?").get(id) as StudyLog | undefined;
+}
+
+/** Flag a logged session to go over again, or clear the flag. */
+export function setStudyLogReview(id: number, review: boolean): StudyLog | undefined {
+  db.prepare("UPDATE study_sessions SET review = ? WHERE id = ?").run(review ? 1 : 0, id);
   return db.prepare("SELECT * FROM study_sessions WHERE id = ?").get(id) as StudyLog | undefined;
 }
 

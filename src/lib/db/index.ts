@@ -100,6 +100,8 @@ function migrate(db: Database.Database) {
     db.exec("ALTER TABLE study_sessions RENAME COLUMN concept TO title");
   }
   addColumn(db, "study_sessions", "description", "TEXT");
+  // Decision #102: a logged session can be flagged to go over again.
+  addColumn(db, "study_sessions", "review", "INTEGER NOT NULL DEFAULT 0");
 
   foldFoodCategories(db);
 }

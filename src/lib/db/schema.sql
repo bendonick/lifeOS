@@ -301,6 +301,7 @@ CREATE TABLE IF NOT EXISTS study_sessions (
   description TEXT,                 -- optional detail
   kind        TEXT NOT NULL DEFAULT 'study' CHECK (kind IN ('study','mock')),
   date        TEXT NOT NULL,        -- 'YYYY-MM-DD' (Zurich)
+  review      INTEGER NOT NULL DEFAULT 0, -- 1 = flagged to go over again
   created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_study_sessions_course ON study_sessions (course_id, date);
