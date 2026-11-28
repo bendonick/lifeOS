@@ -120,7 +120,7 @@ export function MonthlyPayments({ bills, month, today }: { bills: BillStatus[]; 
                 </span>
                 <span className="truncate">{b.name}</span>
               </button>
-              <span className={`tabular w-28 shrink-0 text-right text-xs ${status.tone}`}>
+              <span className={`tabular shrink-0 text-right text-xs whitespace-nowrap sm:w-28 ${status.tone}`}>
                 {status.text}
               </span>
               <RowAction icon={Pencil} label={`Edit ${b.name}`} onClick={() => setEditingId(b.id)} />
