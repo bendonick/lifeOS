@@ -50,10 +50,12 @@ function CourseRow({ course: c, today, onChange }: { course: CourseStudy; today:
       {/* Phone: code and exam on one line, the bar and its line full width
           beneath. From `sm`: code | bar | exam, the exam where the bar ends. */}
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 sm:grid-cols-[6.5rem_minmax(0,1fr)_10.5rem]">
-        <div className="flex items-center gap-2 justify-self-start sm:col-start-1 sm:row-span-2 sm:row-start-1">
+        {/* A fixed-width cell with the plus at its right edge, so every row's
+            plus sits in one column whatever the length of the code. */}
+        <div className="flex w-[6.5rem] items-center justify-between gap-2 justify-self-start sm:col-start-1 sm:row-span-2 sm:row-start-1">
           <Link
             href={`/academic/courses/${c.courseId}`}
-            className="inline-flex min-h-6 items-center rounded font-bold text-text underline-offset-4 hover:underline"
+            className="inline-flex min-h-6 min-w-0 items-center truncate rounded font-bold text-text underline-offset-4 hover:underline"
           >
             {c.code}
           </Link>
