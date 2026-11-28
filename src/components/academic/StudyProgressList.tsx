@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { DisclosureTrigger } from "@/components/ui/Disclosure";
 import { RowAction } from "@/components/ui/RowAction";
 import { buttonChrome, filledButtonChrome, inputChrome } from "@/components/ui/controls";
@@ -12,10 +12,11 @@ import type { StudyLog } from "@/lib/db/study";
 import { dayLabel } from "@/lib/dates";
 
 /**
- * The Study progress rows (decisions #98, #99): code | bar | exam. The filled
- * plus beside each course code opens a small dialog (title, description) that
- * logs a session for today; "Sessions" under the bar lists what has been
- * logged, newest first, each with a delete. Every change refreshes the page's
+ * The Study progress rows (decisions #98 to #100): code | bar | exam. The
+ * filled plus beside each course code opens a small dialog (title,
+ * description) that logs a session for today; "Sessions" under the bar lists
+ * what has been logged, newest first, each with an edit (the same dialog,
+ * filled in) and a delete. Every change refreshes the page's
  * server data, so the bar is always the database's count.
  */
 export function StudyProgressList({ courses, today }: { courses: CourseStudy[]; today: string }) {
@@ -97,7 +98,7 @@ function CourseRow({ course: c, today, onChange }: { course: CourseStudy; today:
 
       {showLog && c.log.length > 0 && (
         <div id={logId} className={UNDER_BAR}>
-          <SessionLog code={c.code} log={c.log} onChange={onChange} />
+          <SessionLog course={c} today={today} onChange={onChange} />
         </div>
       )}
 
@@ -106,7 +107,7 @@ function CourseRow({ course: c, today, onChange }: { course: CourseStudy; today:
         today={today}
         open={logging}
         onClose={() => setLogging(false)}
-        onLogged={() => {
+        onSaved={() => {
           setLogging(false);
           onChange();
         }}
@@ -134,23 +135,27 @@ function Bar({ course: c }: { course: CourseStudy }) {
 }
 
 /**
- * The log dialog: a native modal <dialog>, so Escape, focus and the inert page
- * behind it come from the browser. A click on the backdrop closes it too. The
- * session is logged for today; a title naming a mock or past exam fills a mock
- * segment (`logKind`, applied by the API).
+ * The session dialog: a native modal <dialog>, so Escape, focus and the inert
+ * page behind it come from the browser. A click on the backdrop closes it too.
+ * Without `entry` it logs a new session for today; with one it edits that
+ * session's title and description, keeping its day. Either way a title naming
+ * a mock or past exam fills a mock segment (`logKind`, applied by the API).
  */
 function LogDialog({
   course: c,
   today,
   open,
+  entry = null,
   onClose,
-  onLogged,
+  onSaved,
 }: {
   course: CourseStudy;
   today: string;
   open: boolean;
+  /** The logged session being edited; null to log a new one. */
+  entry?: StudyLog | null;
   onClose: () => void;
-  onLogged: () => void;
+  onSaved: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -177,14 +182,14 @@ function LogDialog({
     const dialog = ref.current;
     if (!dialog) return;
     if (open && !dialog.open) {
-      setTitle("");
-      setDescription("");
+      setTitle(entry?.title ?? "");
+      setDescription(entry?.description ?? "");
       setError(null);
       dialog.showModal();
     } else if (!open && dialog.open) {
       dialog.close();
     }
-  }, [open]);
+  }, [open, entry]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -194,18 +199,19 @@ function LogDialog({
     }
     setSaving(true);
     setError(null);
-    const res = await fetch("/api/study-sessions", {
-      method: "POST",
+    const text = { title: title.trim(), description: description.trim() };
+    const res = await fetch(entry ? `/api/study-sessions/${entry.id}` : "/api/study-sessions", {
+      method: entry ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ course_id: c.courseId, title: title.trim(), description: description.trim(), date: today }),
+      body: JSON.stringify(entry ? text : { ...text, course_id: c.courseId, date: today }),
     }).catch(() => null);
     setSaving(false);
     if (!res?.ok) {
       const message = await res?.json().then((j) => j?.error).catch(() => null);
-      setError(message ?? "could not log the session");
+      setError(message ?? (entry ? "could not save the session" : "could not log the session"));
       return;
     }
-    onLogged();
+    onSaved();
   }
 
   return (
@@ -220,10 +226,10 @@ function LogDialog({
       <form onSubmit={submit} className="flex flex-col gap-4 p-5">
         <div>
           <h3 id={titleId} className="t-serif text-2xl leading-tight text-text">
-            Log a session
+            {entry ? "Edit session" : "Log a session"}
           </h3>
           <p className="mt-0.5 text-sm text-muted">
-            {c.code} · {c.name} · {dayLabel(today)}
+            {c.code} · {c.name} · {dayLabel(entry?.date ?? today)}
           </p>
         </div>
 
@@ -267,7 +273,7 @@ function LogDialog({
             Cancel
           </button>
           <button type="submit" disabled={saving} className={filledButtonChrome}>
-            {saving ? "Logging…" : "Log session"}
+            {entry ? (saving ? "Saving…" : "Save") : saving ? "Logging…" : "Log session"}
           </button>
         </div>
       </form>
@@ -275,11 +281,12 @@ function LogDialog({
   );
 }
 
-function SessionLog({ code, log, onChange }: { code: string; log: StudyLog[]; onChange: () => void }) {
+function SessionLog({ course: c, today, onChange }: { course: CourseStudy; today: string; onChange: () => void }) {
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<StudyLog | null>(null);
 
   async function remove(entry: StudyLog) {
-    if (!window.confirm(`Delete “${entry.title}” from the ${code} log?`)) return;
+    if (!window.confirm(`Delete “${entry.title}” from the ${c.code} log?`)) return;
     setError(null);
     const res = await fetch(`/api/study-sessions/${entry.id}`, { method: "DELETE" }).catch(() => null);
     if (!res?.ok) {
@@ -297,7 +304,7 @@ function SessionLog({ code, log, onChange }: { code: string; log: StudyLog[]; on
         </p>
       )}
       <ul className="divide-y divide-border border-t border-border text-sm">
-        {log.map((l) => (
+        {c.log.map((l) => (
           <li key={l.id} className="flex items-start gap-3 py-1.5">
             <span className="tabular w-24 shrink-0 pt-0.5 text-muted">{dayLabel(l.date)}</span>
             <div className="min-w-0 flex-1 pt-0.5">
@@ -310,10 +317,24 @@ function SessionLog({ code, log, onChange }: { code: string; log: StudyLog[]; on
                 <p className="mt-0.5 whitespace-pre-line text-[0.8125rem] leading-snug text-muted">{l.description}</p>
               )}
             </div>
-            <RowAction icon={Trash2} label={`Delete “${l.title}”`} onClick={() => remove(l)} danger />
+            <div className="flex shrink-0 items-center">
+              <RowAction icon={Pencil} label={`Edit “${l.title}”`} onClick={() => setEditing(l)} />
+              <RowAction icon={Trash2} label={`Delete “${l.title}”`} onClick={() => remove(l)} danger />
+            </div>
           </li>
         ))}
       </ul>
+      <LogDialog
+        course={c}
+        today={today}
+        open={editing !== null}
+        entry={editing}
+        onClose={() => setEditing(null)}
+        onSaved={() => {
+          setEditing(null);
+          onChange();
+        }}
+      />
     </div>
   );
 }

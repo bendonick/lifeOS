@@ -43,6 +43,23 @@ export function logKind(title: string): StudyLog["kind"] {
   return /\b(mock|past exams?|practice exams?)\b/i.test(title) ? "mock" : "study";
 }
 
+/**
+ * The title and description of a logged session, as POST and PATCH take
+ * them: the title is required and at most 120 characters, the description
+ * optional (empty becomes null) and at most 2000. Both are trimmed.
+ */
+export function readSessionText(
+  body: unknown
+): { title: string; description: string | null } | { error: string } {
+  const b = (body ?? {}) as { title?: unknown; description?: unknown };
+  const title = typeof b.title === "string" ? b.title.trim() : "";
+  if (!title) return { error: "give the session a title" };
+  if (title.length > 120) return { error: "keep the title under 120 characters" };
+  const description = typeof b.description === "string" ? b.description.trim() : "";
+  if (description.length > 2000) return { error: "keep the description under 2000 characters" };
+  return { title, description: description || null };
+}
+
 /** One planned session: a segment of the bar. */
 export interface StudySlot {
   /** The calendar occurrence id (uid + start). */

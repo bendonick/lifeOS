@@ -35,6 +35,20 @@ export function createStudyLog(input: {
   return db.prepare("SELECT * FROM study_sessions WHERE id = ?").get(lastInsertRowid) as StudyLog;
 }
 
+/** Rewrite a logged session's text and kind; its course and day stay. */
+export function updateStudyLog(
+  id: number,
+  input: { title: string; description: string | null; kind: StudyLogKind }
+): StudyLog | undefined {
+  db.prepare("UPDATE study_sessions SET title = ?, description = ?, kind = ? WHERE id = ?").run(
+    input.title,
+    input.description,
+    input.kind,
+    id
+  );
+  return db.prepare("SELECT * FROM study_sessions WHERE id = ?").get(id) as StudyLog | undefined;
+}
+
 /** True when a row was deleted. */
 export function deleteStudyLog(id: number): boolean {
   return db.prepare("DELETE FROM study_sessions WHERE id = ?").run(id).changes > 0;
