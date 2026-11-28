@@ -2,11 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { filledButtonChrome, inputChrome, selectChrome } from "@/components/ui/controls";
-import { HABIT_NAME_MAX, HABIT_TIMES, checkHabitName, type HabitTime } from "@/lib/personal/habits";
+import { filledButtonChrome, inputChrome } from "@/components/ui/controls";
+import { HABIT_NAME_MAX, checkHabitName } from "@/lib/personal/habits";
 
 /**
- * One form for a habit's name and time of day, used to add a habit (under the
+ * One form for a habit's name, used to add a habit (under the
  * list, and from the page's `+ Add` menu) and to edit one in place of its row.
  * Editing also offers Remove, which asks once in the row before it acts: the
  * habit leaves the page and its past ticks stay in the log.
@@ -17,7 +17,7 @@ export function HabitForm({
   onDone,
 }: {
   /** The habit being edited; absent when adding. */
-  habit?: { id: number; name: string; time_of_day: HabitTime };
+  habit?: { id: number; name: string };
   inputId?: string;
   /** Editing: called after a save or removal, and by Cancel. Adding keeps the
    *  form open and empty for the next habit; its Disclosure trigger is the
@@ -27,7 +27,6 @@ export function HabitForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState(habit?.name ?? "");
-  const [time, setTime] = useState<HabitTime>(habit?.time_of_day ?? "anytime");
   const [error, setError] = useState<string | null>(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -58,8 +57,8 @@ export function HabitForm({
       return;
     }
     const ok = habit
-      ? await send(`/api/habits/${habit.id}`, "PATCH", { name: checked.name, time_of_day: time })
-      : await send("/api/habits", "POST", { name: checked.name, time_of_day: time }, "could not add the habit");
+      ? await send(`/api/habits/${habit.id}`, "PATCH", { name: checked.name })
+      : await send("/api/habits", "POST", { name: checked.name }, "could not add the habit");
     if (!ok) return;
     if (habit) onDone?.();
     else setName("");
@@ -106,18 +105,6 @@ export function HabitForm({
         aria-invalid={!!error}
         className={`min-w-40 flex-1 ${inputChrome}`}
       />
-      <select
-        value={time}
-        onChange={(e) => setTime(e.target.value as HabitTime)}
-        aria-label="time of day"
-        className={`w-32 ${selectChrome}`}
-      >
-        {HABIT_TIMES.map((t) => (
-          <option key={t.value} value={t.value}>
-            {t.label}
-          </option>
-        ))}
-      </select>
       <button type="submit" disabled={busy} className={filledButtonChrome}>
         {habit ? "Save" : "Add"}
       </button>

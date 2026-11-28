@@ -23,7 +23,7 @@ import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
  * together.
  *
  * Habits are managed in place: a pencil at the end of a row turns the row into
- * its editor (name, time of day, Remove), and "Add habit" under the list, or
+ * its editor (name, Remove), and "Add habit" under the list, or
  * Habit in the page's `+ Add` menu (`#new-habit`), opens the same form empty.
  *
  * The count is rendered here rather than in the section heading so it moves

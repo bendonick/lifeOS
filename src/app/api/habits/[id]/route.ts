@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { archiveHabit, habitExists, setHabitDone, updateHabit } from "@/lib/db/habits";
-import { checkHabitName, isHabitTime, type HabitTime } from "@/lib/personal/habits";
+import { archiveHabit, habitExists, renameHabit, setHabitDone } from "@/lib/db/habits";
+import { checkHabitName } from "@/lib/personal/habits";
 
 // One habit. PATCH does two jobs, told apart by the body: `{ date, done }`
-// ticks or unticks a day; `{ name?, time_of_day? }` edits the habit itself.
+// ticks or unticks a day; `{ name }` renames the habit.
 // DELETE removes the habit from the page and keeps its log (archiveHabit).
 
 async function activeId(ctx: RouteContext<"/api/habits/[id]">): Promise<number | null> {
@@ -17,18 +17,10 @@ export async function PATCH(req: NextRequest, ctx: RouteContext<"/api/habits/[id
   if (habitId === null) return NextResponse.json({ error: "unknown habit" }, { status: 404 });
 
   const body = await req.json().catch(() => null);
-  if (body && ("name" in body || "time_of_day" in body)) {
-    const patch: { name?: string; time_of_day?: HabitTime } = {};
-    if ("name" in body) {
-      const checked = checkHabitName(body.name);
-      if ("error" in checked) return NextResponse.json({ error: checked.error }, { status: 400 });
-      patch.name = checked.name;
-    }
-    if ("time_of_day" in body) {
-      if (!isHabitTime(body.time_of_day)) return NextResponse.json({ error: "invalid time_of_day" }, { status: 400 });
-      patch.time_of_day = body.time_of_day;
-    }
-    updateHabit(habitId, patch);
+  if (body && "name" in body) {
+    const checked = checkHabitName(body.name);
+    if ("error" in checked) return NextResponse.json({ error: checked.error }, { status: 400 });
+    renameHabit(habitId, checked.name);
     return NextResponse.json({ ok: true });
   }
 
