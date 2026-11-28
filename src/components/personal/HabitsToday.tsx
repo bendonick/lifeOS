@@ -1,18 +1,18 @@
 "use client";
 
-import { Menu, Pencil } from "lucide-react";
+import { Check, Menu, Pencil } from "lucide-react";
 import { useState } from "react";
 import { HabitForm } from "@/components/personal/HabitForm";
 import { Disclosure } from "@/components/ui/Disclosure";
 import { RowAction } from "@/components/ui/RowAction";
-import { accentControl } from "@/components/ui/accents";
 import type { HabitWeek } from "@/lib/db/habits";
 import { addDays, mondayOf } from "@/lib/dates";
 import { useDragOrder } from "@/lib/useDragOrder";
 import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
 
 /**
- * Habits today: today's checklist first, one box and one name per row, and at
+ * Habits today: today's checklist first, one habit per row whose name is its
+ * tick for today (a wide box, tinted rust once done), and at
  * the end of every row the week so far, Monday to Sunday. Ticking today is
  * never behind anything; the week is always in view rather than behind a
  * "7-day history" toggle, so the missed days show without asking.
@@ -156,18 +156,29 @@ export function HabitsToday({ habits, today }: { habits: HabitWeek[]; today: str
               >
                 <Menu size={14} aria-hidden="true" />
               </button>
-              {/* 24px target around a 16px glyph (decision #76). */}
-              <label className="inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded">
-                <input
-                  type="checkbox"
-                  checked={doneToday}
-                  onChange={() => toggle({ habit: h, day: todayIdx }, doneToday)}
-                  className={`h-4 w-4 cursor-pointer ${accentControl.personal}`}
+              {/* Today's tick is the name itself, in a wide box: outlined at
+                  the control-boundary tone (3.7:1) until done, then a light
+                  rust ground with a rust edge and a check. Square-cornered and
+                  row-wide, so it never reads as one of the strip's day marks.
+                  The check's slot is held open when undone so the name does
+                  not shift on a tick. */}
+              <span className="min-w-0 flex-1">
+                <button
+                  type="button"
+                  aria-pressed={doneToday}
                   aria-label={`${h.name} done today`}
-                />
-              </label>
-              <span className={`min-w-0 flex-1 truncate text-sm ${doneToday ? "text-muted line-through" : "text-text"}`}>
-                {h.name}
+                  onClick={() => toggle({ habit: h, day: todayIdx }, doneToday)}
+                  className={`flex min-h-9 w-full max-w-60 items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm text-text transition-colors ${
+                    doneToday
+                      ? "bg-[color-mix(in_oklab,var(--color-rust)_22%,var(--color-bg))] shadow-[inset_3px_0_0_var(--color-hub)]"
+                      : "ring-1 ring-inset ring-border-strong hover:bg-raised"
+                  }`}
+                >
+                  <span className="inline-flex w-3.5 shrink-0 justify-center text-hub">
+                    {doneToday && <Check size={14} strokeWidth={2.5} aria-hidden="true" />}
+                  </span>
+                  <span className="truncate">{h.name}</span>
+                </button>
               </span>
               <span
                 role="group"
