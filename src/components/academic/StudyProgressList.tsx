@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { Flag, Pencil, Plus, Trash2 } from "lucide-react";
 import { DisclosureTrigger } from "@/components/ui/Disclosure";
+import { Pill } from "@/components/ui/Pill";
 import { RowAction } from "@/components/ui/RowAction";
 import { accentControl } from "@/components/ui/accents";
 import { buttonChrome, filledButtonChrome, inputChrome } from "@/components/ui/controls";
@@ -89,22 +90,22 @@ function CourseRow({ course: c, today, onChange }: { course: CourseStudy; today:
             <PaceLabel course={c} />
           </p>
           {c.log.length > 0 && (
-            <DisclosureTrigger
-              open={showLog}
-              onToggle={() => setShowLog((v) => !v)}
-              summary="Sessions"
-              openSummary="Hide sessions"
-              detail={
-                flagged > 0 ? (
-                  <>
-                    {c.log.length} · <FlagMark /> {flagged} to review
-                  </>
-                ) : (
-                  c.log.length
-                )
-              }
-              controls={logId}
-            />
+            <div className="flex items-center gap-3">
+              {flagged > 0 && (
+                <Pill tone="warn">
+                  <Flag size={10} aria-hidden="true" fill="currentColor" className="mr-1 shrink-0" />
+                  {flagged} to review
+                </Pill>
+              )}
+              <DisclosureTrigger
+                open={showLog}
+                onToggle={() => setShowLog((v) => !v)}
+                summary="Sessions"
+                openSummary="Hide sessions"
+                detail={c.log.length}
+                controls={logId}
+              />
+            </div>
           )}
         </div>
       </div>
@@ -395,18 +396,6 @@ function SessionLog({ course: c, today, onChange }: { course: CourseStudy; today
         }}
       />
     </div>
-  );
-}
-
-/** The review flag's glyph, filled in the bar's rust. */
-function FlagMark() {
-  return (
-    <Flag
-      size={11}
-      aria-hidden="true"
-      className="inline-block -translate-y-px text-(--color-rust)"
-      fill="currentColor"
-    />
   );
 }
 

@@ -18,7 +18,7 @@ rail, no tiles. Top to bottom:
    where the plan says you should be by now ("on pace" / "N behind" / "N ahead"), and the exam
    date with days left at the bar's end. Bars start empty and fill from the user's log: the plus
    opens a dialog (title, description, "Flag for review"; logged for today) and "Sessions" under
-   the bar, with "M to review" when any are flagged, lists the log with a review flag, edit (same
+   the bar, with an "M to review" tag beside it when any are flagged, lists the log with a review flag, edit (same
    dialog, filled in) and delete; a legend beneath.
 6. **Courses** — the two-column index of expandable rows (unchanged behaviour).
 7. **Timetable** — open, full width; slate event blocks, Exam Prep blocks in a rust hatch
