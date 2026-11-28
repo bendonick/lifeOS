@@ -88,8 +88,10 @@ data/
   Cache 5–15 min. URLs are secrets → `.env`.
 - Calendars: **Academic**, **Professional**, **Personal** (user creates these — session-zero
   task) plus the primary, historically named **"Class"**, which is the catch-all where external
-  invites land (e.g. recurring Tue "Weekly 1:1"). Domain pages default to their own calendar
-  with an all-calendars toggle; LifeOS shows all, colored by domain.
+  invites land (e.g. recurring Tue "Weekly 1:1"). **Exam Prep** (`ICS_URL_EXAM_PREP`, added
+  2026-11-26) holds final-exam study blocks and belongs to Academic. Domain pages default to
+  their own calendars (`calendarHome` in `src/lib/calendar/types.ts` — Academic's view is
+  Academic + Exam Prep) with an all-calendars toggle; LifeOS shows all, colored by domain.
 - Timezone Europe/Zurich everywhere.
 - Writing events (Google Calendar API + OAuth, e.g. generating class sessions) is OPEN and
   deferred — the user can create a recurring class event in Google in seconds.

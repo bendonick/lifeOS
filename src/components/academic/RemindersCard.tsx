@@ -10,7 +10,10 @@ import type { Note } from "@/lib/db/notes";
 export function RemindersCard({
   reminders,
   accent = "academic",
+  bare = false,
 }: {
+  /** Forwarded to NotesCard: no shell or title when the page supplies them. */
+  bare?: boolean;
   reminders: Note[];
   /** Rail placements pass the rail's accent; the default keeps every existing
    *  caller's rendering identical. */
@@ -25,6 +28,7 @@ export function RemindersCard({
       accent={accent}
       inputId="new-reminder"
       placeholder="Add a reminder…"
+      bare={bare}
     />
   );
 }

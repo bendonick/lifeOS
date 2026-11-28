@@ -42,7 +42,7 @@ export function DayHeader({
         </div>
         <Currently building={currently.building} reading={currently.reading} />
       </div>
-      <ArtworkFrame initialId={artworkId} dailyId={dailyArtworkId} pinnedId={pinnedArtworkId} />
+      <ArtworkFrame collection="overview" initialId={artworkId} dailyId={dailyArtworkId} pinnedId={pinnedArtworkId} />
     </section>
   );
 }

@@ -430,13 +430,14 @@ select {
 
 /*
  * ---------------------------------------------------------------------------
- * Overview theme (decision #87) — the hub as an editorial day planner.
+ * Maritime theme (decisions #87, #91) — the light editorial look. First built
+ * for the Overview as `.theme-overview`; renamed when Academic adopted it.
  *
- * Scoped to a wrapper on `/` and built the way `.theme-editorial` is: every
+ * Scoped to a page's wrapper and built the way `.theme-editorial` is: every
  * token below is one @theme variable redefined, so shared components (ThisWeek,
- * TaskForm, Disclosure, WeekCalendar) re-theme with no fork. The other pages
- * keep the dark editorial theme; nothing here leaks, because every rule starts
- * with the scope class or with `:has()` of it.
+ * TaskForm, Disclosure, WeekCalendar) re-theme with no fork. Pages without the
+ * wrapper keep the dark editorial theme; nothing here leaks, because every rule
+ * starts with the scope class or with `:has()` of it.
  *
  * The user's palette, exact: Cream #EFDFBB, Deep navy #232F3E, Slate #7A888E,
  * Rust #C87629, Oxblood #801818. Measured on Cream: navy 10.3:1, oxblood
@@ -446,7 +447,7 @@ select {
  * on the chip ground (--color-raised).
  * ---------------------------------------------------------------------------
  */
-.theme-overview {
+.theme-maritime {
   /* Flat paper: page, surface and inset are the same cream. Sections are
      separated by rules and space, never by a second ground. */
   --color-bg: #efdfbb;
@@ -462,8 +463,12 @@ select {
   --color-muted: #46535e;
   --color-faint: #4e5c66;
 
-  /* `hub` is the page's secondary accent here: rust, darkened until it reads. */
+  /* `hub` is the page's secondary accent here: rust, darkened until it reads.
+     `link` is the same value under its own name, for text actions: a page may
+     re-point `hub` (Academic does, for its calendar blocks) without its links
+     turning grey. */
   --color-hub: #884a12;
+  --color-link: #884a12;
   --color-academic: #7b2d3b;
   --color-personal: #884a12;
   --color-professional: #2b5c8a;
@@ -493,41 +498,41 @@ select {
 
 /* The canvas outside the wrapper (overscroll, the margins of a short page) and
    the UA's own controls follow the page that is showing. */
-body:has(.theme-overview) {
+body:has(.theme-maritime) {
   background-color: #efdfbb;
 }
-:root:has(.theme-overview) {
+:root:has(.theme-maritime) {
   color-scheme: light;
 }
 
-.theme-overview .t-serif {
+.theme-maritime .t-serif {
   font-family: var(--font-serif), Georgia, "Times New Roman", serif;
   font-weight: 600;
   letter-spacing: -0.012em;
 }
 
 /* The base focus ring is a literal light grey (1.2:1 on cream). */
-.theme-overview :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+.theme-maritime :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline-color: #232f3e;
 }
 
-.theme-overview input[type="checkbox"] {
+.theme-maritime input[type="checkbox"] {
   accent-color: #232f3e;
 }
 
-.theme-overview ::selection {
+.theme-maritime ::selection {
   background-color: #232f3e;
   color: #efdfbb;
 }
 
 /* The select glyph is a literal in a data: URI; this is the navy one. */
-.theme-overview select {
+.theme-maritime select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%2346535e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 /* Repeated items are ruled lines here, not subordinate cards: no ground, no
    box, one hairline beneath. */
-.theme-overview .row-card {
+.theme-maritime .row-card {
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--color-border);
@@ -537,25 +542,137 @@ body:has(.theme-overview) {
 /* Disclosure triggers read as quiet text actions on this page ("Add task",
    "Read brief", "Open calendar"), not as bordered chips. The component is
    shared; the page scopes its look. */
-.theme-overview button[data-variant="add"],
-.theme-overview button[data-variant="chevron"] {
+.theme-maritime button[data-variant="add"],
+.theme-maritime button[data-variant="chevron"] {
   border: 0;
   background: transparent;
   padding: 0.25rem 0;
   min-height: 1.75rem;
   font-size: 0.9375rem;
-  color: var(--color-hub);
+  color: var(--color-link);
 }
-.theme-overview button[data-variant="add"]:hover,
-.theme-overview button[data-variant="chevron"]:hover {
+.theme-maritime button[data-variant="add"]:hover,
+.theme-maritime button[data-variant="chevron"]:hover {
   color: var(--color-text);
 }
-.theme-overview button[data-variant="chevron"] svg {
+.theme-maritime button[data-variant="chevron"] svg {
   color: currentColor;
 }
 
+/* The semester map's current week (decision #92): a rust tint from the week's
+   date header down to its weekly total. Rust at 20% over cream; text on it is
+   measured in the page's contrast sweep. */
+.theme-maritime .map-now {
+  background: color-mix(in oklab, var(--color-rust) 20%, transparent);
+}
+
+/* Filter tabs: the active one is the page's filled ink control — the same
+   tokens as the current page in the navigation and the Add menu (decision #91).
+   `AcademicTasks` renders the same buttons on the dark course page untouched. */
+.theme-maritime button[data-view-tab] {
+  border-radius: 0.375rem;
+  border-color: transparent;
+  background: transparent;
+  padding: 0.25rem 0.75rem;
+  min-height: 1.75rem;
+  font-size: 0.875rem;
+  color: var(--color-text);
+}
+.theme-maritime button[data-view-tab]:hover {
+  background: var(--color-raised);
+}
+.theme-maritime button[data-view-tab][aria-pressed="true"] {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-weight: 600;
+}
+
+/* An open row's due label: the deadline colour, led by a calendar glyph. The
+   glyph is a mask so it takes the text colour; decorative, the date is the text. */
+.theme-maritime td[data-due] {
+  color: var(--color-danger);
+  font-size: 0.875rem;
+}
+.theme-maritime td[data-due]::before {
+  content: "";
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.45rem;
+  vertical-align: -0.16em;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v4M16 2v4'/%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M3 10h18'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v4M16 2v4'/%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M3 10h18'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* The week grid on a Maritime page: today is a rust tint (the same signal as the
+   semester map's current week), which keeps it distinct from event blocks. */
+.theme-maritime [data-today] {
+  background: color-mix(in oklab, var(--color-rust) 16%, transparent);
+}
+
+/* Academic only (decision #94): timetable event blocks are slate-tinted with
+   navy labels, not the domain's merlot. The week grid is shared, so the route
+   styles its hooks and re-points the two calendar accents its legend reads —
+   the component does not change. */
+.page-academic {
+  --color-academic: #3d4a56;
+  --color-hub: #46535e;
+}
+.page-academic [data-event] {
+  background: color-mix(in oklab, var(--color-slate) 36%, var(--color-bg));
+  border-color: color-mix(in oklab, var(--color-slate) 70%, var(--color-bg));
+  color: var(--color-text);
+  font-size: 0.75rem;
+}
+/* Exam Prep study blocks are named after their courses, so in the same slate
+   they read as classes. A rust edge on the left sets them apart, and the
+   legend's swatch carries the same edge. Rust is darkened from #C87629
+   (2.62:1 on cream) until the edge clears 3:1 against both the block and
+   the page, the same way the theme darkens it for text. */
+.page-academic {
+  --color-exam-prep: #9a5516;
+}
+.page-academic [data-calendar="examPrep"]:not([data-swatch]) {
+  border-left: 3px solid var(--color-exam-prep);
+}
+.page-academic [data-swatch][data-calendar="examPrep"] {
+  box-shadow: inset 3px 0 0 var(--color-exam-prep);
+  opacity: 1;
+}
+/* The task list's column headers stay for screen readers; the rows are three
+   plain facts and need no visible header on this page. */
+.page-academic #assignments thead th,
+.page-academic #exams thead th {
+  /* Collapsed in place, not positioned out of flow: an absolutely positioned
+     <thead> escapes the table's scroll box and widened the page by 400px. */
+  height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 0;
+  line-height: 0;
+}
+.page-academic #assignments thead tr,
+.page-academic #exams thead tr {
+  border-bottom-width: 0;
+}
+
+/* A bare NotesCard: the status line and the add action share one row. */
+.theme-maritime [data-notes-bare] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+}
+.theme-maritime [data-notes-bare] > ul {
+  order: 3;
+  flex-basis: 100%;
+  margin-top: 0;
+}
+
 @media (prefers-contrast: more) {
-  .theme-overview {
+  .theme-maritime {
     --color-muted: #36424e;
     --color-faint: #3d4a56;
     --color-border: #7a888e;

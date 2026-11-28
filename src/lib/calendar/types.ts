@@ -4,17 +4,20 @@ import type { Accent } from "@/components/ui/accents";
 // only `ics.ts` (server) reads the secret feed URLs.
 
 /**
- * The four Google calendars (docs/01-architecture.md → integrations). "class" is
+ * The Google calendars (docs/01-architecture.md → integrations). "class" is
  * the primary calendar, historically named — the catch-all where external
  * invites land, so it is domain-less and renders in the hub's neutral accent.
+ * "examPrep" is final-exam study time; it belongs to Academic (see
+ * `calendarHome`), so Academic's own view shows it beside the Academic calendar.
  */
-export type CalendarKey = "academic" | "personal" | "professional" | "class";
+export type CalendarKey = "academic" | "personal" | "professional" | "class" | "examPrep";
 
 export const CALENDARS: { key: CalendarKey; label: string; accent: Accent; envVar: string }[] = [
   { key: "academic", label: "Academic", accent: "academic", envVar: "ICS_URL_ACADEMIC" },
   { key: "personal", label: "Personal", accent: "personal", envVar: "ICS_URL_PERSONAL" },
   { key: "professional", label: "Professional", accent: "professional", envVar: "ICS_URL_PROFESSIONAL" },
   { key: "class", label: "Class", accent: "hub", envVar: "ICS_URL_CLASS" },
+  { key: "examPrep", label: "Exam Prep", accent: "academic", envVar: "ICS_URL_EXAM_PREP" },
 ];
 
 export const calendarAccent: Record<CalendarKey, Accent> = {
@@ -22,6 +25,7 @@ export const calendarAccent: Record<CalendarKey, Accent> = {
   personal: "personal",
   professional: "professional",
   class: "hub",
+  examPrep: "academic",
 };
 
 export const calendarLabel: Record<CalendarKey, string> = {
@@ -29,7 +33,27 @@ export const calendarLabel: Record<CalendarKey, string> = {
   personal: "Personal",
   professional: "Professional",
   class: "Class",
+  examPrep: "Exam Prep",
 };
+
+/**
+ * The page a calendar belongs to. A page's own view (`home`) shows every
+ * calendar whose home is that page, not only the one with the same key — so
+ * Exam Prep appears on Academic's default tab without the "All calendars"
+ * toggle. Every other calendar is its own home.
+ */
+export const calendarHome: Record<CalendarKey, CalendarKey> = {
+  academic: "academic",
+  personal: "personal",
+  professional: "professional",
+  class: "class",
+  examPrep: "academic",
+};
+
+/** True when `calendar`'s events belong in `home`'s own view. */
+export function inHome(calendar: CalendarKey, home: CalendarKey): boolean {
+  return calendarHome[calendar] === home;
+}
 
 /** One occurrence, already resolved to Zurich wall-clock. */
 export interface CalendarEvent {

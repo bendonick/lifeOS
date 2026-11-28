@@ -3,7 +3,7 @@
 import { ChevronDown, Plus } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { accentHoverBorder, type Accent } from "@/components/ui/accents";
-import { buttonChrome } from "@/components/ui/controls";
+import { buttonChrome, filledButtonChrome } from "@/components/ui/controls";
 
 /**
  * A page's one creation control (decision #78): each entry is the anchor an
@@ -17,7 +17,17 @@ export interface AddItem {
   hash: string;
 }
 
-export function AddMenu({ items, accent }: { items: AddItem[]; accent: Accent }) {
+export function AddMenu({
+  items,
+  accent,
+  variant = "outline",
+}: {
+  items: AddItem[];
+  accent: Accent;
+  /** `filled` is the Maritime pages' ink control (decision #91) — the same
+   *  pairing as the current page in the navigation. */
+  variant?: "outline" | "filled";
+}) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const menuId = useId();
@@ -49,18 +59,22 @@ export function AddMenu({ items, accent }: { items: AddItem[]; accent: Accent })
         aria-expanded={open}
         aria-controls={menuId}
         onClick={() => setOpen((v) => !v)}
-        className={`${buttonChrome} inline-flex items-center gap-1.5 ${accentHoverBorder[accent]}`}
+        className={
+          variant === "filled"
+            ? `${filledButtonChrome} gap-1.5`
+            : `${buttonChrome} inline-flex items-center gap-1.5 ${accentHoverBorder[accent]}`
+        }
       >
         <Plus size={14} aria-hidden="true" />
         Add
-        <ChevronDown size={12} aria-hidden="true" className="text-faint" />
+        <ChevronDown size={12} aria-hidden="true" className={variant === "filled" ? "" : "text-faint"} />
       </button>
       {open && (
         <ul
           id={menuId}
           role="menu"
           aria-label="Add"
-          className="absolute right-0 z-30 mt-1.5 min-w-48 rounded-lg border border-border bg-surface p-1"
+          className="absolute right-0 z-30 mt-1.5 min-w-48 rounded-lg border border-border bg-surface p-1 shadow-lg shadow-black/10"
         >
           {items.map((item) => (
             <li key={item.hash} role="none">

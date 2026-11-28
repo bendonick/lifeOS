@@ -46,10 +46,10 @@ the green against the warm yellow-brown.
   orange = assignment / due-soon. If everything is colored, nothing signals — this rule came
   directly from the Notion tag-palette work.
 
-## The Overview theme (decision #87)
+## The Maritime theme (decisions #87, #91)
 
-`/` alone wears `.theme-overview` — light, flat, editorial. Rules that differ from the rest of
-the app, and only there:
+`/` and `/academic` wear `.theme-maritime` (first built as `.theme-overview`) — light, flat,
+editorial. Rules that differ from the dark pages, and only there:
 
 - **Palette:** Cream `#EFDFBB` (page; there is no second ground), Deep navy `#232F3E` (ink and
   the filled control), Slate `#7A888E` (rules, chip tints), Rust `#C87629` (agenda markers,
@@ -65,8 +65,15 @@ the app, and only there:
 - **Shared components are themed by scope, never forked:** `Disclosure` triggers carry
   `data-variant`, which the theme styles as text actions; the select chevron and the focus ring
   have navy overrides because their base values are literals.
-- **Add a new Overview component** with token utilities only; if a colour literal seems needed,
-  add a property to `.theme-overview` instead.
+- **Add a new Maritime component** with token utilities only; if a colour literal seems needed,
+  add a property to `.theme-maritime` instead.
+- **Shared parts:** `ui/SiteNav` (navigation), `ui/RuledSection` (a section without a tile),
+  `lifeos/ArtworkFrame` (provider + image + controls + caption, by collection), `AddMenu
+  variant="filled"`, `ui/fonts.ts`. A route's own rules go under a page class
+  (`.page-academic`), which may re-point tokens (`--color-hub`) but never `--color-link`.
+- **Text actions** use `--color-link`, not `--color-hub`, so a page can re-point `hub`.
+- **A horizontally scrolling box that holds `sr-only` text must be `relative`** — otherwise the
+  absolutely positioned spans escape it and widen the document.
 
 ## Page anatomy (every page follows this)
 

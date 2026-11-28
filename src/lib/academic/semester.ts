@@ -221,9 +221,13 @@ export interface MapMark {
 
 export interface MapWeek {
   monday: string;
-  /** Day of month of the Monday — the column header. */
+  /** Day of month of the Monday. */
   day: number;
   month: string;
+  /** The column header: the week's Monday–Sunday range ('16–22', '26 Oct–1 Nov'). */
+  range: string;
+  /** The same range in full, with years, for the accessible name and tooltip. */
+  rangeFull: string;
   isNow: boolean;
   /** First column of a month, drawn with a slightly stronger guide. */
   monthStart: boolean;
@@ -255,11 +259,53 @@ export interface SemesterMapModel {
   completed: number;
   /** Open exams. */
   exams: number;
-  nextBusy: { monday: string; count: number } | null;
-  peak: { monday: string; count: number } | null;
 }
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+/** Day of month of a 'YYYY-MM-DD' date, without a leading zero. */
+const dayOf = (date: string): number => Number(date.slice(8, 10));
+
+/** 'Sep', 'Oct' — always three letters. `Intl`'s en-GB short month for
+ *  September is "Sept", the one four-letter name, and the widest label on the
+ *  map's axis; a fixed slice keeps every boundary label the same shape. */
+const shortMonth = (date: string): string => MONTHS[Number(date.slice(5, 7)) - 1].slice(0, 3);
+
+/**
+ * A Monday–Sunday week as a column header (decision #92). The user reads the map
+ * by calendar date, so every column says when its week starts and ends:
+ *
+ *   one month        '16–22'           (the month is the heading above it)
+ *   across months    '26 Oct–1 Nov'
+ *   across years     '28 Dec–3 Jan'
+ *
+ * `full` spells the same range out with its year or years, for the accessible
+ * name and the tooltip — '28 December 2026 – 3 January 2027'.
+ *
+ * Args:
+ *   monday: The week's Monday, 'YYYY-MM-DD'. The range is derived from this
+ *     date alone, on a UTC-noon anchor, so no timezone or DST edge can move it.
+ */
+export function weekRangeParts(monday: string): { label: string; full: string } {
+  const sunday = addDays(monday, 6);
+  const fmt = (date: string, opts: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat("en-GB", { ...opts, timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`));
+  const sameMonth = monday.slice(0, 7) === sunday.slice(0, 7);
+  const sameYear = monday.slice(0, 4) === sunday.slice(0, 4);
+  if (sameMonth) {
+    return {
+      label: `${dayOf(monday)}–${dayOf(sunday)}`,
+      full: `${dayOf(monday)}–${fmt(sunday, { day: "numeric", month: "long", year: "numeric" })}`,
+    };
+  }
+  return {
+    label: `${dayOf(monday)} ${shortMonth(monday)}–${dayOf(sunday)} ${shortMonth(sunday)}`,
+    full: `${fmt(monday, sameYear ? { day: "numeric", month: "long" } : { day: "numeric", month: "long", year: "numeric" })} – ${fmt(sunday, { day: "numeric", month: "long", year: "numeric" })}`,
+  };
+}
 
 export function markOf(t: CourseTask, today: string, course: string | null, href: string): MapMark {
   const date = t.due!.slice(0, 10);
@@ -290,7 +336,17 @@ export function semesterMap(
   const weeks: MapWeek[] = Array.from({ length: weekCount }, (_, i) => {
     const monday = addDays(start, i * 7);
     const d = new Date(`${monday}T12:00:00Z`);
-    return { monday, day: d.getUTCDate(), month: MONTHS[d.getUTCMonth()], isNow: mondayOf(today) === monday, monthStart: false };
+    const range = weekRangeParts(monday);
+    return {
+      monday,
+      day: d.getUTCDate(),
+      // A week belongs to the month that holds its Monday (decision #92).
+      month: MONTHS[d.getUTCMonth()],
+      range: range.label,
+      rangeFull: range.full,
+      isNow: mondayOf(today) === monday,
+      monthStart: false,
+    };
   });
   const months: { label: string; span: number }[] = [];
   weeks.forEach((w, i) => {
@@ -350,15 +406,6 @@ export function semesterMap(
   const counts = weeks.map(() => 0);
   for (const t of [...work, ...exams]) if (!t.done && onAxis(t)) counts[weekIndex(t.due)]++;
   const now = weeks.findIndex((w) => w.isNow);
-  let nextBusy: SemesterMapModel["nextBusy"] = null;
-  for (let i = now + 1; i < counts.length; i++) {
-    if (isBusyWeek(counts[i])) {
-      nextBusy = { monday: weeks[i].monday, count: counts[i] };
-      break;
-    }
-  }
-  const peakCount = Math.max(0, ...counts);
-  const peak = peakCount > 0 ? { monday: weeks[counts.indexOf(peakCount)].monday, count: peakCount } : null;
 
   return {
     weeks,
@@ -370,20 +417,15 @@ export function semesterMap(
     open: work.filter((t) => !t.done).length,
     completed: work.filter((t) => t.done).length,
     exams: exams.filter((e) => !e.done).length,
-    nextBusy,
-    peak,
   };
 }
 
 /** '19–25 Oct', or '28 Sep – 4 Oct' when the week straddles a month. */
 export function weekRangeLabel(monday: string): string {
   const sunday = addDays(monday, 6);
-  const fmt = (date: string, opts: Intl.DateTimeFormatOptions) =>
-    new Intl.DateTimeFormat("en-GB", { ...opts, timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`));
-  const sameMonth = monday.slice(0, 7) === sunday.slice(0, 7);
-  return sameMonth
-    ? `${fmt(monday, { day: "numeric" })}–${fmt(sunday, { day: "numeric", month: "short" })}`
-    : `${fmt(monday, { day: "numeric", month: "short" })} – ${fmt(sunday, { day: "numeric", month: "short" })}`;
+  return monday.slice(0, 7) === sunday.slice(0, 7)
+    ? `${dayOf(monday)}–${dayOf(sunday)} ${shortMonth(sunday)}`
+    : `${dayOf(monday)} ${shortMonth(monday)} – ${dayOf(sunday)} ${shortMonth(sunday)}`;
 }
 
 /* ---------------------------------------------------------------------------

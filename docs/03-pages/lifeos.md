@@ -2,7 +2,7 @@
 
 **Overview redesign, 2026-11-19 (decisions #87–#90) — this section is current; everything below
 it is history.** The hub is now the **Overview**: an editorial day planner on a light cream/navy
-theme scoped to this page (`.theme-overview`). No tiles. Top to bottom:
+theme (`.theme-maritime`, shared with Academic since #91). No tiles. Top to bottom:
 
 1. **Navigation** — serif wordmark · Overview (current) · Academic · Personal · Professional.
 2. **Masthead** — "Your day", the Zürich date as `<h1>`, the editable **Currently** strip

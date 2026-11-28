@@ -21,7 +21,12 @@ export function NotesCard({
   accent,
   inputId,
   placeholder,
+  bare = false,
 }: {
+  /** No shell and no title of its own: the page's section already has a
+   *  heading and a rule (the Maritime Academic page, decision #94). The status
+   *  line and the add action then share one row. */
+  bare?: boolean;
   notes: Note[];
   domain: string;
   kind: Note["kind"];
@@ -71,16 +76,19 @@ export function NotesCard({
   return (
     <div
       aria-busy={isPending || isAdding}
-      className="rounded-xl border-2 border-border-strong bg-surface p-4"
+      data-notes-bare={bare ? "" : undefined}
+      className={bare ? "" : "rounded-xl border-2 border-border-strong bg-surface p-4"}
     >
-      <div className={`flex items-center gap-2 text-xs font-medium ${accentText[accent]}`}>
-        {/* Theming hook — the editorial theme renders this as a serif title so
-            NotesCard sits in a rail of Tiles without looking like a stranger.
-            Inert everywhere else. */}
-        <span data-card-label="">{title}</span>
-      </div>
-      <p className="mt-1 text-xs text-muted">
-        {open.length === 0 ? "nothing pending" : `${open.length} pending`}
+      {!bare && (
+        <div className={`flex items-center gap-2 text-xs font-medium ${accentText[accent]}`}>
+          {/* Theming hook — the editorial theme renders this as a serif title so
+              NotesCard sits in a rail of Tiles without looking like a stranger.
+              Inert everywhere else. */}
+          <span data-card-label="">{title}</span>
+        </div>
+      )}
+      <p className={bare ? "t-serif !font-medium text-base italic text-muted" : "mt-1 text-xs text-muted"}>
+        {open.length === 0 ? (bare ? "Nothing pending" : "nothing pending") : `${open.length} pending`}
       </p>
 
       {notes.length > 0 && (
@@ -89,13 +97,16 @@ export function NotesCard({
             const done = valueFor(n, !!n.reviewed);
             return (
               <li key={n.id} className="flex items-start gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={done}
-                  onChange={() => toggle(n, done)}
-                  className={`mt-0.5 h-3.5 w-3.5 shrink-0 cursor-pointer ${accentControl[accent]}`}
-                  aria-label={`done: ${n.text}`}
-                />
+                {/* 24px target around the box (decision #76). */}
+                <label className="-my-0.5 inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={done}
+                    onChange={() => toggle(n, done)}
+                    className={`h-3.5 w-3.5 cursor-pointer ${accentControl[accent]}`}
+                    aria-label={`done: ${n.text}`}
+                  />
+                </label>
                 <span className={done ? "text-faint line-through" : "text-muted"}>{n.text}</span>
               </li>
             );

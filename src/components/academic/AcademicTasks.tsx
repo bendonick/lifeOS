@@ -486,6 +486,9 @@ function Row({
         </td>
       )}
       <td
+        // Styling hook: an open, dated row's due label is the Maritime theme's
+        // deadline colour, with a calendar glyph drawn by the stylesheet.
+        data-due={task.due && !done ? "" : undefined}
         className={`tabular px-3 py-3 text-right text-xs whitespace-nowrap ${
           urgency && !done ? urgencyText[urgency] : "text-faint"
         }`}
@@ -539,6 +542,9 @@ function ViewTab({
       type="button"
       onClick={onClick}
       aria-pressed={active}
+      // Styling hook: the Maritime theme draws the active filter as its filled
+      // ink control (globals.css). Inert on the dark course page.
+      data-view-tab=""
       className={`rounded-full border px-2.5 py-0.5 text-[11px] transition-colors ${
         active
           ? "border-academic/40 bg-academic/10 text-academic"

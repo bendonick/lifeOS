@@ -9,6 +9,7 @@ import { allDayOn, hourRange, placeTimed, type PlacedEvent } from "@/lib/calenda
 import {
   calendarAccent,
   calendarLabel,
+  inHome,
   isUnconfigured,
   type CalendarKey,
   type CalendarWindow,
@@ -77,7 +78,7 @@ export function WeekCalendar({
   );
 
   const visible = useMemo(
-    () => (showAll || !home ? data.events : data.events.filter((e) => e.calendar === home)),
+    () => (showAll || !home ? data.events : data.events.filter((e) => inHome(e.calendar, home))),
     [data.events, home, showAll]
   );
 
@@ -140,6 +141,10 @@ export function WeekCalendar({
           {days.map((d) => (
             <div
               key={d}
+              // Styling hooks (`data-today`, `data-event`, `data-calendar`): the
+              // Maritime theme tints today rust, draws event blocks slate and
+              // marks Exam Prep with a rust edge; inert elsewhere.
+              data-today={d === today ? "" : undefined}
               className={`border-b border-l border-border px-2 py-2 text-xs font-medium ${
                 d === today ? "text-text" : "text-muted"
               }`}
@@ -178,6 +183,7 @@ export function WeekCalendar({
                     <div
                       key={e.id}
                       title={e.title}
+                      data-calendar={e.calendar}
                       className={`truncate rounded border px-1.5 py-0.5 text-[11px] ${accentEvent[calendarAccent[e.calendar]]}`}
                     >
                       {e.title}
@@ -266,6 +272,7 @@ function DayColumn({
 }) {
   return (
     <div
+      data-today={day === today ? "" : undefined}
       className={`relative border-l border-border ${day === today ? "bg-raised/40" : ""}`}
       style={{ height: hours.length * HOUR_PX }}
     >
@@ -287,6 +294,8 @@ function DayColumn({
           <div
             key={p.event.id}
             title={`${p.event.title} · ${p.event.start.slice(11, 16)}–${p.event.end.slice(11, 16)}${p.event.location ? ` · ${p.event.location}` : ""}`}
+            data-event=""
+            data-calendar={p.event.calendar}
             className={`absolute overflow-hidden rounded border px-1.5 py-0.5 text-[11px] leading-tight ${accentEvent[calendarAccent[p.event.calendar]]}`}
             style={{
               top: top + 1,
@@ -376,6 +385,8 @@ function FeedLine({
               <span key={f.key} className={`flex items-center gap-1.5 ${accentText[calendarAccent[f.key]]}`}>
                 <span
                   aria-hidden="true"
+                  data-swatch=""
+                  data-calendar={f.key}
                   className="inline-block size-2 rounded-[2px] bg-current opacity-70"
                 />
                 {f.label}
@@ -397,7 +408,7 @@ function FeedLine({
         type="button"
         onClick={onRefresh}
         disabled={busy}
-        className="rounded text-faint underline decoration-border underline-offset-2 hover:text-muted disabled:cursor-wait"
+        className="inline-flex min-h-6 items-center rounded text-faint underline decoration-border underline-offset-2 hover:text-muted disabled:cursor-wait"
       >
         {busy ? "refreshing…" : "refresh"}
       </button>
@@ -435,7 +446,7 @@ function NotConfigured() {
         <li>
           Paste it into <span className="text-muted">.env</span> as{" "}
           <span className="text-muted">ICS_URL_ACADEMIC</span> (also CLASS, PERSONAL,
-          PROFESSIONAL), then restart <span className="text-muted">npm run dev</span>.
+          PROFESSIONAL, EXAM_PREP), then restart <span className="text-muted">npm run dev</span>.
         </li>
       </ol>
     </div>
@@ -478,7 +489,7 @@ function Tab({
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      className={`rounded-full border px-2.5 py-0.5 text-[11px] ${
+      className={`inline-flex min-h-6 items-center rounded-full border px-2.5 py-0.5 text-[11px] ${
         active ? "border-border bg-raised text-text" : "border-transparent text-muted hover:text-text"
       }`}
     >

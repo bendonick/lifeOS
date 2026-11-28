@@ -4,6 +4,7 @@ import type { Deadline } from "@/lib/calendar/deadlines";
 import { calendarWeek } from "@/lib/calendar/ics";
 import {
   calendarAccent,
+  inHome,
   isUnconfigured,
   type CalendarEvent,
   type CalendarKey,
@@ -70,7 +71,7 @@ export async function CalendarTile({
   // reading as a contradiction, and the cheapest way to drop that phrase is to
   // count the same set the list shows. `start` is a sortable Zurich wall-clock
   // string, so a lexical compare is a chronological one.
-  const mine = home ? data.events.filter((e) => e.calendar === home) : data.events;
+  const mine = home ? data.events.filter((e) => inHome(e.calendar, home)) : data.events;
   const upcoming = mine
     .filter((e) => e.start.slice(0, 10) >= today)
     .sort((a, b) => a.start.localeCompare(b.start))

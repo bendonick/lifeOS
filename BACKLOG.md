@@ -323,3 +323,19 @@ becomes a session the day its data exists.
 - **`generated_images/` is untracked** (17 source PNGs, ~34 MB). Either delete it, or add it to
   `.gitignore`; the five prints the app uses are already in `public/artwork/`.
 
+## Academic on the Maritime theme (2026-11-20)
+
+- **Course detail pages are still dark.** A course link from the light Academic page lands on
+  the dark `/academic/courses/[id]`. Moving it means `SiteNav`, `RuledSection` and the theme
+  wrapper on that route, and a pass over `SectionBanner` there.
+- **Personal and Professional are still dark,** with the navigation rail (Personal) and the
+  rail-and-bento (Professional). The shared parts they would need now exist.
+- **Centre the timetable's week range between its arrows,** as the reference draws it. It is a
+  change to `WeekCalendar`, which four pages share; held back for that reason.
+- **Scroll-spy on the section links.** The navigation rail marked the section in view; the link
+  row does not.
+- **Migrate the private pill tabs to `ui/Tabs`** (AcademicTasks' `ViewTab`, WeekCalendar's
+  `Tab`) and give `Tabs` the filled variant, so the Maritime filter style is a prop, not a
+  `data-view-tab` rule.
+- **`generated_images/`** now holds 24 source PNGs, untracked.
+

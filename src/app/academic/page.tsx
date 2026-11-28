@@ -1,17 +1,6 @@
-import {
-  Bell,
-  BookOpen,
-  Briefcase,
-  CalendarDays,
-  ClipboardList,
-  FileText,
-  GraduationCap,
-  Home,
-  ListChecks,
-  Map as MapIcon,
-  User,
-} from "lucide-react";
+import type { Viewport } from "next";
 import { Suspense } from "react";
+import { AcademicMasthead } from "@/components/academic/AcademicMasthead";
 import { AcademicTasks } from "@/components/academic/AcademicTasks";
 import { CoursesSection } from "@/components/academic/CoursesSection";
 import { ExamsPanel } from "@/components/academic/ExamsPanel";
@@ -19,8 +8,9 @@ import { RemindersCard } from "@/components/academic/RemindersCard";
 import { SemesterMap } from "@/components/academic/SemesterMap";
 import { CalendarTile, CalendarTileSkeleton } from "@/components/calendar/CalendarTile";
 import { AddMenu } from "@/components/ui/AddMenu";
-import { NavRail } from "@/components/ui/NavRail";
-import { Tile } from "@/components/ui/Tile";
+import { newsreader } from "@/components/ui/fonts";
+import { RuledSection } from "@/components/ui/RuledSection";
+import { SiteNav } from "@/components/ui/SiteNav";
 import {
   firstExamLabel,
   groupCourses,
@@ -36,20 +26,26 @@ import {
 } from "@/lib/academic/semester";
 import { allCourses } from "@/lib/db/courses";
 import { notesFor } from "@/lib/db/notes";
+import { getArtworkPin } from "@/lib/db/overview";
 import { academicExams, academicWork, openDeadlines } from "@/lib/db/tasks";
-import { dayLabel, zurichToday } from "@/lib/dates";
+import { zurichToday } from "@/lib/dates";
+import { dailyArtwork } from "@/lib/overview/artwork";
 
 // Reads happen here on the server via the shared db modules; client components
 // mutate through /api/* and router.refresh() back to this page's data.
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Academic" };
 
-// Layout (decision #78): a slim navigation rail beside the page, one `+ Add`
-// menu in the header, and four modules in the order the eye needs them —
-// Semester (the term's shape), Upcoming work beside Exams (what needs action,
-// and its context), Courses (reference), then the timetable at full width
-// (#28/#58/#73) and the reminders list the rail links to. No rail of modules:
-// what they carried moved into the page or the menu.
+// A Maritime page (decision #91): light, like the Overview.
+export const viewport: Viewport = { themeColor: "#efdfbb", colorScheme: "light" };
+
+// Layout (decisions #91–#94, replacing #78's navigation rail): the horizontal
+// LifeOS navigation with the page's one `+ Add` menu, a masthead with a print
+// and the section links, then the modules in the order the eye needs them —
+// the Semester map at full width (the term's shape, read by calendar date),
+// Upcoming work beside Exams (what needs action, and its context), Courses
+// (reference), the timetable open at full width (#28/#58/#73) and Reminders.
+// Flat cream paper: sections are separated by rules, never by tiles.
 export default function AcademicPage() {
   const today = zurichToday();
   const courses = allCourses();
@@ -73,53 +69,18 @@ export default function AcademicPage() {
     .map((e) => e.due!)
     .sort()[0];
   const pending = reminders.filter((n) => !n.reviewed).length;
+  const pin = getArtworkPin("academic");
+  const daily = dailyArtwork(today, "academic");
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[13rem_minmax(0,1fr)]">
-      <NavRail
-        page="Academic"
-        pageIcon={<GraduationCap size={16} />}
-        accent="academic"
-        sections={[
-          { id: "semester", label: "Overview", icon: <Home size={15} /> },
-          { id: "courses", label: "Courses", icon: <BookOpen size={15} /> },
-          { id: "assignments", label: "Assignments", icon: <ListChecks size={15} /> },
-          { id: "timetable", label: "Timetable", icon: <CalendarDays size={15} /> },
-        ]}
-        links={[
-          { href: "/personal", label: "Personal", icon: <User size={15} /> },
-          { href: "/professional", label: "Professional", icon: <Briefcase size={15} /> },
-          { href: "#reminders", label: "Reminders", icon: <Bell size={15} />, badge: pending },
-        ]}
-        footer={
-          term && weekNo ? (
-            <div className="px-2.5" title={`term ends ${dayLabel(term.end)}`}>
-              <div className="text-xs text-text">
-                Week {weekNo} of {term.weeks}
-              </div>
-              <div
-                role="progressbar"
-                aria-label="week of term"
-                aria-valuemin={1}
-                aria-valuemax={term.weeks}
-                aria-valuenow={weekNo}
-                className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-track"
-              >
-                <div className="h-full rounded-full bg-hub" style={{ width: `${Math.round((weekNo / term.weeks) * 100)}%` }} />
-              </div>
-            </div>
-          ) : undefined
-        }
-      />
-
-      <main className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
-        <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-          <div className="flex flex-wrap items-baseline gap-x-3">
-            <h1 className="t-serif text-3xl font-semibold tracking-tight">Academic</h1>
-            {semester && <p className="text-sm text-muted">{semester}</p>}
-          </div>
+    // `page-academic` scopes the few rules that are this route's alone (the
+    // timetable's slate event blocks); everything else is the shared theme.
+    <div className={`theme-maritime page-academic ${newsreader.variable} min-h-screen`}>
+      <div className="mx-auto max-w-[76rem] px-5 pb-20 sm:px-8">
+        <SiteNav current="academic">
           <AddMenu
             accent="academic"
+            variant="filled"
             items={[
               { label: "Course", hash: "new-course" },
               { label: "Assignment or task", hash: "new-assignment" },
@@ -127,91 +88,76 @@ export default function AcademicPage() {
               { label: "Reminder", hash: "new-reminder" },
             ]}
           />
-        </header>
+        </SiteNav>
 
-        <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+        <main>
+          <AcademicMasthead
+            semester={semester}
+            week={term && weekNo ? `week ${weekNo} of ${term.weeks}` : null}
+            sections={[
+              ...(map ? [{ id: "semester", label: "Semester" }] : []),
+              { id: "assignments", label: "Assignments" },
+              { id: "exams", label: "Exams" },
+              { id: "courses", label: "Courses" },
+              { id: "timetable", label: "Timetable" },
+              { id: "reminders", label: "Reminders", count: pending },
+            ]}
+            artworkId={pin ?? daily.id}
+            dailyArtworkId={daily.id}
+            pinnedArtworkId={pin}
+          />
+
           {/* The hero. Absent until a course carries a term start — a map with
               no axis is not a map. */}
           {map && (
-            <Tile
+            <RuledSection
               id="semester"
-              accent="academic"
-              frame="quiet"
-              icon={<MapIcon size={16} />}
-              title="Semester"
+              title="Semester map"
               meta={`${map.open} open · ${map.completed} completed · ${map.exams} ${map.exams === 1 ? "exam" : "exams"}`}
-              span="lg:col-span-12"
             >
               <SemesterMap model={map} />
-            </Tile>
+            </RuledSection>
           )}
 
-          <Tile
-            id="assignments"
-            accent="academic"
-            frame="quiet"
-            icon={<ClipboardList size={16} />}
-            title="Upcoming work"
-            meta={`${thisWeek} this week · ${nextWeek} next week`}
-            span="lg:col-span-12 xl:col-span-8"
-          >
-            <AcademicTasks tasks={work} courses={courses} today={today} mode="work" frameless addTrigger={false} />
-          </Tile>
+          {/* Upcoming work gets the wider column; one thin rule separates Exams.
+              Below `lg` they stack. */}
+          <div className="grid grid-cols-1 border-b border-border lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            <RuledSection
+              id="assignments"
+              title="Upcoming work"
+              meta={`${thisWeek} this week · ${nextWeek} next week`}
+              className="min-w-0 border-b lg:border-b-0 lg:pr-8"
+            >
+              <AcademicTasks tasks={work} courses={courses} today={today} mode="work" frameless addTrigger={false} />
+            </RuledSection>
+            <RuledSection
+              id="exams"
+              title="Exams"
+              meta={firstExam ? firstExamLabel(firstExam, today) : undefined}
+              className="min-w-0 border-b-0 lg:border-l lg:border-border lg:pl-8"
+            >
+              <ExamsPanel exams={exams} courses={courses} today={today} />
+            </RuledSection>
+          </div>
 
-          <Tile
-            id="exams"
-            accent="academic"
-            frame="quiet"
-            icon={<FileText size={16} />}
-            title="Exams"
-            meta={firstExam ? firstExamLabel(firstExam, today) : undefined}
-            span="lg:col-span-12 xl:col-span-4"
-          >
-            <ExamsPanel
-              exams={exams}
-              courses={courses}
-              today={today}
-              nextBusy={map?.nextBusy ?? null}
-              peak={map?.peak ?? null}
-              termEnd={term?.end ?? null}
-            />
-          </Tile>
-
-          <Tile
-            id="courses"
-            accent="academic"
-            frame="quiet"
-            icon={<BookOpen size={16} />}
-            title="Courses"
-            meta={courseSummary(enrolled)}
-            span="lg:col-span-12"
-          >
+          <RuledSection id="courses" title="Courses" meta={courseSummary(enrolled)}>
             <CoursesSection courses={courses} />
-          </Tile>
+          </RuledSection>
 
           {/* Full width, with a 52rem floor inside its own scroll container
               (decision #28/#58). Open by default on this page (#73): the grid
               carries the deadlines in a due strip and lists them beneath. */}
-          <Tile
-            id="timetable"
-            accent="academic"
-            frame="quiet"
-            icon={<CalendarDays size={16} />}
-            title="Timetable"
-            span="lg:col-span-12"
-          >
+          <RuledSection id="timetable" title="Timetable" meta="Zürich time">
             <Suspense fallback={<CalendarTileSkeleton />}>
               <CalendarTile home="academic" deadlines={deadlines} expanded />
             </Suspense>
-          </Tile>
+          </RuledSection>
 
-          {/* The rail's Reminders link lands here. NotesCard brings its own
-              shell, so it is not wrapped in a Tile. */}
-          <div id="reminders" className="scroll-mt-24 lg:col-span-5">
-            <RemindersCard reminders={reminders} accent="hub" />
-          </div>
-        </div>
-      </main>
+          <RuledSection id="reminders" title="Reminders" className="border-b-0">
+            <RemindersCard reminders={reminders} accent="hub" bare />
+          </RuledSection>
+        </main>
+      </div>
     </div>
   );
 }
