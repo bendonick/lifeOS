@@ -301,11 +301,14 @@ function SessionLog({ code, log, onChange }: { code: string; log: StudyLog[]; on
           <li key={l.id} className="flex items-start gap-3 py-1.5">
             <span className="tabular w-24 shrink-0 pt-0.5 text-muted">{dayLabel(l.date)}</span>
             <div className="min-w-0 flex-1 pt-0.5">
-              <p className="text-text">
+              {/* The title carries the row; its notes sit beneath, lighter. */}
+              <p className="font-semibold text-text">
                 {l.title}
-                {l.kind === "mock" && <span className="text-muted"> · mock exam</span>}
+                {l.kind === "mock" && <span className="font-normal text-muted"> · mock exam</span>}
               </p>
-              {l.description && <p className="whitespace-pre-line text-muted">{l.description}</p>}
+              {l.description && (
+                <p className="mt-0.5 whitespace-pre-line text-[0.8125rem] leading-snug text-muted">{l.description}</p>
+              )}
             </div>
             <RowAction icon={Trash2} label={`Delete “${l.title}”`} onClick={() => remove(l)} danger />
           </li>
