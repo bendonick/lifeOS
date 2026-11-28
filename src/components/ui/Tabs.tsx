@@ -17,6 +17,7 @@ export function Tabs<T extends string>({
   onChange,
   accent,
   label,
+  className = "mb-2",
 }: {
   tabs: { key: T; label: string; count?: number }[];
   active: T;
@@ -24,9 +25,11 @@ export function Tabs<T extends string>({
   accent: Accent;
   /** Names the group for screen readers, e.g. "contact views". */
   label: string;
+  /** Spacing around the row; a bottom margin unless the caller places it. */
+  className?: string;
 }) {
   return (
-    <div role="group" aria-label={label} className="mb-2 flex flex-wrap items-center gap-1">
+    <div role="group" aria-label={label} className={`flex flex-wrap items-center gap-1 ${className}`}>
       {tabs.map((t) => (
         <button
           key={t.key}

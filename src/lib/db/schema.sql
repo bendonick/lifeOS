@@ -211,7 +211,9 @@ CREATE TABLE IF NOT EXISTS bills (
   amount_chf REAL,
   active     INTEGER NOT NULL DEFAULT 1,
   created_month TEXT,                -- 'YYYY-MM' it was added in; NULL = before this was tracked
-  note       TEXT                    -- free text the user keeps about the payment; NULL = none
+  note       TEXT,                   -- free text the user keeps about the payment; NULL = none
+  kind       TEXT NOT NULL DEFAULT 'core' CHECK (kind IN ('core', 'subscription')),
+  tags       TEXT                    -- JSON array of tag words, e.g. '["Utility","Tech"]'; NULL = none
 );
 
 -- Per-month paid log for bills (docs/01-architecture.md "plus a per-month paid log").

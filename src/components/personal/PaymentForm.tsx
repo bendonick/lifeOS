@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { TagField } from "@/components/personal/TagField";
 import { filledButtonChrome, inputChrome } from "@/components/ui/controls";
-import { PAYMENT_NAME_MAX, checkPayment } from "@/lib/personal/payments";
+import { PAYMENT_NAME_MAX, checkPayment, type PaymentKind } from "@/lib/personal/payments";
 
 /**
  * One form for a monthly payment (a bill or a subscription): its name and the
@@ -11,7 +12,9 @@ import { PAYMENT_NAME_MAX, checkPayment } from "@/lib/personal/payments";
  * payment (under the list, and from the page's `+ Add` menu) and to edit one
  * in place of its row. Personal's copy has no amount field, so the page that
  * shows no figures never shows one in its editor either; saving there leaves
- * the amount as it was.
+ * the amount as it was. The Money page's copy also sets the payment's type
+ * (Core or Subscription) and its tags (`TagField`); Personal's leaves both as
+ * they were.
  *
  * Editing also offers Remove, which asks once in the row before it acts: the
  * payment leaves the lists and its paid months stay in the log.
@@ -19,13 +22,25 @@ import { PAYMENT_NAME_MAX, checkPayment } from "@/lib/personal/payments";
 export function PaymentForm({
   payment,
   withAmount = false,
+  withLabels = false,
+  tagSuggestions = [],
   inputId,
   onDone,
 }: {
   /** The payment being edited; absent when adding. */
-  payment?: { id: number; name: string; due_day: number; amount_chf: number | null };
+  payment?: {
+    id: number;
+    name: string;
+    due_day: number;
+    amount_chf: number | null;
+    kind?: PaymentKind;
+    tags?: string[];
+  };
   /** Show the amount field (the Money page). */
   withAmount?: boolean;
+  /** Show the type and tags (the Money page), with these tags offered. */
+  withLabels?: boolean;
+  tagSuggestions?: string[];
   inputId?: string;
   /** Editing: called after a save or removal, and by Cancel. Adding keeps the
    *  form open and empty for the next payment. */
@@ -36,6 +51,9 @@ export function PaymentForm({
   const [name, setName] = useState(payment?.name ?? "");
   const [dueDay, setDueDay] = useState(payment ? String(payment.due_day) : "");
   const [amount, setAmount] = useState(payment?.amount_chf != null ? String(payment.amount_chf) : "");
+  const [kind, setKind] = useState<PaymentKind>(payment?.kind ?? "core");
+  const [tags, setTags] = useState<string[]>(payment?.tags ?? []);
+  const [tagDraft, setTagDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -60,7 +78,13 @@ export function PaymentForm({
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    const checked = checkPayment({ name, due_day: dueDay, ...(withAmount ? { amount_chf: amount } : {}) });
+    const checked = checkPayment({
+      name,
+      due_day: dueDay,
+      ...(withAmount ? { amount_chf: amount } : {}),
+      // A tag typed but not yet added is kept, not lost on Save.
+      ...(withLabels ? { kind, tags: tagDraft.trim() ? [...tags, tagDraft] : tags } : {}),
+    });
     if ("error" in checked) {
       setError(checked.error);
       return;
@@ -74,6 +98,9 @@ export function PaymentForm({
       setName("");
       setDueDay("");
       setAmount("");
+      setKind("core");
+      setTags([]);
+      setTagDraft("");
     }
   }
 
@@ -140,6 +167,34 @@ export function PaymentForm({
             className={`tabular w-20 text-right ${inputChrome}`}
           />
         </label>
+      )}
+      {withLabels && (
+        <>
+          {/* The type and tags take a line of their own. */}
+          <span aria-hidden="true" className="h-0 basis-full" />
+          <span className="flex items-center gap-1.5 text-sm text-muted">
+            Type
+            <span role="group" aria-label="Type" className="inline-flex overflow-hidden rounded-md border border-border">
+              {(["core", "subscription"] as const).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  aria-pressed={kind === k}
+                  onClick={() => setKind(k)}
+                  className={`px-3 py-1.5 text-sm transition-colors first:border-r first:border-border ${
+                    kind === k ? "bg-(--color-ink) text-(--color-paper)" : "bg-surface text-muted hover:text-text"
+                  }`}
+                >
+                  {k === "core" ? "Core" : "Subscription"}
+                </button>
+              ))}
+            </span>
+          </span>
+          <span className="flex items-center gap-1.5 text-sm text-muted">
+            Tags
+            <TagField tags={tags} onTags={setTags} draft={tagDraft} onDraft={setTagDraft} suggestions={tagSuggestions} />
+          </span>
+        </>
       )}
       <button type="submit" disabled={busy} className={filledButtonChrome}>
         {payment ? "Save" : "Add"}

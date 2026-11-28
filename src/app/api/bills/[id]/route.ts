@@ -3,8 +3,10 @@ import { archiveBill, billExists, setBillNote, setBillPaid, updateBill } from "@
 import { checkPayment, checkPaymentNote } from "@/lib/personal/payments";
 
 // One monthly payment. PATCH does three jobs, told apart by the body:
-// `{ month, paid }` ticks or unticks a month; `{ name, due_day, amount_chf? }`
-// edits it; `{ note }` sets its note (empty or null clears it). DELETE takes it off the lists and keeps its paid log.
+// `{ month, paid }` ticks or unticks a month; `{ name, due_day, amount_chf?,
+// kind?, tags? }` edits it (what is left out stays as it was); `{ note }` sets
+// its note (empty or null clears it). DELETE takes it off the lists and keeps
+// its paid log.
 
 async function activeId(ctx: RouteContext<"/api/bills/[id]">): Promise<number | null> {
   const { id } = await ctx.params;

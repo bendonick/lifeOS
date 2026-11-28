@@ -111,6 +111,10 @@ function migrate(db: Database.Database) {
   // 2026-11-28: a payment carries a free-text note, read and written on the
   // Money page.
   addColumn(db, "bills", "note", "TEXT");
+  // 2026-11-28: a payment is core or a subscription (the Money page groups by
+  // it) and carries any number of tags (the page filters by them).
+  addColumn(db, "bills", "kind", "TEXT NOT NULL DEFAULT 'core' CHECK (kind IN ('core', 'subscription'))");
+  addColumn(db, "bills", "tags", "TEXT");
 
   foldFoodCategories(db);
 }
