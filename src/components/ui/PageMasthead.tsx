@@ -32,8 +32,9 @@ export function PageMasthead({
   sections,
   artwork,
 }: {
-  /** The small uppercase label above the title: "University", "Home". */
-  eyebrow: string;
+  /** The small uppercase label above the title: "University", "Home"; on a
+   *  sub-page, a link back to its parent ("← Personal"). */
+  eyebrow: ReactNode;
   title: string;
   /** The italic line under the title; null hides it. */
   subtitle: ReactNode;
