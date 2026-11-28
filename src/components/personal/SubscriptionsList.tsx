@@ -39,8 +39,8 @@ import { CANCELLED_KEEP_MONTHS, formatMoney } from "@/lib/personal/payments";
  * every sum, with no conversion; Monthly payments stay in francs.
  *
  * **Cancelled.** "Cancel subscription" in the editor asks for the day and
- * moves it to the Cancelled list under this one: closed at rest, saying how
- * many and what they save a year; each row has its cancel date and a restore
+ * moves it to the Cancelled list, right under "Add subscription" with no rule
+ * between them: closed at rest, saying how many and what they save a year; each row has its cancel date and a restore
  * arrow. A subscription leaves the list six months after it was cancelled.
  *
  * Below `sm` a row is two lines: the bar and the pencil, then the date ·
@@ -322,7 +322,7 @@ function CancelledList({
   }
 
   return (
-    <div className="mt-4 border-t border-border pt-3">
+    <div className="mt-3">
       <Disclosure
         summary="Cancelled"
         detail={`${cancelled.length} in the last ${CANCELLED_KEEP_MONTHS} months · saves ${saves} a year`}
