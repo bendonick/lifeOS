@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition, type KeyboardEvent, type PointerEvent } from "react";
+import { useEffect, useEffectEvent, useRef, useState, useTransition, type KeyboardEvent, type PointerEvent } from "react";
 
 /**
  * Reordering a list by a drag handle, with the keyboard as an equal way in.
@@ -9,7 +9,10 @@ import { useRef, useState, useTransition, type KeyboardEvent, type PointerEvent 
  * Pointer: press the handle and move; the list reorders live as the pointer
  * passes each row's middle, and the new order is saved on release. Pointer
  * events (not HTML drag and drop) so it works the same with a mouse, a pen and
- * touch, and the row itself is what moves rather than a ghost image.
+ * touch, and the row itself is what moves rather than a ghost image. Move and
+ * release are heard on the window, not the handle: reordering moves rows in
+ * the DOM, and a handle that is moved loses its pointer capture, which once
+ * made every downward drag a no-op.
  *
  * Keyboard: the handle is a button; Arrow Up and Arrow Down move the row one
  * place and save at once, and a status line says where it went.
@@ -36,6 +39,8 @@ export function useDragOrder({
   const [error, setError] = useState<string | null>(null);
   const rows = useRef(new Map<number, HTMLElement>());
   const before = useRef<number[]>([]);
+  // The order while a drag is under way, read by the window listeners.
+  const working = useRef<number[]>([]);
 
   // The local order wins only while it names the same habits the server does;
   // once a habit is added or removed the server's order takes over again.
@@ -58,39 +63,59 @@ export function useDragOrder({
     setStatus(`${labelOf(id)} moved to position ${next.indexOf(id) + 1} of ${next.length}`);
   }
 
+  const onMove = useEffectEvent((y: number) => {
+    if (dragId === null) return;
+    // The dragged row's new index is the number of other rows whose middle
+    // the pointer has passed.
+    const others = working.current.filter((o) => o !== dragId);
+    let index = 0;
+    for (const o of others) {
+      const r = rows.current.get(o)?.getBoundingClientRect();
+      if (r && y > r.top + r.height / 2) index++;
+    }
+    const next = [...others];
+    next.splice(index, 0, dragId);
+    if (next.join() === working.current.join()) return;
+    working.current = next;
+    setLocal(next);
+  });
+
+  const onEnd = useEffectEvent((cancelled: boolean) => {
+    if (dragId === null) return;
+    const id = dragId;
+    setDragId(null);
+    if (cancelled) {
+      setLocal(before.current);
+      return;
+    }
+    const next = working.current;
+    if (next.join() !== before.current.join()) announce(id, next);
+    void commit(next, before.current);
+  });
+
+  useEffect(() => {
+    if (dragId === null) return;
+    const move = (e: globalThis.PointerEvent) => onMove(e.clientY);
+    const up = () => onEnd(false);
+    const cancel = () => onEnd(true);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", cancel);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", cancel);
+    };
+  }, [dragId]);
+
   function handleProps(id: number) {
     return {
       onPointerDown(e: PointerEvent<HTMLElement>) {
         if (e.button !== 0) return;
         e.preventDefault();
-        e.currentTarget.setPointerCapture(e.pointerId);
         before.current = order;
+        working.current = order;
         setDragId(id);
-      },
-      onPointerMove(e: PointerEvent<HTMLElement>) {
-        if (dragId !== id) return;
-        // The dragged row's new index is the number of other rows whose middle
-        // the pointer has passed.
-        const others = order.filter((o) => o !== id);
-        let index = 0;
-        for (const o of others) {
-          const r = rows.current.get(o)?.getBoundingClientRect();
-          if (r && e.clientY > r.top + r.height / 2) index++;
-        }
-        const next = [...others];
-        next.splice(index, 0, id);
-        if (next.join() !== order.join()) setLocal(next);
-      },
-      onPointerUp() {
-        if (dragId !== id) return;
-        setDragId(null);
-        if (order.join() !== before.current.join()) announce(id, order);
-        void commit(order, before.current);
-      },
-      onPointerCancel() {
-        if (dragId !== id) return;
-        setDragId(null);
-        setLocal(before.current);
       },
       onKeyDown(e: KeyboardEvent<HTMLElement>) {
         const step = e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0;
