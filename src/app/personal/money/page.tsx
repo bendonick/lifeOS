@@ -44,9 +44,6 @@ export default function MoneyPage() {
   // One tag vocabulary across both lists.
   const suggestions = tagSuggestions(all);
 
-  const monthName = new Intl.DateTimeFormat("en-GB", { month: "long", timeZone: "UTC" }).format(
-    new Date(`${month}-15T12:00:00Z`)
-  );
   const monthYear = new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(
     new Date(`${month}-15T12:00:00Z`)
   );
@@ -87,7 +84,7 @@ export default function MoneyPage() {
             ]}
           />
 
-          <RuledSection id="payments" title="Monthly payments" meta={monthName}>
+          <RuledSection id="payments" title="Monthly payments">
             <PaymentsLedger bills={bills} month={month} today={today} tagSuggestions={suggestions} />
           </RuledSection>
 

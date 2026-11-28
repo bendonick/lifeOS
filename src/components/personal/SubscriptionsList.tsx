@@ -246,7 +246,7 @@ export function SubscriptionsList({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 pb-3">
-        <TagFilterRow filter={filter} total={subscriptions.length} noun="subscription" />
+        <TagFilterRow filter={filter} total={subscriptions.length} />
         <span className="flex items-center gap-2 text-xs text-muted">
           Sort
           <Tabs

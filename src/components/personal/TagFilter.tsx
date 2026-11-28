@@ -46,21 +46,17 @@ export function useTagFilter<T extends { tags: string[] }>(items: T[]) {
 const chip =
   "rounded-full border border-border bg-surface px-2.5 py-0.5 text-[11px] text-muted transition-colors hover:text-text";
 
-/** The row of tags above a list: All, then each tag with its count. Until
- *  any row has a tag, a line saying where tags come from. */
+/** The row of tags above a list: All, then each tag with its count. Nothing
+ *  until a row has a tag (tags are added in a row's editor). */
 export function TagFilterRow({
   filter,
   total,
-  noun,
 }: {
   filter: ReturnType<typeof useTagFilter>;
   total: number;
-  /** What the list holds, for the empty line: "payment", "subscription". */
-  noun: string;
 }) {
-  if (filter.inUse.length === 0) {
-    return <p className="text-xs text-faint">Tags you give a {noun} (its pencil) appear here to filter by.</p>;
-  }
+  // An empty span keeps Sort at the right end of its row.
+  if (filter.inUse.length === 0) return <span />;
   return (
     <div role="group" aria-label="Filter by tag" className="flex flex-wrap items-center gap-1">
       {/* data-view-tab: the Maritime theme draws a pressed one as its filled

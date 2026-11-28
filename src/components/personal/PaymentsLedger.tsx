@@ -22,8 +22,9 @@ import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
  *
  * One row per payment, in columns: the payment (its name is its tick, drawn
  * as on Personal and on Habits), its tags, the due date this month, the
- * amount, and a status in words. Above the list, "N of M paid" with what is
- * still to pay, and the monthly total. "Add payment" under the list, or
+ * amount, and a status in words. Above the list, only the monthly total; no
+ * counts or "still to pay" line, to keep the section quiet. "Add payment"
+ * under the list, or
  * Payment in the page's `+ Add` menu (`#new-payment`), adds one with its
  * amount and tags.
  *
@@ -130,8 +131,6 @@ export function PaymentsLedger({
   };
 
   const sum = (list: BillStatus[]) => list.reduce((s, b) => s + (b.amount_chf ?? 0), 0);
-  const paidCount = bills.filter(paidOf).length;
-  const owed = sum(bills.filter((b) => !paidOf(b)));
   const perMonth = (list: BillStatus[]) =>
     list.some((b) => b.amount_chf !== null) ? `${formatChf(sum(list))} a month` : "no amounts yet";
 
@@ -256,15 +255,12 @@ export function PaymentsLedger({
 
   return (
     <div aria-busy={isPending}>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 pb-2">
-        <span className="tabular text-sm text-text">
-          {paidCount} of {bills.length} paid <span className="text-muted">· {formatChf(owed)} still to pay</span>
-        </span>
+      <div className="flex justify-end pb-2">
         <span className="tabular text-sm text-muted">{perMonth(bills)}</span>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 pb-3">
-        <TagFilterRow filter={filter} total={bills.length} noun="payment" />
+        <TagFilterRow filter={filter} total={bills.length} />
         <span className="flex items-center gap-2 text-xs text-muted">
           Sort
           <Tabs
