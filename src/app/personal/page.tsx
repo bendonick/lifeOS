@@ -1,11 +1,11 @@
 import type { Viewport } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { CalendarTileSkeleton } from "@/components/calendar/CalendarTile";
-import { BillsAttention } from "@/components/personal/BillsAttention";
 import { GermanCard } from "@/components/personal/GermanCard";
 import { HabitsToday } from "@/components/personal/HabitsToday";
+import { MonthlyPayments } from "@/components/personal/MonthlyPayments";
 import { NotesPanel } from "@/components/personal/NotesPanel";
-import { SpendingSection } from "@/components/personal/SpendingSection";
 import { UpcomingSection } from "@/components/personal/UpcomingSection";
 import { AddMenu } from "@/components/ui/AddMenu";
 import { newsreader } from "@/components/ui/fonts";
@@ -32,14 +32,14 @@ export const viewport: Viewport = { themeColor: "#efdfbb", colorScheme: "light" 
  * Layout (replacing #81's navigation rail and tiles): the horizontal LifeOS
  * navigation with the page's one `+ Add` menu, the shared masthead with the
  * section links, then the modules in the order the day asks for them: Habits
- * today beside Bills needing attention, Spending with this month first,
- * Upcoming (tasks, appointments and the calendar as one module), then German
- * beside Notes. Flat cream paper: sections are separated by rules, never by
- * tiles. Health stays off the page; its data, API and trends route are
- * untouched.
+ * today beside Money, Upcoming (tasks, appointments and the calendar as one
+ * module), then German beside Notes. Flat cream paper: sections are separated
+ * by rules, never by tiles. Health stays off the page; its data, API and
+ * trends route are untouched.
  *
- * Every figure a module shows is computed by the function its detail view
- * uses, so a summary and its detail cannot disagree.
+ * Money here is a high-level check only: the month's payments ticked off, with
+ * no amounts. Every figure (bills with amounts, budget, spending, history,
+ * imports) is on /personal/money.
  */
 export default function PersonalPage() {
   const today = zurichToday();
@@ -68,7 +68,6 @@ export default function PersonalPage() {
             items={[
               { label: "Task or appointment", hash: "new-task" },
               { label: "Habit", hash: "new-habit" },
-              { label: "Expense", hash: "new-expense" },
               { label: "Note", hash: "new-note" },
             ]}
           />
@@ -86,15 +85,14 @@ export default function PersonalPage() {
             }
             sections={[
               { id: "habits", label: "Habits" },
-              { id: "bills", label: "Bills" },
-              { id: "spending", label: "Spending" },
+              { id: "money", label: "Money" },
               { id: "upcoming", label: "Upcoming" },
               { id: "german", label: "German" },
               { id: "notes", label: "Notes", count: toReview },
             ]}
           />
 
-          {/* Habits get the wider column; one thin rule separates Bills. Below
+          {/* Habits get the wider column; one thin rule separates Money. Below
               `lg` they stack. */}
           <div className="grid grid-cols-1 border-b border-border lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             <RuledSection
@@ -106,29 +104,22 @@ export default function PersonalPage() {
               <HabitsToday habits={habits} today={today} />
             </RuledSection>
             <RuledSection
-              id="bills"
-              title="Bills"
+              id="money"
+              title="Money"
+              meta={
+                <>
+                  {monthName}
+                  <span aria-hidden="true"> · </span>
+                  <Link href="/personal/money" className="rounded text-link hover:text-text">
+                    Money →
+                  </Link>
+                </>
+              }
               className="min-w-0 border-b-0 lg:border-l lg:border-border lg:pl-8"
             >
-              <BillsAttention bills={bills} month={month} today={today} />
+              <MonthlyPayments bills={bills} month={month} today={today} />
             </RuledSection>
           </div>
-
-          <RuledSection
-            id="spending"
-            title="Spending"
-            meta={
-              <>
-                {monthName}
-                <span aria-hidden="true"> · </span>
-                <a href="#spending-history" className="rounded text-link hover:text-text">
-                  History →
-                </a>
-              </>
-            }
-          >
-            <SpendingSection today={today} />
-          </RuledSection>
 
           <RuledSection id="upcoming" title="Upcoming" meta="Zürich time">
             <Suspense fallback={<CalendarTileSkeleton />}>
