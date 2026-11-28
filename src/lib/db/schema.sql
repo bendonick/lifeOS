@@ -290,3 +290,18 @@ CREATE TABLE IF NOT EXISTS plan_notes (
   error         TEXT,
   created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- Study sessions (decision #98): what the user logs on Academic's Study progress
+-- section, one row per sitting. The Exam Prep calendar only sets how many sessions
+-- and mock exams a course is planned to take; progress counts these rows.
+CREATE TABLE IF NOT EXISTS study_sessions (
+  id         INTEGER PRIMARY KEY,
+  course_id   INTEGER REFERENCES courses(id) ON DELETE SET NULL,
+  title       TEXT NOT NULL,        -- what was studied, in the user's words
+  description TEXT,                 -- optional detail
+  kind        TEXT NOT NULL DEFAULT 'study' CHECK (kind IN ('study','mock')),
+  date        TEXT NOT NULL,        -- 'YYYY-MM-DD' (Zurich)
+  review      INTEGER NOT NULL DEFAULT 0, -- 1 = flagged to go over again
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_study_sessions_course ON study_sessions (course_id, date);

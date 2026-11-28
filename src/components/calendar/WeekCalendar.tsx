@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DeadlineList } from "./DeadlineList";
 import { accentEvent, accentText } from "@/components/ui/accents";
+import { courseTitle, type CourseName } from "@/lib/calendar/courses";
 import { dueOn, type Deadline } from "@/lib/calendar/deadlines";
 import { allDayOn, hourRange, placeTimed, type PlacedEvent } from "@/lib/calendar/layout";
 import {
@@ -11,6 +12,7 @@ import {
   calendarLabel,
   inHome,
   isUnconfigured,
+  type CalendarEvent,
   type CalendarKey,
   type CalendarWindow,
   type FeedStatus,
@@ -35,26 +37,50 @@ import { addDays, dayLabel, hourOf, mondayOf, TZ, weekLabel, zurichLocal } from 
 
 const HOUR_PX = 44;
 
+/**
+ * A calendar from outside the page (Class or Personal on Academic, say). Its
+ * blocks carry `data-outside` and name their calendar, so on "All calendars"
+ * they read apart from the page's own even where a theme draws every block
+ * in one colour. False on a page without a home, where nothing is outside.
+ */
+function isOutside(calendar: CalendarKey, home: CalendarKey | undefined): boolean {
+  return Boolean(home) && !inHome(calendar, home as CalendarKey);
+}
+
 export function WeekCalendar({
   initial,
   monday: initialMonday,
   today,
-  /** When set, the default view is this calendar alone with an "All calendars" tab. */
+  /** When set, the default view is this page's calendars (every calendar
+   *  whose home it is: Academic shows classes and Exam Prep) with an "All
+   *  calendars" tab. */
   home,
   /** Open, dated work to draw in the due strip and list under the grid. */
   deadlines,
+  /** The page's courses: its own events are named by course code. */
+  courses,
 }: {
   initial: CalendarWindow;
   monday: string;
   today: string;
   home?: CalendarKey;
   deadlines?: Deadline[];
+  courses?: CourseName[];
 }) {
   const [monday, setMonday] = useState(initialMonday);
   const [data, setData] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(!home);
+
+  // The page's own events go by course code ('NLP', 'FoC II · mock exam'), so
+  // one course reads the same however its Google titles spell it, and the
+  // code fits where the full name was cut off.
+  const nameOf = useCallback(
+    (e: CalendarEvent) =>
+      courses && home && inHome(e.calendar, home) ? courseTitle(e.title, courses) : e.title,
+    [courses, home]
+  );
 
   const load = useCallback(async (target: string, force = false) => {
     setBusy(true);
@@ -141,9 +167,10 @@ export function WeekCalendar({
           {days.map((d) => (
             <div
               key={d}
-              // Styling hooks (`data-today`, `data-event`, `data-calendar`): the
-              // Maritime theme tints today rust, draws event blocks slate and
-              // marks Exam Prep with a rust edge; inert elsewhere.
+              // Styling hooks (`data-today`, `data-event`, `data-calendar`,
+              // `data-outside`): the Maritime theme tints today rust, draws event
+              // blocks slate, hatches Exam Prep rust and outlines calendars from
+              // outside the page; inert elsewhere.
               data-today={d === today ? "" : undefined}
               className={`border-b border-l border-border px-2 py-2 text-xs font-medium ${
                 d === today ? "text-text" : "text-muted"
@@ -182,11 +209,11 @@ export function WeekCalendar({
                   {allDay[i].map((e) => (
                     <div
                       key={e.id}
-                      title={e.title}
                       data-calendar={e.calendar}
+                      data-outside={isOutside(e.calendar, home) ? "" : undefined}
                       className={`truncate rounded border px-1.5 py-0.5 text-[11px] ${accentEvent[calendarAccent[e.calendar]]}`}
                     >
-                      {e.title}
+                      {nameOf(e)}
                     </div>
                   ))}
                 </div>
@@ -215,6 +242,8 @@ export function WeekCalendar({
               fromHour={fromHour}
               toHour={toHour}
               placed={placed[i]}
+              home={home}
+              nameOf={nameOf}
             />
           ))}
         </div>
@@ -224,6 +253,7 @@ export function WeekCalendar({
         feeds={data.feeds}
         shown={shown}
         showAll={showAll || !home}
+        home={home}
         hasDeadlines={Boolean(deadlines)}
         busy={busy}
         failed={failed}
@@ -238,15 +268,14 @@ export function WeekCalendar({
 /**
  * A deadline in the due strip: title and what it is filed against, nothing
  * more. Olive is the palette's green — the one the user asked for — reached
- * through the existing `hub` accent rather than a new token. The full line,
- * date included, is the tooltip; the figures live in the list under the grid.
+ * through the existing `hub` accent rather than a new token. The date and the
+ * figures live in the list under the grid; the grid has no hover tooltips.
  */
 function DeadlineChip({ item }: { item: Deadline }) {
   const time = item.due.length > 10 ? item.due.slice(11, 16) : null;
   const detail = [time, item.context].filter(Boolean).join(" · ");
   return (
     <div
-      title={`${item.title}${item.context ? ` · ${item.context}` : ""} · due ${item.due.slice(0, 10)}${time ? ` ${time}` : ""}`}
       className={`rounded-md border px-1.5 py-1 text-[11px] leading-tight ${accentEvent.hub}`}
     >
       <div className="truncate font-medium">{item.title}</div>
@@ -262,6 +291,8 @@ function DayColumn({
   fromHour,
   toHour,
   placed,
+  home,
+  nameOf,
 }: {
   day: string;
   today: string;
@@ -269,6 +300,8 @@ function DayColumn({
   fromHour: number;
   toHour: number;
   placed: PlacedEvent[];
+  home?: CalendarKey;
+  nameOf: (e: CalendarEvent) => string;
 }) {
   return (
     <div
@@ -290,12 +323,14 @@ function DayColumn({
         const top = (p.startHour - fromHour) * HOUR_PX;
         const height = (p.endHour - p.startHour) * HOUR_PX;
         const width = `calc((100% - 0.5rem) / ${p.lanes})`;
+        const outside = isOutside(p.event.calendar, home);
+        const source = outside ? ` · ${calendarLabel[p.event.calendar]}` : "";
         return (
           <div
             key={p.event.id}
-            title={`${p.event.title} · ${p.event.start.slice(11, 16)}–${p.event.end.slice(11, 16)}${p.event.location ? ` · ${p.event.location}` : ""}`}
             data-event=""
             data-calendar={p.event.calendar}
+            data-outside={outside ? "" : undefined}
             className={`absolute overflow-hidden rounded border px-1.5 py-0.5 text-[11px] leading-tight ${accentEvent[calendarAccent[p.event.calendar]]}`}
             style={{
               top: top + 1,
@@ -306,14 +341,17 @@ function DayColumn({
           >
             {/* A tall block has room to wrap; a short one must stay on one line. */}
             <div className={`font-medium ${height >= 60 ? "line-clamp-2" : "truncate"}`}>
-              {p.event.title}
+              {nameOf(p.event)}
             </div>
             {height >= 34 && (
               <div className="truncate opacity-80">
                 {p.continuesBefore ? "…" : p.event.start.slice(11, 16)}
                 {/* Lanes mean a half-width block, where a full range truncates to
-                    "08:00–1…"; the end time stays in the tooltip instead. */}
+                    "08:00–1…"; the start time alone is shown instead. */}
                 {p.continuesAfter ? " …" : p.lanes > 1 ? "" : `–${p.event.end.slice(11, 16)}`}
+                {/* An outside calendar names itself after the time, ahead of the
+                    place: which calendar it is matters more on this page. */}
+                {source}
                 {p.event.location && p.lanes === 1 && height >= 52 ? ` · ${p.event.location}` : ""}
               </div>
             )}
@@ -350,6 +388,7 @@ function FeedLine({
   feeds,
   shown,
   showAll,
+  home,
   hasDeadlines,
   busy,
   failed,
@@ -358,6 +397,7 @@ function FeedLine({
   feeds: FeedStatus[];
   shown: Set<CalendarKey>;
   showAll: boolean;
+  home?: CalendarKey;
   /** With a due strip on the grid the legend has two kinds to name, so it
    *  renders even for a single calendar. */
   hasDeadlines: boolean;
@@ -387,6 +427,7 @@ function FeedLine({
                   aria-hidden="true"
                   data-swatch=""
                   data-calendar={f.key}
+                  data-outside={isOutside(f.key, home) ? "" : undefined}
                   className="inline-block size-2 rounded-[2px] bg-current opacity-70"
                 />
                 {f.label}

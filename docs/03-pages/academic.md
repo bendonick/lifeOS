@@ -8,15 +8,22 @@ rail, no tiles. Top to bottom:
    Assignment or task · Exam · Reminder; same hashes and forms as before).
 2. **Masthead** — "University", "Academic", "Autumn semester 2026 · week N of M"; a
    print in a 5:1 slot; then the section links Semester · Assignments · Exams · Courses ·
-   Timetable · Reminders (pending count on the last) with the print's previous / pin / next.
+   Timetable · Reminders (pending count on the last) with the print's previous / pin / next. Study sits between Exams and Courses.
 3. **Semester map** — full width, a `<table>`; every column a Monday–Sunday range (#92); three
    marks; the current week tinted rust; Weekly load = open assignments and exams due.
 4. **Upcoming work | Exams** — ~60/40 with one rule. Filters, horizon groups, Later, done boxes,
    the inline editor and course links unchanged. Exams ends after "N more exams" (#93).
-5. **Courses** — the two-column index of expandable rows (unchanged behaviour).
-6. **Timetable** — open, full width; slate event blocks, Exam Prep blocks with a rust left
-   edge; the deadline strip labelled against the displayed week (#94).
-7. **Reminders** — full width, `NotesCard bare`.
+5. **Study progress** (#97–#102) — one row per course with an exam: code with a filled plus, a
+   bar of one segment per planned Exam Prep session (mock and past exams outlined) with a tick
+   where the plan says you should be by now ("on pace" / "N behind" / "N ahead"), and the exam
+   date with days left at the bar's end. Bars start empty and fill from the user's log: the plus
+   opens a dialog (title, description, "Flag for review"; logged for today) and "Sessions" under
+   the bar, with an "M to review" tag beside it when any are flagged, lists the log with a review flag, edit (same
+   dialog, filled in) and delete; a legend beneath.
+6. **Courses** — the two-column index of expandable rows (unchanged behaviour).
+7. **Timetable** — open, full width; slate event blocks, Exam Prep blocks in a rust hatch
+   with a dashed border, other calendars as labelled outlines (#95); the deadline strip labelled against the displayed week (#94).
+8. **Reminders** — full width, `NotesCard bare`.
 
 
 **Laid out to the approved v3 design 2026-10-10 (decisions #78–#80).** A 13rem navigation rail
@@ -93,8 +100,11 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
    assignments/exams with their own add buttons, materials).
 
 6. **Timetable** — read-only week view of the **Academic** and **Exam Prep** ICS calendars
-   (toggle: all calendars; Exam Prep added 2026-11-26 through `calendarHome`; its blocks
-   carry a rust left edge so study time reads apart from classes), full width with nothing beside it (decision #28). Built in Stage 3 on the shared
+   (tabs: Academic, which shows both, and All calendars, which adds every calendar outside
+   Academic; Exam Prep added 2026-11-26 through `calendarHome`; its blocks
+   are a rust hatch so study time reads apart from classes, and on All calendars the
+   calendars from outside the page are outlines that name their calendar, #95; Academic and
+   Exam Prep blocks go by course code, #96), full width with nothing beside it (decision #28). Built in Stage 3 on the shared
    `WeekCalendar`, which also serves the hub and Personal. Class blocks come from Google
    recurring events the user creates once per course — from Stage 3 the course row links out to
    a prefilled Google form to save the retyping (decision #27).
@@ -105,8 +115,8 @@ The MSc command center: courses, deadlines, timetable, and (later) course-conten
 
    **Deadlines on the grid (2026-10-05, decision #73).** The open, dated rows of the two
    tables above — assignments, tasks, exams — also draw on the timetable: as Olive chips in a
-   **due strip** between the day headers and the hours (title and course only, one colour, the
-   full line as a tooltip), and as a **bulleted list under the grid**, overdue first, where the
+   **due strip** between the day headers and the hours (title and course only, one colour, no
+   hover tooltip), and as a **bulleted list under the grid**, overdue first, where the
    date and days-left figure appear in the tables' urgency colours. Both follow the week being
    paged. The grid renders **open by default on this page** — the one exception to #66 — and
    the "next four classes" summary list is not shown here. Nothing is written to Google: the

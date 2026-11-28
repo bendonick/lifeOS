@@ -90,6 +90,19 @@ function migrate(db: Database.Database) {
   addColumn(db, "tasks", "plan_group", "TEXT");
   db.exec("CREATE INDEX IF NOT EXISTS idx_tasks_week ON tasks (week) WHERE week IS NOT NULL");
 
+  // 2026-11-28 (decision #99): a logged study session has a title and a
+  // description. The table's first version, the same day, called the title
+  // `concept` and had no description.
+  const studyColumns = new Set(
+    (db.pragma("table_info(study_sessions)") as Array<{ name: string }>).map((c) => c.name)
+  );
+  if (studyColumns.has("concept") && !studyColumns.has("title")) {
+    db.exec("ALTER TABLE study_sessions RENAME COLUMN concept TO title");
+  }
+  addColumn(db, "study_sessions", "description", "TEXT");
+  // Decision #102: a logged session can be flagged to go over again.
+  addColumn(db, "study_sessions", "review", "INTEGER NOT NULL DEFAULT 0");
+
   foldFoodCategories(db);
 }
 
@@ -260,4 +273,22 @@ function seed(db: Database.Database) {
   }).immediate();
 }
 
-export const db = globalForDb.lifeosDb ?? (globalForDb.lifeosDb = open());
+/**
+ * The dev server keeps the connection on `globalThis` across hot reloads, so a
+ * table or column added while it runs would not exist until a restart (and
+ * every page reading it would fail). When this module is evaluated again with
+ * a connection already open, the schema and the migrations are re-applied:
+ * every statement in schema.sql is IF NOT EXISTS and every migration is
+ * guarded, so this only ever adds what is missing. Production opens once.
+ */
+function connection(): Database.Database {
+  const cached = globalForDb.lifeosDb;
+  if (!cached) return (globalForDb.lifeosDb = open());
+  if (process.env.NODE_ENV !== "production") {
+    cached.exec(fs.readFileSync(SCHEMA_PATH, "utf8"));
+    migrate(cached);
+  }
+  return cached;
+}
+
+export const db = connection();

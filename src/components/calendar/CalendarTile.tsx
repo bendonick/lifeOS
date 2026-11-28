@@ -1,5 +1,6 @@
 import { WeekCalendar } from "./WeekCalendar";
 import { Disclosure } from "@/components/ui/Disclosure";
+import type { CourseName } from "@/lib/calendar/courses";
 import type { Deadline } from "@/lib/calendar/deadlines";
 import { calendarWeek } from "@/lib/calendar/ics";
 import {
@@ -37,6 +38,7 @@ export async function CalendarTile({
   expanded = false,
   openSummary = "Open week",
   hideEmpty = false,
+  courses,
 }: {
   home?: CalendarKey;
   /** Open, dated work to draw in the grid's due strip and list beneath it. */
@@ -47,6 +49,8 @@ export async function CalendarTile({
   openSummary?: string;
   /** Skip the "Nothing left this week" line when the caller already says so. */
   hideEmpty?: boolean;
+  /** The page's courses, so the grid names their events by course code. */
+  courses?: CourseName[];
 }) {
   const today = zurichToday();
   const monday = mondayOf(today);
@@ -62,7 +66,14 @@ export async function CalendarTile({
 
   if (expanded) {
     return (
-      <WeekCalendar initial={data} monday={monday} today={today} home={home} deadlines={deadlines} />
+      <WeekCalendar
+        initial={data}
+        monday={monday}
+        today={today}
+        home={home}
+        deadlines={deadlines}
+        courses={courses}
+      />
     );
   }
 
@@ -96,7 +107,14 @@ export async function CalendarTile({
         openSummary={openSummary.replace(/^Open/, "Hide")}
         detail={`${mine.length} this week`}
       >
-        <WeekCalendar initial={data} monday={monday} today={today} home={home} deadlines={deadlines} />
+        <WeekCalendar
+          initial={data}
+          monday={monday}
+          today={today}
+          home={home}
+          deadlines={deadlines}
+          courses={courses}
+        />
       </Disclosure>
     </div>
   );
