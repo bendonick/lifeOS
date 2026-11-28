@@ -24,6 +24,7 @@ export function PaymentForm({
   withAmount = false,
   withLabels = false,
   tagSuggestions = [],
+  defaultKind = "core",
   inputId,
   onDone,
 }: {
@@ -41,6 +42,8 @@ export function PaymentForm({
   /** Show the type and tags (the Money page), with these tags offered. */
   withLabels?: boolean;
   tagSuggestions?: string[];
+  /** Adding: the type a new payment starts as (Subscriptions adds subscriptions). */
+  defaultKind?: PaymentKind;
   inputId?: string;
   /** Editing: called after a save or removal, and by Cancel. Adding keeps the
    *  form open and empty for the next payment. */
@@ -51,7 +54,7 @@ export function PaymentForm({
   const [name, setName] = useState(payment?.name ?? "");
   const [dueDay, setDueDay] = useState(payment ? String(payment.due_day) : "");
   const [amount, setAmount] = useState(payment?.amount_chf != null ? String(payment.amount_chf) : "");
-  const [kind, setKind] = useState<PaymentKind>(payment?.kind ?? "core");
+  const [kind, setKind] = useState<PaymentKind>(payment?.kind ?? defaultKind);
   const [tags, setTags] = useState<string[]>(payment?.tags ?? []);
   const [tagDraft, setTagDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -98,7 +101,7 @@ export function PaymentForm({
       setName("");
       setDueDay("");
       setAmount("");
-      setKind("core");
+      setKind(defaultKind);
       setTags([]);
       setTagDraft("");
     }
@@ -138,7 +141,7 @@ export function PaymentForm({
         id={inputId}
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder={payment ? undefined : "New payment…"}
+        placeholder={payment ? undefined : defaultKind === "subscription" ? "New subscription…" : "New payment…"}
         maxLength={PAYMENT_NAME_MAX}
         autoFocus
         aria-label="payment name"

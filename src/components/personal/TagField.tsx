@@ -3,10 +3,7 @@
 import { X } from "lucide-react";
 import { useRef, useState } from "react";
 import { inputChrome } from "@/components/ui/controls";
-import { PAYMENT_TAGS_MAX, PAYMENT_TAG_MAX } from "@/lib/personal/payments";
-
-/** Case-insensitive key a tag is compared by: "utility" and "Utility" are one tag. */
-export const tagKey = (tag: string) => tag.trim().replace(/\s+/g, " ").toLowerCase();
+import { PAYMENT_TAGS_MAX, PAYMENT_TAG_MAX, tagKey } from "@/lib/personal/payments";
 
 /**
  * A payment's tags in its editor: the tags as chips, each with its own remove

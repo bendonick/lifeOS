@@ -10,9 +10,10 @@ import { dayLabel, daysInMonth } from "@/lib/dates";
 import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
 
 /**
- * The month's payments on Personal: bills and subscriptions as one checklist,
- * a high-level check that each has gone out, with no amounts or totals. Every
- * figure lives on the Money page.
+ * The month's payments on Personal: the core payments you pay yourself, as one
+ * checklist, a high-level check that each has gone out, with no amounts or
+ * totals. Subscriptions bill themselves and are left off; they and every
+ * figure live on the Money page.
  *
  * A payment's name is its tick, drawn like a habit's: a wide box, tinted rust
  * with a rust check once paid. Beside it a status in words, never colour
@@ -22,7 +23,8 @@ import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
  * Payments are managed in place, as habits are: a pencil at the end of a row
  * turns it into its editor (name, due day, Remove), and "Add payment" under
  * the list, or Payment in the page's `+ Add` menu (`#new-payment`), opens the
- * same form empty. No amount field here; amounts are set on the Money page.
+ * same form empty. No amount, type or tags here; those are set on the Money
+ * page, and a payment added here is core.
  *
  * The count moves with the optimistic toggle, so it renders here rather than
  * in the section heading.

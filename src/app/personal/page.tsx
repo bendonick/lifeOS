@@ -38,14 +38,15 @@ export const viewport: Viewport = { themeColor: "#efdfbb", colorScheme: "light" 
  * trends route are untouched.
  *
  * Money here is a high-level check only: the month's payments ticked off, with
- * no amounts. Every figure (bills with amounts, budget, spending, history,
- * imports) is on /personal/money.
+ * no amounts. Only the core payments you pay yourself: subscriptions bill
+ * themselves and are listed on /personal/money, with every figure (amounts,
+ * budget, spending, history, imports).
  */
 export default function PersonalPage() {
   const today = zurichToday();
   const month = monthOf(today);
   const tasks = weekTasksByDomain("personal");
-  const bills = billsForMonth(month);
+  const bills = billsForMonth(month).filter((b) => b.kind === "core");
   const habits = habitsWithWeek(today);
   const notes = personalNotes();
   const germanWord = latestGermanWord();

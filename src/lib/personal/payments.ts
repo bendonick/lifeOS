@@ -3,6 +3,18 @@
 // route enforces.
 
 export const PAYMENT_NAME_MAX = 60;
+
+// Whole francs as "CHF 70", anything with cents as "CHF 12.90".
+const chf = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
+const chfCents = new Intl.NumberFormat("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/** An amount as the Money page writes it; rounded to the cent first, so a sum
+ *  like 19.9 + 0.1 reads "CHF 20". No amount is a dash. */
+export function formatChf(n: number | null): string {
+  if (n === null) return "—";
+  const c = Math.round(n * 100) / 100;
+  return `CHF ${Number.isInteger(c) ? chf.format(c) : chfCents.format(c)}`;
+}
 export const PAYMENT_AMOUNT_MAX = 100_000;
 
 /** Core: the cost of living (rent, insurance, the travel pass). Subscription:
@@ -24,6 +36,18 @@ export interface PaymentInput {
   kind?: PaymentKind;
   /** Absent: leave the stored tags alone. [] clears them. */
   tags?: string[];
+}
+
+/** The key a tag is compared by: "utility" and "Utility " are one tag. */
+export const tagKey = (tag: string) => tag.trim().replace(/\s+/g, " ").toLowerCase();
+
+/** What the tag field offers: every tag in use (first spelling wins), then
+ *  the starter tags not yet used. */
+export function tagSuggestions(items: { tags: string[] }[]): string[] {
+  const seen = new Map<string, string>();
+  for (const it of items) for (const t of it.tags) if (!seen.has(tagKey(t))) seen.set(tagKey(t), t);
+  const inUse = [...seen.values()].sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }));
+  return [...inUse, ...STARTER_TAGS.filter((s) => !seen.has(tagKey(s)))];
 }
 
 /**
