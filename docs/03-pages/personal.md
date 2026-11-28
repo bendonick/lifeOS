@@ -4,12 +4,14 @@ Habits, money, and everyday life. **Built in Stage 2 (2026-08-16)** to `docs/06-
 **re-laid out 2026-08-18** (decisions #63–#66) and **rebuilt on the Academic shell 2026-10-10
 (decision #81)**, when Health left the page. This doc describes what exists.
 
-**Money split, 2026-11-28 (decisions #110–#113) — current, and wins over everything below.**
+**Money split, 2026-11-28 (decisions #110–#118) — current, and wins over everything below.**
 Personal shows no money figures. Bills and Spending left the page for **`/personal/money`**,
 described in `money.md`. In their place beside Habits: **Money**
-(`MonthlyPayments`), meta "{Month} · Money →", the month's bills and subscriptions as one
-checklist ("Monthly payments", "N of M paid"), each name a tick drawn like a habit's, a status
-in words, a pencil to edit (name, due day, Remove), and "Add payment". The + Add menu is Task or
+(`MonthlyPayments`), meta "{Month} · Money →", the month's core payments as one checklist
+("Monthly payments", "N of M paid"), each name a tick drawn like a habit's, a status in words,
+a pencil to edit (name, due day, Remove), and "Add payment", which adds a core payment.
+Subscriptions bill themselves and are listed only on the Money page (#115); amounts and tags
+are never shown or edited here. The + Add menu is Task or
 appointment · Habit · Payment `#new-payment` · Note. Section links: Habits · Money · Upcoming ·
 German · Notes.
 

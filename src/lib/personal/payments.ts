@@ -4,7 +4,7 @@
 
 export const PAYMENT_NAME_MAX = 60;
 
-// Whole francs as "CHF 70", anything with cents as "CHF 12.90".
+// Whole francs as "CHF 100", anything with cents as "CHF 12.90".
 const chf = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
 const chfCents = new Intl.NumberFormat("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 

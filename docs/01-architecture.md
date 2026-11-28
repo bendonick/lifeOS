@@ -40,8 +40,9 @@ startup; these fields are the contract:
   source. Long/narrow so new metrics need no migration. Targets live in a config table or file.
 - **transactions** — date, amount_chf, category, merchant, note, source.
   **budgets** — month, category (nullable = overall), amount_chf.
-- **bills** — name, due_day, amount?, active; per-month paid log in **bill_payments**
-  (bill_id, month, paid_at).
+- **bills** — name, due_day, amount? (francs for a core payment, US dollars for a
+  subscription), active, created_month, note, kind (`core|subscription`), tags (JSON array),
+  cancelled_on; per-month paid log in **bill_payments** (bill_id, month, paid_at).
 - **briefs** — date, kind (`world|ai_research|german_word`; `email_todos` reserved but
   unused — decision #35), content_md,
   generated_at. Written by scripts, rendered by the app; always show generated_at so staleness

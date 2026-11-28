@@ -351,8 +351,16 @@ becomes a session the day its data exists.
 
 ## Personal money split (2026-11-28)
 
-- **Rebuild the rest of the Money page.** Monthly payments is rebuilt (#113); spending,
-  budget, history and the transaction tools still sit unchanged in the closed Details toggle.
+- **Rebuild the rest of the Money page.** Monthly payments (#113) and Subscriptions
+  (#115–#117) are rebuilt; spending, budget, history and the transaction tools still sit
+  unchanged in the closed Details toggle.
+- **Subscriptions in other currencies.** All subscriptions are in US dollars for now (#116). A
+  currency per subscription (EUR, CHF, GBP) with francs at hand-set rates was built and taken
+  out; if it comes back, decide between hand-set rates and a daily fetch, and whether sums
+  convert to francs.
+- **Left out of Subscriptions on purpose (2026-11-28):** billing frequency (yearly plans), free
+  trials, a paid history, a "since" date, and matching subscriptions to imported transactions.
+  The last waits for the import work.
 - **What else a payment's Details hold.** Only a note for now. Built once and taken out until
   decided: the amount a year, when it was ticked, the last six months as marks.
 - **Say when spending was last imported.** Nothing on either page says the data stops at the
