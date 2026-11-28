@@ -14,20 +14,26 @@ const LEAD = /^[\s:;,.\-–—·|/]+/;
 /** A cut-off title still names its course when this many characters agree. */
 const MIN_PREFIX = 12;
 
+/** Which course a title names, and what the title says beyond the course. */
+export interface CourseMatch {
+  code: string;
+  /** The rest of the title with leading separators trimmed; "" when none. */
+  rest: string;
+}
+
 /**
- * The timetable's name for an event: the course code, then whatever the
- * title says beyond the course ('FoC II · mock exam'). Google titles name a
- * course in several ways ("ML for Natural language Processing", "ML for NLP",
- * "The Effects of AI on Individuals and Soc"); this reads all of them as one.
+ * The course a calendar title names. Google titles name a course in several
+ * ways ("ML for Natural language Processing", "ML for NLP", "The Effects of AI
+ * on Individuals and Soc"); this reads all of them as one.
  *
  * A title matches a course when it starts with the course's name, when it is
  * the start of the name cut off after at least MIN_PREFIX characters, or when
  * it holds the course's code as a whole word (then the code and everything
  * before it are the course part). Case is ignored for names, not for codes,
  * so a code like "Effects" or "Seminar" only matches as written. A title that
- * matches no course is returned unchanged.
+ * matches no course gives null.
  */
-export function courseTitle(title: string, courses: CourseName[]): string {
+export function matchCourse(title: string, courses: CourseName[]): CourseMatch | null {
   const t = title.trim();
   const lower = t.toLowerCase();
   // Longest name first, so "Foundations of Computing II" wins over a course
@@ -36,24 +42,34 @@ export function courseTitle(title: string, courses: CourseName[]): string {
 
   for (const c of byName) {
     const name = c.name.trim().toLowerCase();
-    if (name && lower.startsWith(name)) return withRest(c.code, t.slice(name.length));
+    if (name && lower.startsWith(name)) return { code: c.code, rest: trimLead(t.slice(name.length)) };
   }
   for (const c of byName) {
     const name = c.name.trim().toLowerCase();
-    if (lower.length >= MIN_PREFIX && name.startsWith(lower)) return c.code;
+    if (lower.length >= MIN_PREFIX && name.startsWith(lower)) return { code: c.code, rest: "" };
   }
   for (const c of byName) {
     const code = c.code.trim();
     if (!code) continue;
     const m = new RegExp(`(^|[^A-Za-z0-9])${escape(code)}(?![A-Za-z0-9])`).exec(t);
-    if (m) return withRest(c.code, t.slice(m.index + m[0].length));
+    if (m) return { code: c.code, rest: trimLead(t.slice(m.index + m[0].length)) };
   }
-  return t;
+  return null;
 }
 
-function withRest(code: string, rest: string): string {
-  const r = rest.replace(LEAD, "").trim();
-  return r ? `${code} · ${r}` : code;
+/**
+ * The timetable's name for an event: the course code, then whatever the
+ * title says beyond the course ('FoC II · mock exam'). A title that matches
+ * no course (see `matchCourse`) is returned unchanged.
+ */
+export function courseTitle(title: string, courses: CourseName[]): string {
+  const m = matchCourse(title, courses);
+  if (!m) return title.trim();
+  return m.rest ? `${m.code} · ${m.rest}` : m.code;
+}
+
+function trimLead(rest: string): string {
+  return rest.replace(LEAD, "").trim();
 }
 
 function escape(s: string): string {
