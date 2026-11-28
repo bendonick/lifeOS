@@ -296,10 +296,11 @@ CREATE TABLE IF NOT EXISTS plan_notes (
 -- and mock exams a course is planned to take; progress counts these rows.
 CREATE TABLE IF NOT EXISTS study_sessions (
   id         INTEGER PRIMARY KEY,
-  course_id  INTEGER REFERENCES courses(id) ON DELETE SET NULL,
-  concept    TEXT NOT NULL,         -- what was studied, in the user's words
-  kind       TEXT NOT NULL DEFAULT 'study' CHECK (kind IN ('study','mock')),
-  date       TEXT NOT NULL,         -- 'YYYY-MM-DD' (Zurich)
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  course_id   INTEGER REFERENCES courses(id) ON DELETE SET NULL,
+  title       TEXT NOT NULL,        -- what was studied, in the user's words
+  description TEXT,                 -- optional detail
+  kind        TEXT NOT NULL DEFAULT 'study' CHECK (kind IN ('study','mock')),
+  date        TEXT NOT NULL,        -- 'YYYY-MM-DD' (Zurich)
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_study_sessions_course ON study_sessions (course_id, date);

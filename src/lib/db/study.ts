@@ -6,7 +6,8 @@ export type StudyLogKind = "study" | "mock";
 export interface StudyLog {
   id: number;
   course_id: number | null;
-  concept: string;
+  title: string;
+  description: string | null;
   kind: StudyLogKind;
   date: string;
   created_at: string;
@@ -21,10 +22,16 @@ export function studyLogs(): StudyLog[] {
     .all() as StudyLog[];
 }
 
-export function createStudyLog(courseId: number, concept: string, kind: StudyLogKind, date: string): StudyLog {
+export function createStudyLog(input: {
+  courseId: number;
+  title: string;
+  description: string | null;
+  kind: StudyLogKind;
+  date: string;
+}): StudyLog {
   const { lastInsertRowid } = db
-    .prepare("INSERT INTO study_sessions (course_id, concept, kind, date) VALUES (?, ?, ?, ?)")
-    .run(courseId, concept, kind, date);
+    .prepare("INSERT INTO study_sessions (course_id, title, description, kind, date) VALUES (?, ?, ?, ?, ?)")
+    .run(input.courseId, input.title, input.description, input.kind, input.date);
   return db.prepare("SELECT * FROM study_sessions WHERE id = ?").get(lastInsertRowid) as StudyLog;
 }
 

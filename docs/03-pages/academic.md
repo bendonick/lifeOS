@@ -13,10 +13,11 @@ rail, no tiles. Top to bottom:
    marks; the current week tinted rust; Weekly load = open assignments and exams due.
 4. **Upcoming work | Exams** — ~60/40 with one rule. Filters, horizon groups, Later, done boxes,
    the inline editor and course links unchanged. Exams ends after "N more exams" (#93).
-5. **Study progress** (#97, #98) — one row per course with an exam: code, a bar of one segment
-   per planned Exam Prep session (mock and past exams outlined) and the exam date with days left
-   at the bar's end. Bars start empty and fill from the user's log: "Log session" (what, day,
-   mock exam) and "Sessions" (the log, with delete) under each bar; a legend beneath.
+5. **Study progress** (#97–#99) — one row per course with an exam: code with a filled plus, a
+   bar of one segment per planned Exam Prep session (mock and past exams outlined) and the exam
+   date with days left at the bar's end. Bars start empty and fill from the user's log: the plus
+   opens a dialog (title, description; logged for today) and "Sessions" under the bar lists the
+   log with delete; a legend beneath.
 6. **Courses** — the two-column index of expandable rows (unchanged behaviour).
 7. **Timetable** — open, full width; slate event blocks, Exam Prep blocks in a rust hatch
    with a dashed border, other calendars as labelled outlines (#95); the deadline strip labelled against the displayed week (#94).

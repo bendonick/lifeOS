@@ -2,21 +2,21 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useState, useTransition } from "react";
-import { Trash2 } from "lucide-react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { DisclosureTrigger } from "@/components/ui/Disclosure";
 import { RowAction } from "@/components/ui/RowAction";
-import { fieldChrome, filledButtonChrome, inputChrome } from "@/components/ui/controls";
+import { buttonChrome, filledButtonChrome, inputChrome } from "@/components/ui/controls";
 import type { CourseStudy } from "@/lib/academic/study";
 import type { StudyLog } from "@/lib/db/study";
 import { dayLabel } from "@/lib/dates";
 
 /**
- * The Study progress rows (decision #98): code | bar | exam, with the count
- * and two actions under the bar. "Log session" opens a one-line form (what you
- * studied, the day, whether it was a mock exam); "Sessions" lists what has
- * been logged, newest first, each with a delete. Every change refreshes the
- * page's server data, so the bar is always the database's count.
+ * The Study progress rows (decisions #98, #99): code | bar | exam. The filled
+ * plus beside each course code opens a small dialog (title, description) that
+ * logs a session for today; "Sessions" under the bar lists what has been
+ * logged, newest first, each with a delete. Every change refreshes the page's
+ * server data, so the bar is always the database's count.
  */
 export function StudyProgressList({ courses, today }: { courses: CourseStudy[]; today: string }) {
   const router = useRouter();
@@ -35,14 +35,13 @@ export function StudyProgressList({ courses, today }: { courses: CourseStudy[]; 
   );
 }
 
-/** Lines the form and the log up under the bar from `sm`, where the row is
+/** Lines the session list up under the bar from `sm`, where the row is
  *  code | bar | exam. */
-const UNDER_BAR = "sm:ml-[5.5rem] sm:mr-[11.5rem]";
+const UNDER_BAR = "sm:ml-[7.5rem] sm:mr-[11.5rem]";
 
 function CourseRow({ course: c, today, onChange }: { course: CourseStudy; today: string; onChange: () => void }) {
-  const [adding, setAdding] = useState(false);
+  const [logging, setLogging] = useState(false);
   const [showLog, setShowLog] = useState(false);
-  const formId = useId();
   const logId = useId();
   const when = examWhen(c);
 
@@ -50,13 +49,24 @@ function CourseRow({ course: c, today, onChange }: { course: CourseStudy; today:
     <li className="border-b border-border py-3.5">
       {/* Phone: code and exam on one line, the bar and its line full width
           beneath. From `sm`: code | bar | exam, the exam where the bar ends. */}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 sm:grid-cols-[4.5rem_minmax(0,1fr)_10.5rem]">
-        <Link
-          href={`/academic/courses/${c.courseId}`}
-          className="inline-flex min-h-6 items-center justify-self-start rounded font-bold text-text underline-offset-4 hover:underline sm:col-start-1 sm:row-span-2 sm:row-start-1"
-        >
-          {c.code}
-        </Link>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 sm:grid-cols-[6.5rem_minmax(0,1fr)_10.5rem]">
+        <div className="flex items-center gap-2 justify-self-start sm:col-start-1 sm:row-span-2 sm:row-start-1">
+          <Link
+            href={`/academic/courses/${c.courseId}`}
+            className="inline-flex min-h-6 items-center rounded font-bold text-text underline-offset-4 hover:underline"
+          >
+            {c.code}
+          </Link>
+          <button
+            type="button"
+            onClick={() => setLogging(true)}
+            aria-label={`Log a session for ${c.code}`}
+            aria-haspopup="dialog"
+            className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--color-ink) text-(--color-paper) transition-colors hover:bg-(--color-ink-hover)"
+          >
+            <Plus size={15} strokeWidth={2.75} aria-hidden="true" />
+          </button>
+        </div>
 
         <div className="flex items-center gap-2.5 justify-self-end sm:col-start-3 sm:row-span-2 sm:row-start-1 sm:justify-self-start">
           {c.exam && <span aria-hidden="true" className="h-8 w-[3px] shrink-0 rounded-sm bg-danger" />}
@@ -68,49 +78,37 @@ function CourseRow({ course: c, today, onChange }: { course: CourseStudy; today:
 
         <Bar course={c} />
 
-        <div className="col-span-2 flex flex-wrap items-center justify-between gap-x-4 sm:col-span-1 sm:col-start-2 sm:row-start-2">
+        <div className="col-span-2 flex min-h-7 flex-wrap items-center justify-between gap-x-4 sm:col-span-1 sm:col-start-2 sm:row-start-2">
           <p className="tabular text-sm text-muted">{countLabel(c)}</p>
-          <div className="flex items-center gap-4">
-            {c.log.length > 0 && (
-              <DisclosureTrigger
-                open={showLog}
-                onToggle={() => setShowLog((v) => !v)}
-                summary="Sessions"
-                openSummary="Hide sessions"
-                detail={c.log.length}
-                controls={logId}
-              />
-            )}
+          {c.log.length > 0 && (
             <DisclosureTrigger
-              variant="add"
-              accent="academic"
-              open={adding}
-              onToggle={() => setAdding((v) => !v)}
-              summary="Log session"
-              openSummary="Close"
-              controls={formId}
+              open={showLog}
+              onToggle={() => setShowLog((v) => !v)}
+              summary="Sessions"
+              openSummary="Hide sessions"
+              detail={c.log.length}
+              controls={logId}
             />
-          </div>
+          )}
         </div>
       </div>
 
-      {adding && (
-        <div id={formId} className={UNDER_BAR}>
-          <LogForm
-            course={c}
-            today={today}
-            onLogged={() => {
-              setAdding(false);
-              onChange();
-            }}
-          />
-        </div>
-      )}
       {showLog && c.log.length > 0 && (
         <div id={logId} className={UNDER_BAR}>
           <SessionLog code={c.code} log={c.log} onChange={onChange} />
         </div>
       )}
+
+      <LogDialog
+        course={c}
+        today={today}
+        open={logging}
+        onClose={() => setLogging(false)}
+        onLogged={() => {
+          setLogging(false);
+          onChange();
+        }}
+      />
     </li>
   );
 }
@@ -133,17 +131,63 @@ function Bar({ course: c }: { course: CourseStudy }) {
   );
 }
 
-function LogForm({ course: c, today, onLogged }: { course: CourseStudy; today: string; onLogged: () => void }) {
-  const [concept, setConcept] = useState("");
-  const [date, setDate] = useState(today);
-  const [mock, setMock] = useState(false);
+/**
+ * The log dialog: a native modal <dialog>, so Escape, focus and the inert page
+ * behind it come from the browser. A click on the backdrop closes it too. The
+ * session is logged for today; a title naming a mock or past exam fills a mock
+ * segment (`logKind`, applied by the API).
+ */
+function LogDialog({
+  course: c,
+  today,
+  open,
+  onClose,
+  onLogged,
+}: {
+  course: CourseStudy;
+  today: string;
+  open: boolean;
+  onClose: () => void;
+  onLogged: () => void;
+}) {
+  const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Escape and `dialog.close()` close the element without React; listening on
+  // the element itself keeps `open` in step either way.
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
+  useEffect(() => {
+    const dialog = ref.current;
+    if (!dialog) return;
+    const handle = () => closeRef.current();
+    dialog.addEventListener("close", handle);
+    return () => dialog.removeEventListener("close", handle);
+  }, []);
+
+  useEffect(() => {
+    const dialog = ref.current;
+    if (!dialog) return;
+    if (open && !dialog.open) {
+      setTitle("");
+      setDescription("");
+      setError(null);
+      dialog.showModal();
+    } else if (!open && dialog.open) {
+      dialog.close();
+    }
+  }, [open]);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!concept.trim()) {
-      setError("say what you studied");
+    if (!title.trim()) {
+      setError("give the session a title");
       return;
     }
     setSaving(true);
@@ -151,7 +195,7 @@ function LogForm({ course: c, today, onLogged }: { course: CourseStudy; today: s
     const res = await fetch("/api/study-sessions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ course_id: c.courseId, concept: concept.trim(), kind: mock ? "mock" : "study", date }),
+      body: JSON.stringify({ course_id: c.courseId, title: title.trim(), description: description.trim(), date: today }),
     }).catch(() => null);
     setSaving(false);
     if (!res?.ok) {
@@ -163,37 +207,69 @@ function LogForm({ course: c, today, onLogged }: { course: CourseStudy; today: s
   }
 
   return (
-    <form onSubmit={submit} className="mt-2.5 flex flex-wrap items-center gap-2">
-      <input
-        autoFocus
-        value={concept}
-        onChange={(e) => setConcept(e.target.value)}
-        maxLength={200}
-        placeholder={mock ? "Which mock or past exam?" : "What did you study?"}
-        aria-label={`What you studied for ${c.code}`}
-        className={`${inputChrome} min-w-0 flex-[1_1_14rem]`}
-      />
-      <input
-        type="date"
-        value={date}
-        max={today}
-        onChange={(e) => setDate(e.target.value)}
-        aria-label="Day"
-        className={fieldChrome}
-      />
-      <label className="inline-flex min-h-6 items-center gap-2 text-sm text-text">
-        <input type="checkbox" checked={mock} onChange={(e) => setMock(e.target.checked)} />
-        Mock exam
-      </label>
-      <button type="submit" disabled={saving} className={filledButtonChrome}>
-        {saving ? "Logging…" : "Log"}
-      </button>
-      {error && (
-        <p role="alert" className="basis-full text-sm text-danger">
-          {error}
-        </p>
-      )}
-    </form>
+    <dialog
+      ref={ref}
+      aria-labelledby={titleId}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-lg border border-border-strong bg-(--color-bg) p-0 text-text shadow-xl backdrop:bg-(--color-ink)/40"
+    >
+      <form onSubmit={submit} className="flex flex-col gap-4 p-5">
+        <div>
+          <h3 id={titleId} className="t-serif text-2xl leading-tight text-text">
+            Log a session
+          </h3>
+          <p className="mt-0.5 text-sm text-muted">
+            {c.code} · {c.name} · {dayLabel(today)}
+          </p>
+        </div>
+
+        <label className="flex flex-col gap-1.5 text-sm font-semibold text-text">
+          Title
+          <input
+            autoFocus
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            maxLength={120}
+            placeholder="e.g. Attention and transformers"
+            className={`${inputChrome} text-base font-normal`}
+          />
+          {c.planned.mock > 0 && (
+            <span className="text-xs font-normal text-muted">Put “mock exam” in the title to fill a mock exam.</span>
+          )}
+        </label>
+
+        <label className="flex flex-col gap-1.5 text-sm font-semibold text-text">
+          <span>
+            Description <span className="font-normal text-muted">(optional)</span>
+          </span>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            maxLength={2000}
+            rows={4}
+            placeholder="What you covered, what is still unclear"
+            className={`${inputChrome} resize-y text-base font-normal`}
+          />
+        </label>
+
+        {error && (
+          <p role="alert" className="text-sm text-danger">
+            {error}
+          </p>
+        )}
+
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className={buttonChrome}>
+            Cancel
+          </button>
+          <button type="submit" disabled={saving} className={filledButtonChrome}>
+            {saving ? "Logging…" : "Log session"}
+          </button>
+        </div>
+      </form>
+    </dialog>
   );
 }
 
@@ -201,11 +277,11 @@ function SessionLog({ code, log, onChange }: { code: string; log: StudyLog[]; on
   const [error, setError] = useState<string | null>(null);
 
   async function remove(entry: StudyLog) {
-    if (!window.confirm(`Delete “${entry.concept}” from the ${code} log?`)) return;
+    if (!window.confirm(`Delete “${entry.title}” from the ${code} log?`)) return;
     setError(null);
     const res = await fetch(`/api/study-sessions/${entry.id}`, { method: "DELETE" }).catch(() => null);
     if (!res?.ok) {
-      setError(`could not delete “${entry.concept}”`);
+      setError(`could not delete “${entry.title}”`);
       return;
     }
     onChange();
@@ -220,13 +296,16 @@ function SessionLog({ code, log, onChange }: { code: string; log: StudyLog[]; on
       )}
       <ul className="divide-y divide-border border-t border-border text-sm">
         {log.map((l) => (
-          <li key={l.id} className="flex items-center gap-3 py-1.5">
-            <span className="tabular w-24 shrink-0 text-muted">{dayLabel(l.date)}</span>
-            <span className="min-w-0 flex-1 text-text">
-              {l.concept}
-              {l.kind === "mock" && <span className="text-muted"> · mock exam</span>}
-            </span>
-            <RowAction icon={Trash2} label={`Delete “${l.concept}”`} onClick={() => remove(l)} danger />
+          <li key={l.id} className="flex items-start gap-3 py-1.5">
+            <span className="tabular w-24 shrink-0 pt-0.5 text-muted">{dayLabel(l.date)}</span>
+            <div className="min-w-0 flex-1 pt-0.5">
+              <p className="text-text">
+                {l.title}
+                {l.kind === "mock" && <span className="text-muted"> · mock exam</span>}
+              </p>
+              {l.description && <p className="whitespace-pre-line text-muted">{l.description}</p>}
+            </div>
+            <RowAction icon={Trash2} label={`Delete “${l.title}”`} onClick={() => remove(l)} danger />
           </li>
         ))}
       </ul>

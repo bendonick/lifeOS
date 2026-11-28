@@ -33,6 +33,16 @@ export function sessionKind(rest: string): SlotKind | "exam" {
   return "study";
 }
 
+/**
+ * The kind of a logged session, read from its title: one that names a mock,
+ * past or practice exam fills a mock segment, anything else a study segment.
+ * Stricter than `sessionKind`, since a log title is free text ("practice
+ * problems" is studying, "practice exam" is not).
+ */
+export function logKind(title: string): StudyLog["kind"] {
+  return /\b(mock|past exams?|practice exams?)\b/i.test(title) ? "mock" : "study";
+}
+
 /** One planned session: a segment of the bar. */
 export interface StudySlot {
   /** The calendar occurrence id (uid + start). */
