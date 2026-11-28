@@ -8,6 +8,7 @@ export interface BillStatus {
   amount_chf: number | null;
   paid: boolean; // this month
   prevMonthMissed: boolean; // unpaid when the month rolled over → danger accent
+  note: string | null;
 }
 
 export function billsForMonth(month: string): BillStatus[] {
@@ -23,7 +24,7 @@ export function billsForMonth(month: string): BillStatus[] {
       `SELECT b.id, b.name, b.due_day, b.amount_chf,
               EXISTS (SELECT 1 FROM bill_payments p WHERE p.bill_id = b.id AND p.month = ?) AS paid,
               EXISTS (SELECT 1 FROM bill_payments p WHERE p.bill_id = b.id AND p.month = ?) AS prev_paid,
-              b.created_month
+              b.created_month, b.note
        FROM bills b WHERE b.active = 1 ORDER BY b.due_day, b.id`
     )
     .all(month, prevMonth) as Array<{
@@ -34,6 +35,7 @@ export function billsForMonth(month: string): BillStatus[] {
     paid: 0 | 1;
     prev_paid: 0 | 1;
     created_month: string | null;
+    note: string | null;
   }>;
 
   return rows.map((r) => ({
@@ -44,6 +46,7 @@ export function billsForMonth(month: string): BillStatus[] {
     paid: !!r.paid,
     // A payment added this month did not exist last month to be missed.
     prevMonthMissed: prevMonthTracked && !r.prev_paid && (r.created_month === null || r.created_month < month),
+    note: r.note,
   }));
 }
 
@@ -82,6 +85,11 @@ export function updateBill(id: number, input: { name: string; due_day: number; a
       id
     );
   }
+}
+
+/** The payment's note; null clears it. */
+export function setBillNote(id: number, note: string | null) {
+  db.prepare("UPDATE bills SET note = ? WHERE id = ?").run(note, id);
 }
 
 /** Off the lists from now on; its paid log stays. */

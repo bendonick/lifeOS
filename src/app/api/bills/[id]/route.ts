@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { archiveBill, billExists, setBillPaid, updateBill } from "@/lib/db/bills";
-import { checkPayment } from "@/lib/personal/payments";
+import { archiveBill, billExists, setBillNote, setBillPaid, updateBill } from "@/lib/db/bills";
+import { checkPayment, checkPaymentNote } from "@/lib/personal/payments";
 
-// One monthly payment. PATCH does two jobs, told apart by the body:
+// One monthly payment. PATCH does three jobs, told apart by the body:
 // `{ month, paid }` ticks or unticks a month; `{ name, due_day, amount_chf? }`
-// edits it. DELETE takes it off the lists and keeps its paid log.
+// edits it; `{ note }` sets its note (empty or null clears it). DELETE takes it off the lists and keeps its paid log.
 
 async function activeId(ctx: RouteContext<"/api/bills/[id]">): Promise<number | null> {
   const { id } = await ctx.params;
@@ -17,6 +17,12 @@ export async function PATCH(req: NextRequest, ctx: RouteContext<"/api/bills/[id]
   if (billId === null) return NextResponse.json({ error: "unknown bill" }, { status: 404 });
 
   const body = await req.json().catch(() => null);
+  if (body && "note" in body) {
+    const checked = checkPaymentNote(body.note);
+    if ("error" in checked) return NextResponse.json({ error: checked.error }, { status: 400 });
+    setBillNote(billId, checked.note);
+    return NextResponse.json({ ok: true });
+  }
   if (body && "name" in body) {
     const checked = checkPayment(body);
     if ("error" in checked) return NextResponse.json({ error: checked.error }, { status: 400 });

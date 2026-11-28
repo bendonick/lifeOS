@@ -36,3 +36,14 @@ export function checkPayment(raw: { name?: unknown; due_day?: unknown; amount_ch
   }
   return { name, due_day: day, amount_chf: Math.round(amount * 100) / 100 };
 }
+
+export const PAYMENT_NOTE_MAX = 2000;
+
+/** A payment's note: trimmed, empty means none (null). */
+export function checkPaymentNote(raw: unknown): { note: string | null } | { error: string } {
+  if (raw === null) return { note: null };
+  if (typeof raw !== "string") return { error: "the note is text" };
+  const note = raw.trim();
+  if (note.length > PAYMENT_NOTE_MAX) return { error: `keep the note under ${PAYMENT_NOTE_MAX} characters` };
+  return { note: note || null };
+}

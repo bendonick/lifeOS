@@ -108,6 +108,9 @@ function migrate(db: Database.Database) {
   // 2026-11-28: payments are added on the page. A payment added this month
   // cannot have been missed last month; NULL is every payment from before.
   addColumn(db, "bills", "created_month", "TEXT");
+  // 2026-11-28: a payment carries a free-text note, read and written on the
+  // Money page.
+  addColumn(db, "bills", "note", "TEXT");
 
   foldFoodCategories(db);
 }
