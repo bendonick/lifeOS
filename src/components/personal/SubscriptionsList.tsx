@@ -1,24 +1,34 @@
 "use client";
 
-import { ChevronRight, Pencil, RefreshCw } from "lucide-react";
-import { useId, useState } from "react";
+import { ChevronRight, Pencil, RefreshCw, RotateCcw } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useId, useState, useTransition } from "react";
 import { PaymentForm } from "@/components/personal/PaymentForm";
 import { PaymentNote } from "@/components/personal/PaymentNote";
 import { TagFilterRow, TagFilterSummary, useTagFilter } from "@/components/personal/TagFilter";
+import { filledButtonChrome, inputChrome } from "@/components/ui/controls";
 import { Disclosure } from "@/components/ui/Disclosure";
 import { Pill } from "@/components/ui/Pill";
 import { RowAction } from "@/components/ui/RowAction";
 import { Tabs } from "@/components/ui/Tabs";
-import type { BillStatus } from "@/lib/db/bills";
+import type { BillStatus, CancelledSubscription } from "@/lib/db/bills";
 import { dayLabel, daysInMonth } from "@/lib/dates";
-import { formatChf } from "@/lib/personal/payments";
+import {
+  CANCELLED_KEEP_MONTHS,
+  checkFxRates,
+  formatChf,
+  formatMoney,
+  toChf,
+  type Currency,
+  type FxRates,
+} from "@/lib/personal/payments";
 
 /**
  * Subscriptions on the Money page: the payments that bill themselves
  * (streaming, apps, delivery and travel passes), so there is nothing to tick.
  * They are payments of type Subscription, kept apart from Monthly payments
- * (`PaymentsLedger`) and left off Personal's checklist; choosing Core or
- * Subscription in the editor moves a payment between the two lists.
+ * (`PaymentsLedger`) and left off Personal's checklist. Each list creates its
+ * own kind; nothing moves between them.
  *
  * One row per subscription, in columns: the subscription, its tags, the day it
  * bills this month, and the amount. The bar has a repeat mark where a payment
@@ -30,25 +40,47 @@ import { formatChf } from "@/lib/personal/payments";
  *
  * The tag row filters as on Monthly payments (any number of tags, a row shows
  * when it carries any of them, none picked shows all), and Sort orders by
- * date, amount or name. The pencil opens the shared PaymentForm; "Add
- * subscription", or Subscription in the page's `+ Add` menu
- * (`#new-subscription`), adds one already set to Subscription.
+ * date, amount (in francs) or name. The pencil opens the shared PaymentForm;
+ * "Add subscription", or Subscription in the page's `+ Add` menu
+ * (`#new-subscription`), adds one.
+ *
+ * **Currency.** A subscription bills in USD, EUR, CHF or GBP. The row shows
+ * what it bills ("USD 20") with the francs under it ("≈ CHF 16"), and every
+ * sum is in francs, marked ≈ when a foreign amount is in it. The rates are
+ * set by hand under the list ("Edit rates"); nothing is fetched from outside.
+ *
+ * **Cancelled.** "Cancel subscription" in the editor asks for the day and
+ * moves it to the Cancelled list under this one: closed at rest, saying how
+ * many and what they save a year; each row has its cancel date and a restore
+ * arrow. A subscription leaves the list six months after it was cancelled.
  *
  * Below `sm` a row is two lines: the bar and the pencil, then the date ·
  * amount · tags.
  */
-const COLS_TAGS = "sm:grid-cols-[minmax(0,1fr)_10rem_6.5rem_6.5rem_1.75rem]";
-const COLS_PLAIN = "sm:grid-cols-[minmax(0,1fr)_6.5rem_6.5rem_1.75rem]";
+const COLS_TAGS = "sm:grid-cols-[minmax(0,1fr)_10rem_8rem_6.5rem_1.75rem]";
+const COLS_PLAIN = "sm:grid-cols-[minmax(0,1fr)_8rem_6.5rem_1.75rem]";
+const shortDate = (date: string, today: string) =>
+  new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    ...(date.slice(0, 4) !== today.slice(0, 4) ? { year: "numeric" } : {}),
+    timeZone: "UTC",
+  }).format(new Date(`${date}T12:00:00Z`));
 
 type Sort = "date" | "amount" | "name";
 
 export function SubscriptionsList({
   subscriptions,
+  cancelled,
+  rates,
   month,
   today,
   tagSuggestions,
 }: {
   subscriptions: BillStatus[];
+  /** Cancelled in the last six months, latest first. */
+  cancelled: CancelledSubscription[];
+  rates: FxRates;
   month: string;
   today: string;
   tagSuggestions: string[];
@@ -79,13 +111,32 @@ export function SubscriptionsList({
       className="mt-3"
     >
       <PaymentForm
+        kind="subscription"
         withAmount
         withLabels
-        defaultKind="subscription"
         tagSuggestions={tagSuggestions}
         inputId="new-subscription"
       />
     </Disclosure>
+  );
+
+  // In francs at the set rates; null when there is no amount.
+  const inChf = (s: { amount_chf: number | null; currency: Currency }) =>
+    s.amount_chf === null ? null : toChf(s.amount_chf, s.currency, rates);
+  const sum = (list: { amount_chf: number | null; currency: Currency }[]) =>
+    list.reduce((t, s) => t + (inChf(s) ?? 0), 0);
+  const approx = (list: { currency: Currency }[]) => (list.some((s) => s.currency !== "CHF") ? "≈ " : "");
+  const perMonth = (list: BillStatus[]) =>
+    list.some((s) => s.amount_chf !== null) ? `${approx(list)}${formatChf(sum(list))} a month` : "no amounts yet";
+  const anyForeign = [...subscriptions, ...cancelled].some((s) => s.currency !== "CHF");
+
+  const extras = (
+    <>
+      {anyForeign && <RatesLine rates={rates} today={today} />}
+      {cancelled.length > 0 && (
+        <CancelledList cancelled={cancelled} today={today} inChf={inChf} saves={`${approx(cancelled)}${formatChf(sum(cancelled) * 12)}`} />
+      )}
+    </>
   );
 
   if (subscriptions.length === 0) {
@@ -93,6 +144,7 @@ export function SubscriptionsList({
       <div>
         <p className="text-sm text-muted">No subscriptions yet.</p>
         {addSubscription}
+        {extras}
       </div>
     );
   }
@@ -103,15 +155,12 @@ export function SubscriptionsList({
   const billDate = (s: BillStatus) => `${month}-${String(billDay(s)).padStart(2, "0")}`;
   const toCome = (s: BillStatus) => billDay(s) >= dayOfMonth;
 
-  const sum = (list: BillStatus[]) => list.reduce((t, s) => t + (s.amount_chf ?? 0), 0);
-  const perMonth = (list: BillStatus[]) =>
-    list.some((s) => s.amount_chf !== null) ? `${formatChf(sum(list))} a month` : "no amounts yet";
   const stillToBill = subscriptions.filter(toCome).length;
 
   const byName = (a: BillStatus, b: BillStatus) => a.name.localeCompare(b.name, "en", { sensitivity: "base" });
   const ordered = [...filter.shown].sort((a, b) =>
     sort === "amount"
-      ? (b.amount_chf ?? -1) - (a.amount_chf ?? -1) || byName(a, b)
+      ? (inChf(b) ?? -1) - (inChf(a) ?? -1) || byName(a, b)
       : sort === "name"
         ? byName(a, b)
         : billDay(a) - billDay(b) || byName(a, b)
@@ -128,6 +177,7 @@ export function SubscriptionsList({
         <li key={s.id} className="py-2.5">
           <PaymentForm
             payment={s}
+            kind="subscription"
             withAmount
             withLabels
             tagSuggestions={tagSuggestions}
@@ -176,7 +226,7 @@ export function SubscriptionsList({
           {/* Phone: date · amount · tags on a second line. */}
           <span className="col-span-2 flex min-w-0 gap-2 px-1 text-xs sm:hidden">
             <span className={`tabular shrink-0 ${dateTone}`}>Bills {dayLabel(billDate(s))}</span>
-            <span className="tabular shrink-0 text-text">{formatChf(s.amount_chf)}</span>
+            <span className="tabular shrink-0 text-text">{formatMoney(s.amount_chf, s.currency)}</span>
             {s.tags.length > 0 && <span className="truncate text-faint">{s.tags.join(" · ")}</span>}
           </span>
 
@@ -191,8 +241,8 @@ export function SubscriptionsList({
           <span className={`tabular hidden text-sm sm:row-start-1 sm:block ${POS.date} ${dateTone}`}>
             {dayLabel(billDate(s))}
           </span>
-          <span className={`tabular hidden text-right text-sm text-text sm:row-start-1 sm:block ${POS.amount}`}>
-            {formatChf(s.amount_chf)}
+          <span className={`hidden sm:row-start-1 sm:block ${POS.amount}`}>
+            <Amount amount={s.amount_chf} currency={s.currency} chf={inChf(s)} />
           </span>
         </div>
 
@@ -220,7 +270,11 @@ export function SubscriptionsList({
           {subscriptions.some((s) => s.amount_chf !== null) && (
             <>
               {" "}
-              · <span className="whitespace-nowrap">{formatChf(sum(subscriptions) * 12)} a year</span>
+              ·{" "}
+              <span className="whitespace-nowrap">
+                {approx(subscriptions)}
+                {formatChf(sum(subscriptions) * 12)} a year
+              </span>
             </>
           )}
         </span>
@@ -258,6 +312,194 @@ export function SubscriptionsList({
       <ul className="divide-y divide-border border-b border-border max-sm:border-t">{ordered.map(renderRow)}</ul>
 
       {addSubscription}
+      {extras}
+    </div>
+  );
+}
+
+/** What a subscription bills, and under it the francs when it is in another
+ *  currency. */
+function Amount({
+  amount,
+  currency,
+  chf,
+  muted = false,
+}: {
+  amount: number | null;
+  currency: Currency;
+  chf: number | null;
+  muted?: boolean;
+}) {
+  return (
+    <span className={`tabular flex flex-col items-end text-right text-sm leading-tight ${muted ? "text-muted" : "text-text"}`}>
+      <span>{formatMoney(amount, currency)}</span>
+      {currency !== "CHF" && chf !== null && <span className="text-[11px] text-faint">≈ {formatChf(chf)}</span>}
+    </span>
+  );
+}
+
+const RATE_CURRENCIES = ["USD", "EUR", "GBP"] as const;
+
+/** The rates in use, and a small form to change them. */
+function RatesLine({ rates, today }: { rates: FxRates; today: string }) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<Record<(typeof RATE_CURRENCIES)[number], string>>({
+    USD: String(rates.USD),
+    EUR: String(rates.EUR),
+    GBP: String(rates.GBP),
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    const checked = checkFxRates(draft);
+    if ("error" in checked) {
+      setError(checked.error);
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    const res = await fetch("/api/money/rates", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(checked),
+    }).catch(() => null);
+    setBusy(false);
+    if (!res?.ok) {
+      const msg = await res?.json().then((j) => j?.error).catch(() => null);
+      setError(typeof msg === "string" ? msg : "could not save the rates");
+      return;
+    }
+    setEditing(false);
+    startTransition(() => router.refresh());
+  }
+
+  if (editing) {
+    return (
+      <form onSubmit={save} className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2" aria-busy={busy}>
+        <span className="text-xs text-muted">Francs per unit:</span>
+        {RATE_CURRENCIES.map((c) => (
+          <label key={c} className="flex items-center gap-1.5 text-sm text-muted">
+            {c} 1 = CHF
+            <input
+              value={draft[c]}
+              onChange={(e) => setDraft((d) => ({ ...d, [c]: e.target.value }))}
+              inputMode="decimal"
+              aria-label={`Francs per ${c}`}
+              className={`tabular w-20 text-right ${inputChrome}`}
+            />
+          </label>
+        ))}
+        <button type="submit" disabled={busy} className={filledButtonChrome}>
+          Save rates
+        </button>
+        <button type="button" onClick={() => setEditing(false)} className="px-1 text-sm text-link hover:text-text">
+          Cancel
+        </button>
+        {error && (
+          <span role="alert" className="basis-full text-xs text-danger">
+            {error}
+          </span>
+        )}
+      </form>
+    );
+  }
+
+  return (
+    <p className="mt-3 text-xs text-faint">
+      ≈ CHF at your rates: {RATE_CURRENCIES.map((c) => `${c} 1 = CHF ${rates[c].toFixed(2)}`).join(" · ")} ·{" "}
+      {rates.set ? `set ${shortDate(rates.set, today)}` : "starting rates, not set yet"}
+      <button type="button" onClick={() => setEditing(true)} className="ml-2 text-link hover:text-text">
+        Edit rates
+      </button>
+    </p>
+  );
+}
+
+/** Subscriptions cancelled in the last six months, closed at rest. */
+function CancelledList({
+  cancelled,
+  today,
+  inChf,
+  saves,
+}: {
+  cancelled: CancelledSubscription[];
+  today: string;
+  inChf: (s: CancelledSubscription) => number | null;
+  saves: string;
+}) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const hasTags = cancelled.some((s) => s.tags.length > 0);
+  const COLS = hasTags ? COLS_TAGS : COLS_PLAIN;
+
+  async function restore(s: CancelledSubscription) {
+    setError(null);
+    const res = await fetch(`/api/bills/${s.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cancelled_on: null }),
+    }).catch(() => null);
+    if (!res?.ok) {
+      setError(`could not restore ${s.name}`);
+      return;
+    }
+    startTransition(() => router.refresh());
+  }
+
+  return (
+    <div className="mt-4 border-t border-border pt-3">
+      <Disclosure
+        summary="Cancelled"
+        detail={`${cancelled.length} in the last ${CANCELLED_KEEP_MONTHS} months · saves ${saves} a year`}
+      >
+        <div className="pt-2">
+          <p className="pb-2 text-sm text-muted">
+            {cancelled.length} in the last {CANCELLED_KEEP_MONTHS} months · saves {saves} a year
+          </p>
+          {error && (
+            <p role="alert" className="mb-2 text-xs text-danger">
+              {error}
+            </p>
+          )}
+          <ul className="divide-y divide-border border-y border-border">
+            {cancelled.map((s) => (
+              <li
+                key={s.id}
+                className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 py-2 ${COLS}`}
+              >
+                <span className="col-start-1 row-start-1 truncate text-sm text-muted line-through decoration-border-strong sm:pl-8">
+                  {s.name}
+                </span>
+                <span className="col-start-2 row-start-1 inline-flex justify-center sm:col-start-auto sm:row-start-auto sm:order-last">
+                  <RowAction icon={RotateCcw} label={`Restore ${s.name}`} onClick={() => restore(s)} />
+                </span>
+                {hasTags && (
+                  <span className="hidden flex-wrap gap-1 sm:flex">
+                    {s.tags.map((t) => (
+                      <Pill key={t}>{t}</Pill>
+                    ))}
+                  </span>
+                )}
+                <span className="tabular col-span-2 whitespace-nowrap text-xs text-muted sm:col-span-1 sm:text-sm">
+                  Cancelled {shortDate(s.cancelled_on, today)}
+                  <span className="sm:hidden"> · {formatMoney(s.amount_chf, s.currency)}</span>
+                </span>
+                <span className="hidden sm:block">
+                  <Amount amount={s.amount_chf} currency={s.currency} chf={inChf(s)} muted />
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs text-faint">
+            Each one leaves this list {CANCELLED_KEEP_MONTHS} months after it was cancelled. The arrow restores it.
+          </p>
+        </div>
+      </Disclosure>
     </div>
   );
 }

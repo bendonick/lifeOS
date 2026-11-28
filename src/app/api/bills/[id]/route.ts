@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { archiveBill, billExists, setBillNote, setBillPaid, updateBill } from "@/lib/db/bills";
-import { checkPayment, checkPaymentNote } from "@/lib/personal/payments";
+import { archiveBill, billExists, billKind, setBillCancelled, setBillNote, setBillPaid, updateBill } from "@/lib/db/bills";
+import { zurichToday } from "@/lib/dates";
+import { checkCancelDate, checkPayment, checkPaymentNote } from "@/lib/personal/payments";
 
 // One monthly payment. PATCH does three jobs, told apart by the body:
 // `{ month, paid }` ticks or unticks a month; `{ name, due_day, amount_chf?,
-// kind?, tags? }` edits it (what is left out stays as it was); `{ note }` sets
-// its note (empty or null clears it). DELETE takes it off the lists and keeps
-// its paid log.
+// kind?, tags?, currency? }` edits it (what is left out stays as it was);
+// `{ note }` sets its note (empty or null clears it); `{ cancelled_on }`
+// cancels a subscription on that day, or restores it with null. DELETE takes
+// it off the lists and keeps its paid log.
 
 async function activeId(ctx: RouteContext<"/api/bills/[id]">): Promise<number | null> {
   const { id } = await ctx.params;
@@ -23,6 +25,15 @@ export async function PATCH(req: NextRequest, ctx: RouteContext<"/api/bills/[id]
     const checked = checkPaymentNote(body.note);
     if ("error" in checked) return NextResponse.json({ error: checked.error }, { status: 400 });
     setBillNote(billId, checked.note);
+    return NextResponse.json({ ok: true });
+  }
+  if (body && "cancelled_on" in body) {
+    if (billKind(billId) !== "subscription") {
+      return NextResponse.json({ error: "only a subscription can be cancelled" }, { status: 400 });
+    }
+    const checked = checkCancelDate(body.cancelled_on, zurichToday());
+    if ("error" in checked) return NextResponse.json({ error: checked.error }, { status: 400 });
+    setBillCancelled(billId, checked.cancelled_on);
     return NextResponse.json({ ok: true });
   }
   if (body && "name" in body) {

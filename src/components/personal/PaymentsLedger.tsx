@@ -17,8 +17,8 @@ import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
 /**
  * Monthly payments on the Money page: the core payments you pay yourself and
  * tick, as on Personal, with the figures. Subscriptions bill themselves and
- * live in their own module below (`SubscriptionsList`); choosing Core or
- * Subscription in a payment's editor moves it between the two.
+ * live in their own module below (`SubscriptionsList`). Each list creates its
+ * own kind, so there is no type to choose.
  *
  * One row per payment, in columns: the payment (its name is its tick, drawn
  * as on Personal and on Habits), its tags, the due date this month, the
@@ -34,10 +34,9 @@ import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
  * (Due, Amount, Name) sits beside it. Picks last while the page is open.
  *
  * A pencil at the end of a row turns it into its editor, the shared
- * PaymentForm with its amount, type and tags: name, due day, amount, Core or
- * Subscription, tags (typed, with the tags in use offered), Save, Cancel,
- * Remove payment (asks once; its paid months stay in the log). One row is
- * edited at a time.
+ * PaymentForm with its amount and tags: name, due day, amount in francs, tags
+ * (typed, with the tags in use offered), Save, Cancel, Remove payment (asks
+ * once; its paid months stay in the log). One row is edited at a time.
  *
  * At the right end of the payment's bar, inside it, a chevron opens the row's
  * **Details**: for now a note (`PaymentNote`), read and written in place

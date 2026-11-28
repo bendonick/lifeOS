@@ -9,7 +9,7 @@ import { newsreader } from "@/components/ui/fonts";
 import { PageMasthead } from "@/components/ui/PageMasthead";
 import { RuledSection } from "@/components/ui/RuledSection";
 import { SiteNav } from "@/components/ui/SiteNav";
-import { billsForMonth } from "@/lib/db/bills";
+import { billsForMonth, cancelledSubscriptions, fxRates } from "@/lib/db/bills";
 import { monthOf, zurichToday } from "@/lib/dates";
 import { tagSuggestions } from "@/lib/personal/payments";
 
@@ -27,8 +27,9 @@ export const viewport: Viewport = { themeColor: "#efdfbb", colorScheme: "light" 
  *      due date, amount and status in columns. Core payments only: the ones
  *      you pay and tick.
  *   2. **Subscriptions** (`SubscriptionsList`): the payments that bill
- *      themselves, with no tick, the day each bills and what they cost a
- *      month and a year.
+ *      themselves, with no tick, the day each bills, each in its own currency
+ *      with francs at the rates set here, what they cost a month and a year,
+ *      and the ones cancelled in the last six months.
  *   3. **Details**, closed at rest: spending, budget, history and the
  *      transaction tools, as they stood on Personal, until each is rebuilt as
  *      a module of its own. `+ Add → Expense` and the "History" anchor still
@@ -40,6 +41,7 @@ export default function MoneyPage() {
   const all = billsForMonth(month);
   const bills = all.filter((b) => b.kind === "core");
   const subscriptions = all.filter((b) => b.kind === "subscription");
+  const cancelled = cancelledSubscriptions(today);
   // One tag vocabulary across both lists.
   const suggestions = tagSuggestions(all);
 
@@ -93,6 +95,8 @@ export default function MoneyPage() {
           <RuledSection id="subscriptions" title="Subscriptions" meta="billed automatically">
             <SubscriptionsList
               subscriptions={subscriptions}
+              cancelled={cancelled}
+              rates={fxRates()}
               month={month}
               today={today}
               tagSuggestions={suggestions}

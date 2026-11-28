@@ -11,10 +11,73 @@ const chfCents = new Intl.NumberFormat("en-GB", { minimumFractionDigits: 2, maxi
 /** An amount as the Money page writes it; rounded to the cent first, so a sum
  *  like 19.9 + 0.1 reads "CHF 20". No amount is a dash. */
 export function formatChf(n: number | null): string {
+  return formatMoney(n, "CHF");
+}
+
+/** The same, in the payment's own currency: "USD 20", "EUR 9.99". */
+export function formatMoney(n: number | null, currency: Currency): string {
   if (n === null) return "—";
   const c = Math.round(n * 100) / 100;
-  return `CHF ${Number.isInteger(c) ? chf.format(c) : chfCents.format(c)}`;
+  return `${currency} ${Number.isInteger(c) ? chf.format(c) : chfCents.format(c)}`;
 }
+
+/** What a subscription can bill in, in the order the dropdown lists them.
+ *  Core payments are in francs. */
+export const CURRENCIES = ["USD", "EUR", "CHF", "GBP"] as const;
+export type Currency = (typeof CURRENCIES)[number];
+export const CURRENCY_NAMES: Record<Currency, string> = {
+  USD: "US dollar",
+  EUR: "Euro",
+  CHF: "Swiss franc",
+  GBP: "Pound sterling",
+};
+/** A new subscription starts in dollars: most apps bill in them. */
+export const SUBSCRIPTION_CURRENCY: Currency = "USD";
+
+/** Francs per unit of each other currency, set by hand on the Money page (no
+ *  outside service: nothing leaves the machine). `set` is the day they were
+ *  last saved; null means the defaults below are in use. */
+export interface FxRates {
+  USD: number;
+  EUR: number;
+  GBP: number;
+  set: string | null;
+}
+export const DEFAULT_FX_RATES: FxRates = { USD: 0.8, EUR: 0.93, GBP: 1.06, set: null };
+export const FX_RATE_MAX = 100;
+
+/** An amount in francs at the given rates. */
+export function toChf(amount: number, currency: Currency, rates: FxRates): number {
+  return currency === "CHF" ? amount : amount * rates[currency];
+}
+
+/** Rates as typed on the page: each a positive number of francs. */
+export function checkFxRates(raw: { USD?: unknown; EUR?: unknown; GBP?: unknown }):
+  | Omit<FxRates, "set">
+  | { error: string } {
+  const out: Partial<Omit<FxRates, "set">> = {};
+  for (const c of ["USD", "EUR", "GBP"] as const) {
+    const v = typeof raw[c] === "string" ? Number(raw[c]) : raw[c];
+    if (typeof v !== "number" || !Number.isFinite(v) || v <= 0 || v > FX_RATE_MAX) {
+      return { error: `the ${c} rate is a number of francs above 0` };
+    }
+    out[c] = Math.round(v * 10_000) / 10_000;
+  }
+  return out as Omit<FxRates, "set">;
+}
+
+/** A cancel date: a real day, not in the future. */
+export function checkCancelDate(raw: unknown, today: string): { cancelled_on: string | null } | { error: string } {
+  if (raw === null) return { cancelled_on: null };
+  if (typeof raw !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(raw) || Number.isNaN(Date.parse(`${raw}T12:00:00Z`))) {
+    return { error: "the cancel date is a day, like 2026-11-28" };
+  }
+  if (raw > today) return { error: "the cancel date can't be in the future" };
+  return { cancelled_on: raw };
+}
+
+/** How long a cancelled subscription stays listed. */
+export const CANCELLED_KEEP_MONTHS = 6;
 export const PAYMENT_AMOUNT_MAX = 100_000;
 
 /** Core: the cost of living (rent, insurance, the travel pass). Subscription:
@@ -36,6 +99,8 @@ export interface PaymentInput {
   kind?: PaymentKind;
   /** Absent: leave the stored tags alone. [] clears them. */
   tags?: string[];
+  /** Absent: leave the stored currency alone. */
+  currency?: Currency;
 }
 
 /** The key a tag is compared by: "utility" and "Utility " are one tag. */
@@ -69,8 +134,8 @@ export function checkPaymentTags(raw: unknown): { tags: string[] } | { error: st
 
 /**
  * `amount` is optional: Personal's form sends none, the Money page's sends a
- * number or an empty string (no amount). So are `kind` and `tags`, which only
- * the Money page's form sends.
+ * number or an empty string (no amount). So are `kind`, `tags` and
+ * `currency`, which only the Money page's forms send.
  */
 export function checkPayment(raw: {
   name?: unknown;
@@ -78,6 +143,7 @@ export function checkPayment(raw: {
   amount_chf?: unknown;
   kind?: unknown;
   tags?: unknown;
+  currency?: unknown;
 }): PaymentInput | { error: string } {
   const name = typeof raw.name === "string" ? raw.name.trim().replace(/\s+/g, " ") : "";
   if (!name) return { error: "give the payment a name" };
@@ -108,6 +174,11 @@ export function checkPayment(raw: {
     const checked = checkPaymentTags(raw.tags);
     if ("error" in checked) return checked;
     out.tags = checked.tags;
+  }
+
+  if (raw.currency !== undefined) {
+    if (!CURRENCIES.includes(raw.currency as Currency)) return { error: "the currency is USD, EUR, CHF or GBP" };
+    out.currency = raw.currency as Currency;
   }
   return out;
 }

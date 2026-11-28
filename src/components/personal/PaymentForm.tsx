@@ -3,62 +3,77 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { TagField } from "@/components/personal/TagField";
-import { filledButtonChrome, inputChrome } from "@/components/ui/controls";
-import { PAYMENT_NAME_MAX, checkPayment, type PaymentKind } from "@/lib/personal/payments";
+import { filledButtonChrome, inputChrome, selectChrome } from "@/components/ui/controls";
+import { zurichToday } from "@/lib/dates";
+import {
+  CURRENCIES,
+  CURRENCY_NAMES,
+  PAYMENT_NAME_MAX,
+  SUBSCRIPTION_CURRENCY,
+  checkPayment,
+  type Currency,
+  type PaymentKind,
+} from "@/lib/personal/payments";
 
 /**
- * One form for a monthly payment (a bill or a subscription): its name and the
- * day of the month it is due, and on the Money page its amount. Used to add a
- * payment (under the list, and from the page's `+ Add` menu) and to edit one
- * in place of its row. Personal's copy has no amount field, so the page that
- * shows no figures never shows one in its editor either; saving there leaves
- * the amount as it was. The Money page's copy also sets the payment's type
- * (Core or Subscription) and its tags (`TagField`); Personal's leaves both as
- * they were.
+ * One form for a monthly payment or a subscription: its name and the day of
+ * the month it is due, and on the Money page its amount and tags (`TagField`).
+ * Used to add one (under its list, and from the page's `+ Add` menu) and to
+ * edit one in place of its row. Personal's copy has no amount or tags, so the
+ * page that shows no figures never shows one in its editor either; saving
+ * there leaves them as they were.
+ *
+ * There is no type switch: the list a form belongs to decides it (`kind`), and
+ * a payment is created under the right one rather than moved later. A
+ * subscription's form also picks its currency (USD, EUR, CHF, GBP; new ones
+ * start in dollars) and, when editing, offers **Cancel subscription**, which
+ * asks for the day it was cancelled and moves it to the Cancelled list.
  *
  * Editing also offers Remove, which asks once in the row before it acts: the
- * payment leaves the lists and its paid months stay in the log.
+ * entry leaves every list (a payment's paid months stay in the log).
  */
 export function PaymentForm({
   payment,
+  kind = "core",
   withAmount = false,
   withLabels = false,
   tagSuggestions = [],
-  defaultKind = "core",
   inputId,
   onDone,
 }: {
-  /** The payment being edited; absent when adding. */
+  /** The entry being edited; absent when adding. */
   payment?: {
     id: number;
     name: string;
     due_day: number;
     amount_chf: number | null;
-    kind?: PaymentKind;
     tags?: string[];
+    currency?: Currency;
   };
+  /** Which list the form belongs to: a new entry is created as this. */
+  kind?: PaymentKind;
   /** Show the amount field (the Money page). */
   withAmount?: boolean;
-  /** Show the type and tags (the Money page), with these tags offered. */
+  /** Show the tags (the Money page), with these tags offered. */
   withLabels?: boolean;
   tagSuggestions?: string[];
-  /** Adding: the type a new payment starts as (Subscriptions adds subscriptions). */
-  defaultKind?: PaymentKind;
   inputId?: string;
-  /** Editing: called after a save or removal, and by Cancel. Adding keeps the
-   *  form open and empty for the next payment. */
+  /** Editing: called after a save, cancel or removal, and by Cancel. Adding
+   *  keeps the form open and empty for the next one. */
   onDone?: () => void;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const subscription = kind === "subscription";
   const [name, setName] = useState(payment?.name ?? "");
   const [dueDay, setDueDay] = useState(payment ? String(payment.due_day) : "");
   const [amount, setAmount] = useState(payment?.amount_chf != null ? String(payment.amount_chf) : "");
-  const [kind, setKind] = useState<PaymentKind>(payment?.kind ?? defaultKind);
+  const [currency, setCurrency] = useState<Currency>(payment?.currency ?? SUBSCRIPTION_CURRENCY);
   const [tags, setTags] = useState<string[]>(payment?.tags ?? []);
   const [tagDraft, setTagDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [confirmRemove, setConfirmRemove] = useState(false);
+  const [confirm, setConfirm] = useState<null | "remove" | "cancel">(null);
+  const [cancelDate, setCancelDate] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function send(url: string, method: string, body?: object, failure = "could not save") {
@@ -86,7 +101,10 @@ export function PaymentForm({
       due_day: dueDay,
       ...(withAmount ? { amount_chf: amount } : {}),
       // A tag typed but not yet added is kept, not lost on Save.
-      ...(withLabels ? { kind, tags: tagDraft.trim() ? [...tags, tagDraft] : tags } : {}),
+      ...(withLabels ? { tags: tagDraft.trim() ? [...tags, tagDraft] : tags } : {}),
+      ...(withAmount && subscription ? { currency } : {}),
+      // The type is set once, when it is created.
+      ...(payment ? {} : { kind }),
     });
     if ("error" in checked) {
       setError(checked.error);
@@ -94,14 +112,13 @@ export function PaymentForm({
     }
     const ok = payment
       ? await send(`/api/bills/${payment.id}`, "PATCH", checked)
-      : await send("/api/bills", "POST", checked, "could not add the payment");
+      : await send("/api/bills", "POST", checked, `could not add the ${subscription ? "subscription" : "payment"}`);
     if (!ok) return;
     if (payment) onDone?.();
     else {
       setName("");
       setDueDay("");
       setAmount("");
-      setKind(defaultKind);
       setTags([]);
       setTagDraft("");
     }
@@ -109,28 +126,76 @@ export function PaymentForm({
 
   async function remove() {
     if (!payment) return;
-    if (await send(`/api/bills/${payment.id}`, "DELETE", undefined, "could not remove the payment")) onDone?.();
+    if (await send(`/api/bills/${payment.id}`, "DELETE", undefined, "could not remove it")) onDone?.();
   }
 
-  if (payment && confirmRemove) {
+  async function cancelSubscription() {
+    if (!payment) return;
+    if (await send(`/api/bills/${payment.id}`, "PATCH", { cancelled_on: cancelDate }, "could not cancel it")) {
+      onDone?.();
+    }
+  }
+
+  const alert = error && (
+    <span role="alert" className="basis-full text-xs text-danger">
+      {error}
+    </span>
+  );
+
+  if (payment && confirm === "remove") {
     return (
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-busy={busy || isPending}>
         <p className="text-sm text-text">
-          Remove “{payment.name}”? <span className="text-muted">Its paid months stay in the log.</span>
+          Remove “{payment.name}”?{" "}
+          <span className="text-muted">
+            {subscription
+              ? "It leaves every list; to keep it under Cancelled, cancel it instead."
+              : "Its paid months stay in the log."}
+          </span>
         </p>
         <span className="flex items-center gap-3">
           <button type="button" onClick={remove} disabled={busy} className={filledButtonChrome}>
             Remove
           </button>
-          <button type="button" onClick={() => setConfirmRemove(false)} className="text-sm text-link hover:text-text">
+          <button type="button" onClick={() => setConfirm(null)} className="text-sm text-link hover:text-text">
             Keep it
           </button>
         </span>
-        {error && (
-          <span role="alert" className="text-xs text-danger">
-            {error}
-          </span>
-        )}
+        {alert}
+      </div>
+    );
+  }
+
+  if (payment && confirm === "cancel") {
+    return (
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-busy={busy || isPending}>
+        <p className="text-sm text-text">
+          Cancel “{payment.name}”? <span className="text-muted">It moves to Cancelled and stops counting.</span>
+        </p>
+        <label className="flex items-center gap-1.5 text-sm text-muted">
+          Cancelled on
+          <input
+            type="date"
+            value={cancelDate}
+            max={zurichToday()}
+            onChange={(e) => setCancelDate(e.target.value)}
+            className={`text-text ${inputChrome}`}
+          />
+        </label>
+        <span className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={cancelSubscription}
+            disabled={busy || !cancelDate}
+            className={filledButtonChrome}
+          >
+            Cancel subscription
+          </button>
+          <button type="button" onClick={() => setConfirm(null)} className="text-sm text-link hover:text-text">
+            Keep it
+          </button>
+        </span>
+        {alert}
       </div>
     );
   }
@@ -141,10 +206,10 @@ export function PaymentForm({
         id={inputId}
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder={payment ? undefined : defaultKind === "subscription" ? "New subscription…" : "New payment…"}
+        placeholder={payment ? undefined : subscription ? "New subscription…" : "New payment…"}
         maxLength={PAYMENT_NAME_MAX}
         autoFocus
-        aria-label="payment name"
+        aria-label={subscription ? "subscription name" : "payment name"}
         aria-invalid={!!error}
         className={`min-w-40 flex-1 ${inputChrome}`}
       />
@@ -159,7 +224,31 @@ export function PaymentForm({
           className={`w-12 text-center ${inputChrome}`}
         />
       </label>
-      {withAmount && (
+      {withAmount && subscription && (
+        <span className="flex items-center gap-1.5">
+          <select
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value as Currency)}
+            aria-label="Currency"
+            className={`text-text ${selectChrome}`}
+          >
+            {CURRENCIES.map((c) => (
+              <option key={c} value={c} title={CURRENCY_NAMES[c]}>
+                {c}
+              </option>
+            ))}
+          </select>
+          <input
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            inputMode="decimal"
+            placeholder="—"
+            aria-label="Amount"
+            className={`tabular w-20 text-right ${inputChrome}`}
+          />
+        </span>
+      )}
+      {withAmount && !subscription && (
         <label className="flex items-center gap-1.5 text-sm text-muted">
           CHF
           <input
@@ -173,26 +262,8 @@ export function PaymentForm({
       )}
       {withLabels && (
         <>
-          {/* The type and tags take a line of their own. */}
+          {/* The tags take a line of their own. */}
           <span aria-hidden="true" className="h-0 basis-full" />
-          <span className="flex items-center gap-1.5 text-sm text-muted">
-            Type
-            <span role="group" aria-label="Type" className="inline-flex overflow-hidden rounded-md border border-border">
-              {(["core", "subscription"] as const).map((k) => (
-                <button
-                  key={k}
-                  type="button"
-                  aria-pressed={kind === k}
-                  onClick={() => setKind(k)}
-                  className={`px-3 py-1.5 text-sm transition-colors first:border-r first:border-border ${
-                    kind === k ? "bg-(--color-ink) text-(--color-paper)" : "bg-surface text-muted hover:text-text"
-                  }`}
-                >
-                  {k === "core" ? "Core" : "Subscription"}
-                </button>
-              ))}
-            </span>
-          </span>
           <span className="flex items-center gap-1.5 text-sm text-muted">
             Tags
             <TagField tags={tags} onTags={setTags} draft={tagDraft} onDraft={setTagDraft} suggestions={tagSuggestions} />
@@ -208,19 +279,29 @@ export function PaymentForm({
         </button>
       )}
       {payment && (
-        <button
-          type="button"
-          onClick={() => setConfirmRemove(true)}
-          className="ml-auto px-1 text-sm text-muted hover:text-danger"
-        >
-          Remove payment
-        </button>
-      )}
-      {error && (
-        <span role="alert" className="basis-full text-xs text-danger">
-          {error}
+        <span className="ml-auto flex items-center gap-3">
+          {subscription && (
+            <button
+              type="button"
+              onClick={() => {
+                setCancelDate(zurichToday());
+                setConfirm("cancel");
+              }}
+              className="px-1 text-sm text-text underline decoration-border-strong underline-offset-4 hover:decoration-text"
+            >
+              Cancel subscription
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setConfirm("remove")}
+            className="px-1 text-sm text-muted hover:text-danger"
+          >
+            {subscription ? "Remove" : "Remove payment"}
+          </button>
         </span>
       )}
+      {alert}
     </form>
   );
 }
