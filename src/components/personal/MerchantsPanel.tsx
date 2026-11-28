@@ -110,7 +110,7 @@ export function MerchantsPanel({
         label="merchant views"
       />
 
-      <div className="rounded-lg border border-border bg-surface">
+      <div data-panel="" className="rounded-lg border border-border bg-surface">
         {(isPending || busy) && (
           <div className="h-0.5 rounded-t-lg bg-personal/40" aria-hidden="true" />
         )}

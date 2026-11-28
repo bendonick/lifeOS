@@ -54,7 +54,7 @@ export function BudgetTable({
   const paceFraction = o.prospective ? 0 : o.dayOfMonth / o.daysInMonth;
 
   return (
-    <div className="rounded-lg border border-border bg-surface" aria-busy={isPending}>
+    <div data-panel="" className="rounded-lg border border-border bg-surface" aria-busy={isPending}>
       {isPending && <div className="h-0.5 rounded-t-lg bg-personal/40" aria-hidden="true" />}
       {TIERS.map(([tier, label]) => {
         const lines = o.lines.filter((l) => l.tier === tier);

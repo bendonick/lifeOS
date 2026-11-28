@@ -58,6 +58,7 @@ export function BudgetProposalPanel({ proposal }: { proposal: BudgetProposal }) 
   return (
     <div
       id="budget-proposal"
+      data-panel=""
       className="rounded-lg border border-border bg-surface"
       aria-busy={isPending || saving !== null}
     >

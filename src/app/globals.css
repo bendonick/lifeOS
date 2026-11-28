@@ -729,6 +729,16 @@ body:has(.theme-maritime) {
   border-bottom-width: 0;
 }
 
+/* Personal's panels (budget table, proposal, merchants) are boxes on the dark
+   theme. Here they open and close on a rule, like the sections around them:
+   no side borders, no corners, no ground. The hook is `data-panel`. */
+.theme-maritime [data-panel] {
+  border-left-width: 0;
+  border-right-width: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
 /* A bare NotesCard: the status line and the add action share one row. */
 .theme-maritime [data-notes-bare] {
   display: flex;
