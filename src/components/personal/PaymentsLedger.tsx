@@ -1,8 +1,10 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, Pencil } from "lucide-react";
+import { useState } from "react";
 import { PaymentForm } from "@/components/personal/PaymentForm";
 import { Disclosure } from "@/components/ui/Disclosure";
+import { RowAction } from "@/components/ui/RowAction";
 import type { BillStatus } from "@/lib/db/bills";
 import { dayLabel, daysInMonth } from "@/lib/dates";
 import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
@@ -16,17 +18,21 @@ import { useOptimisticToggle } from "@/lib/useOptimisticToggle";
  * Payment in the page's `+ Add` menu (`#new-payment`), adds one with its
  * amount.
  *
- * A row does not open yet: what a payment's detail and editor hold is still to
- * be decided.
+ * A pencil at the end of a row turns it into its editor, the shared
+ * PaymentForm with its amount field: name, due day, amount, Save, Cancel,
+ * Remove payment (asks once; its paid months stay in the log). One row is
+ * edited at a time. A payment's further detail is still to be decided.
  *
- * Below `sm` a row is two lines: the tick, then due · amount · status, so the
- * name keeps its width on a phone.
+ * Below `sm` a row is two lines: the tick and the pencil, then due · amount ·
+ * status, so the name keeps its width on a phone.
  */
-const chf = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 2, minimumFractionDigits: 0 });
-const chfWhole = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
-const COLS = "sm:grid-cols-[minmax(0,1fr)_6.5rem_6.5rem_8.5rem]";
+// Whole francs as "CHF 70", anything with cents as "CHF 12.90".
+const chf = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
+const chfCents = new Intl.NumberFormat("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const COLS = "sm:grid-cols-[minmax(0,1fr)_6.5rem_6.5rem_8.5rem_1.75rem]";
 
 export function PaymentsLedger({ bills, month, today }: { bills: BillStatus[]; month: string; today: string }) {
+  const [editingId, setEditingId] = useState<number | null>(null);
   const { toggle, valueFor, isPending, error } = useOptimisticToggle<BillStatus>({
     idOf: (b) => b.id,
     labelOf: (b) => b.name,
@@ -78,7 +84,8 @@ export function PaymentsLedger({ bills, month, today }: { bills: BillStatus[]; m
   const paidCount = bills.filter(paidOf).length;
   const total = bills.reduce((s, b) => s + (b.amount_chf ?? 0), 0);
   const owed = bills.filter((b) => !paidOf(b)).reduce((s, b) => s + (b.amount_chf ?? 0), 0);
-  const money = (n: number | null) => (n === null ? "—" : `CHF ${chf.format(n)}`);
+  const money = (n: number | null) =>
+    n === null ? "—" : `CHF ${Number.isInteger(n) ? chf.format(n) : chfCents.format(n)}`;
 
   return (
     <div aria-busy={isPending}>
@@ -87,7 +94,7 @@ export function PaymentsLedger({ bills, month, today }: { bills: BillStatus[]; m
           {paidCount} of {bills.length} paid
         </span>
         <span className="tabular text-sm text-muted">
-          CHF {chfWhole.format(owed)} still to pay · CHF {chfWhole.format(total)} a month
+          CHF {chf.format(owed)} still to pay · CHF {chf.format(total)} a month
         </span>
       </div>
 
@@ -102,21 +109,32 @@ export function PaymentsLedger({ bills, month, today }: { bills: BillStatus[]; m
         <span>Due</span>
         <span className="text-right">Amount</span>
         <span className="text-right">Status</span>
+        <span />
       </div>
 
       <ul className="divide-y divide-border border-b border-border max-sm:border-t">
         {bills.map((b) => {
+          if (editingId === b.id) {
+            return (
+              <li key={b.id} className="py-2.5">
+                <PaymentForm payment={b} withAmount onDone={() => setEditingId(null)} />
+              </li>
+            );
+          }
           const paid = paidOf(b);
           const status = statusOf(b);
           return (
-            <li key={b.id} className={`grid items-center gap-x-3 gap-y-1 py-1.5 ${COLS}`}>
+            <li
+              key={b.id}
+              className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 py-1.5 ${COLS}`}
+            >
               {/* The tick: the name in a wide box, as on Personal. */}
               <button
                 type="button"
                 aria-pressed={paid}
                 aria-label={`${b.name} paid this month`}
                 onClick={() => toggle(b, paid)}
-                className={`flex min-h-9 min-w-0 items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm text-text transition-colors ${
+                className={`col-start-1 row-start-1 flex min-h-9 min-w-0 items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm text-text transition-colors ${
                   paid
                     ? "bg-[color-mix(in_oklab,var(--color-rust)_22%,var(--color-bg))] shadow-[inset_3px_0_0_var(--color-hub)]"
                     : "ring-1 ring-inset ring-border-strong hover:bg-raised"
@@ -128,17 +146,27 @@ export function PaymentsLedger({ bills, month, today }: { bills: BillStatus[]; m
                 <span className="truncate">{b.name}</span>
               </button>
 
+              <span className="col-start-2 row-start-1 inline-flex justify-center sm:col-start-5">
+                <RowAction icon={Pencil} label={`Edit ${b.name}`} onClick={() => setEditingId(b.id)} />
+              </span>
+
               {/* Phone: due · amount · status on a second line. */}
-              <span className="flex gap-2 px-1 text-xs sm:hidden">
+              <span className="col-span-2 flex gap-2 px-1 text-xs sm:hidden">
                 <span className="tabular text-muted">Due {dayLabel(dueDate(b))}</span>
                 <span className="tabular text-text">{money(b.amount_chf)}</span>
                 <span className={`ml-auto ${status.tone}`}>{status.text}</span>
               </span>
 
               {/* From sm: in columns. */}
-              <span className="tabular hidden text-sm text-muted sm:block">{dayLabel(dueDate(b))}</span>
-              <span className="tabular hidden text-right text-sm text-text sm:block">{money(b.amount_chf)}</span>
-              <span className={`hidden text-right text-xs sm:block ${status.tone}`}>{status.text}</span>
+              <span className="tabular hidden text-sm text-muted sm:col-start-2 sm:row-start-1 sm:block">
+                {dayLabel(dueDate(b))}
+              </span>
+              <span className="tabular hidden text-right text-sm text-text sm:col-start-3 sm:row-start-1 sm:block">
+                {money(b.amount_chf)}
+              </span>
+              <span className={`hidden text-right text-xs sm:col-start-4 sm:row-start-1 sm:block ${status.tone}`}>
+                {status.text}
+              </span>
             </li>
           );
         })}
