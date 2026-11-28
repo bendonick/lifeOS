@@ -351,13 +351,12 @@ becomes a session the day its data exists.
 
 ## Personal money split (2026-11-28)
 
-- **Rework the Money page.** Bills and Spending moved to `/personal/money` unchanged (#110);
-  its own layout is the next step.
+- **Rebuild the rest of the Money page.** Monthly payments is rebuilt (#113); spending,
+  budget, history and the transaction tools still sit unchanged in the closed Details toggle.
+- **What else a payment's Details hold.** Only a note for now. Built once and taken out until
+  decided: the amount a year, when it was ticked, the last six months as marks.
 - **Say when spending was last imported.** Nothing on either page says the data stops at the
   last CSV import, so a stale month reads as "CHF 0 spent · under pace". The mocks had a
   "Spending up to {date} · N days without an import" line.
 - **Bills and the budget's Fixed tier track the same payments twice** (Budget details
   counts a fixed line as paid from transactions; Bills from the tick). Decide which one owns "paid".
-- **One fixed budget line has no monthly payment.** Add it with "Add payment" if it should be
-  checked off too.
-- **Amounts with cents** show rounded to whole francs on the Money page.
