@@ -12,7 +12,7 @@ import { RowAction } from "@/components/ui/RowAction";
 import { Tabs } from "@/components/ui/Tabs";
 import type { BillStatus, CancelledSubscription } from "@/lib/db/bills";
 import { dayLabel, daysInMonth } from "@/lib/dates";
-import { CANCELLED_KEEP_MONTHS, formatMoney } from "@/lib/personal/payments";
+import { formatMoney } from "@/lib/personal/payments";
 
 /**
  * Subscriptions on the Money page: the payments that bill themselves
@@ -26,8 +26,8 @@ import { CANCELLED_KEEP_MONTHS, formatMoney } from "@/lib/personal/payments";
  * has its tick, and the whole bar opens the row's **Details** (its note, as on
  * Monthly payments), with a dot on the chevron while a note exists and the row
  * is closed. A date still to come this month is in full ink, one already
- * billed is muted. Above the list, how many there are and how many still bill
- * this month, and what they cost a month and a year.
+ * billed is muted. Above the list, only what they cost a month and a year;
+ * no counts or status lines, to keep the section quiet.
  *
  * The tag row filters as on Monthly payments (any number of tags, a row shows
  * when it carries any of them, none picked shows all), and Sort orders by
@@ -40,8 +40,9 @@ import { CANCELLED_KEEP_MONTHS, formatMoney } from "@/lib/personal/payments";
  *
  * **Cancelled.** "Cancel subscription" in the editor asks for the day and
  * moves it to the Cancelled list, right under "Add subscription" with no rule
- * between them: closed at rest, saying how many and what they save a year; each row has its cancel date and a restore
- * arrow. A subscription leaves the list six months after it was cancelled.
+ * between them. It is closed at rest and carries no extra text; each row has
+ * its cancel date and a restore arrow. A subscription leaves the list six
+ * months after it was cancelled.
  *
  * Below `sm` a row is two lines: the bar and the pencil, then the date ·
  * amount · tags.
@@ -112,9 +113,7 @@ export function SubscriptionsList({
   const perMonth = (list: BillStatus[]) =>
     list.some((s) => s.amount_chf !== null) ? `${formatMoney(sum(list), "USD")} a month` : "no amounts yet";
 
-  const extras = cancelled.length > 0 && (
-    <CancelledList cancelled={cancelled} today={today} saves={formatMoney(sum(cancelled) * 12, "USD")} />
-  );
+  const extras = cancelled.length > 0 && <CancelledList cancelled={cancelled} today={today} />;
 
   if (subscriptions.length === 0) {
     return (
@@ -131,8 +130,6 @@ export function SubscriptionsList({
   const billDay = (s: BillStatus) => Math.min(s.due_day, lastDay);
   const billDate = (s: BillStatus) => `${month}-${String(billDay(s)).padStart(2, "0")}`;
   const toCome = (s: BillStatus) => billDay(s) >= dayOfMonth;
-
-  const stillToBill = subscriptions.filter(toCome).length;
 
   const byName = (a: BillStatus, b: BillStatus) => a.name.localeCompare(b.name, "en", { sensitivity: "base" });
   const ordered = [...filter.shown].sort((a, b) =>
@@ -235,13 +232,7 @@ export function SubscriptionsList({
 
   return (
     <div>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 pb-2">
-        <span className="tabular text-sm text-text">
-          {subscriptions.length} {subscriptions.length === 1 ? "subscription" : "subscriptions"}{" "}
-          <span className="text-muted">
-            · {stillToBill ? `${stillToBill} still to bill this month` : "all billed this month"}
-          </span>
-        </span>
+      <div className="flex justify-end pb-2">
         <span className="tabular text-sm text-muted">
           <span className="whitespace-nowrap">{perMonth(subscriptions)}</span>
           {subscriptions.some((s) => s.amount_chf !== null) && (
@@ -292,15 +283,7 @@ export function SubscriptionsList({
 }
 
 /** Subscriptions cancelled in the last six months, closed at rest. */
-function CancelledList({
-  cancelled,
-  today,
-  saves,
-}: {
-  cancelled: CancelledSubscription[];
-  today: string;
-  saves: string;
-}) {
+function CancelledList({ cancelled, today }: { cancelled: CancelledSubscription[]; today: string }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -323,14 +306,8 @@ function CancelledList({
 
   return (
     <div className="mt-3">
-      <Disclosure
-        summary="Cancelled"
-        detail={`${cancelled.length} in the last ${CANCELLED_KEEP_MONTHS} months · saves ${saves} a year`}
-      >
-        <div className="pt-2">
-          <p className="pb-2 text-sm text-muted">
-            {cancelled.length} in the last {CANCELLED_KEEP_MONTHS} months · saves {saves} a year
-          </p>
+      <Disclosure summary="Cancelled">
+        <div>
           {error && (
             <p role="alert" className="mb-2 text-xs text-danger">
               {error}
@@ -365,9 +342,6 @@ function CancelledList({
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-xs text-faint">
-            Each one leaves this list {CANCELLED_KEEP_MONTHS} months after it was cancelled. The arrow restores it.
-          </p>
         </div>
       </Disclosure>
     </div>

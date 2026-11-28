@@ -91,7 +91,7 @@ export default function MoneyPage() {
             <PaymentsLedger bills={bills} month={month} today={today} tagSuggestions={suggestions} />
           </RuledSection>
 
-          <RuledSection id="subscriptions" title="Subscriptions" meta="billed automatically">
+          <RuledSection id="subscriptions" title="Subscriptions">
             <SubscriptionsList
               subscriptions={subscriptions}
               cancelled={cancelled}
