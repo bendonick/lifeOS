@@ -34,8 +34,8 @@ startup; these fields are the contract:
   list.)
 - **projects** — name, domain, status, deadline, notes. Seeds: **Day job** (the day job as a
   project so its tasks filter cleanly), **SousChef**, **golf-AI**.
-- **habits** / **habit_log** — habit(name, time_of_day `morning|anytime|evening`, active);
-  log(habit_id, date, done). "Today" = query by date; streaks derivable later.
+- **habits** / **habit_log** — habit(name, active, position; `time_of_day` kept but unread
+  since 2026-11-28, #107); log(habit_id, date, done). "Today" = query by date; streaks derivable later.
 - **health_metrics** — date, metric (`sleep_score|hrv|steps|kcal|protein|carbs|fat|…`), value,
   source. Long/narrow so new metrics need no migration. Targets live in a config table or file.
 - **transactions** — date, amount_chf, category, merchant, note, source.
